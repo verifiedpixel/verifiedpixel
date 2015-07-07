@@ -1,0 +1,50 @@
+<div class="widget-container" ng-controller="AggregateCtrl as agg">
+    <div class="main-list" ng-class="{wrap: agg.selected}">
+        <div class="search-box">
+            <input type="text" placeholder="{{ :: 'Search' | translate }}"
+                   ng-model="query"
+                   ng-model-options="{debounce: 500}"
+                   ng-change="agg.search(query)">
+        </div>
+
+        <div class="content-list content-list-holder" ng-if="!agg.loading">
+            <div sd-shadow>
+                <div class="desk" ng-repeat="group in agg.cards">
+                    <div class="stage" ng-show="total">
+                        <div sd-stage-header></div>
+                        <div class="stage-content" ng-style="agg.getMaxHeightStyle(group.max_items)" ng-show="agg.getState(group._id)"
+                             sd-stage-items
+                             data-stage="group"
+                             data-total="total"
+                             data-allowed="true"
+                             data-show-empty="false"
+                             data-max-items="group.max_items"
+                             data-action="agg.preview(item)"
+                             data-selected="agg.selected"
+                             data-filter="agg.query">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="preview preview-widget" ng-init="contenttab = true" ng-class="{wrap: !agg.selected}">
+        <div class="nav">
+            <button class="backlink" href="" ng-click="agg.preview()" translate=""><span class="ng-scope">Back</span></button>
+        </div>
+        <ul class="nav nav-tabs">
+            <li ng-class="{active: contenttab}">
+                <button ng-click="contenttab = true" translate>Content</button>
+            </li>
+            <li ng-class="{active: !contenttab}">
+                <button ng-click="contenttab = false" translate>Metadata</button>
+            </li>
+        </ul>
+        <div class="content-item-preview" ng-if="agg.selected">
+            <div class="content" ng-if="contenttab"
+                 sd-media-preview-widget data-item="agg.selected"></div>
+            <div ng-if="!contenttab"
+                 sd-media-metadata data-item="agg.selected"></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,66 @@
+// highlights.less
+// Styling for the highlights functionality
+// ----------------------------------------------------------------------------------------
+@import 'mixins.less';
+@import 'variables.less';
+
+
+// Higlights dropdown
+// -------------------------------------------------
+
+.highlights-dropdown {
+	.dropdown-toggle {
+		width: 48px;
+		padding: 0 !important;
+	}
+}
+
+
+// Higlights config popup
+// -------------------------------------------------
+
+.highlights-config-popup {
+
+	.multi-select {
+		margin-top: 10px;
+		li {
+			margin-bottom: 5px;
+			.text {
+				&:hover {
+					cursor: pointer;
+				}
+			}
+		}
+	}
+
+	.pills-list {
+		margin-top: 15px;
+		h6 {
+			text-transform: none !important;
+		}
+	}
+}
+
+.highlights-title {
+	display: inline-block;
+	position: relative;
+	.tooltip-inner {
+		width: 150px;
+		text-align: left;
+		h5 {
+			font-size: 11px;
+			margin: 0 0 8px;
+			color: #a7a7a7;
+		}
+		button {
+			color: #656565;
+		}
+		li {
+			height: 1%;
+			overflow: hidden;
+		}
+	}
+	&:hover {
+		cursor: pointer;
+	}
+}
