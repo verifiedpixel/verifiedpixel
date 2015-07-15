@@ -8,6 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from apps.publish.subscribers import SUBSCRIBER_TYPES
+
 from superdesk.tests import TestCase
 from apps.publish import init_app
 from apps.publish.formatters.anpa_formatter import AAPAnpaFormatter
@@ -16,7 +18,7 @@ import io
 
 
 class ANPAFormatterTest(TestCase):
-    subscribers = [{"_id": "1", "name": "Test", "can_send_takes_packages": False, "media_type": "media",
+    subscribers = [{"_id": "1", "name": "Test", "subscriber_type": SUBSCRIBER_TYPES.WIRE, "media_type": "media",
                     "is_active": True, "sequence_num_settings": {"max": 10, "min": 1},
                     "destinations": [{"name": "ANPA", "delivery_type": "email", "format": "ANPA",
                                       "config": {"recipients": "test@sourcefabric.org"}
@@ -26,7 +28,7 @@ class ANPAFormatterTest(TestCase):
     article = {
         'source': 'AAP',
         '_updated': datetime.strptime('2015-05-29 05:46', '%Y-%m-%d %H:%M'),
-        'anpa-category': {'qcode': 'a'},
+        'anpa_category': [{'qcode': 'a'}],
         'headline': 'This is a test headline',
         'byline': 'joe',
         'slugline': 'slugline',
@@ -51,7 +53,7 @@ class ANPAFormatterTest(TestCase):
             subscriber = self.app.data.find('subscribers', None, None)[0]
 
             f = AAPAnpaFormatter()
-            seq, item = f.format(self.article, subscriber)
+            seq, item = f.format(self.article, subscriber)[0]
 
             self.assertGreater(int(seq), 0)
 
@@ -74,3 +76,20 @@ class ANPAFormatterTest(TestCase):
 
             line = lines.readline()
             self.assertEqual(line.strip(), 'AAP')
+
+    def TestMultipleCategoryFormatter(self):
+        with self.app.app_context():
+            subscriber = self.app.data.find('subscribers', None, None)[0]
+            multi_article = dict(self.article)
+            multi_article.pop('anpa_category')
+            multi_article['anpa_category'] = [{'qcode': 'a'}, {'qcode': 'b'}]
+            f = AAPAnpaFormatter()
+            docs = f.format(multi_article, subscriber)
+            self.assertEqual(len(docs), 2)
+            cat = 'a'
+            for seq, doc in docs:
+                lines = io.StringIO(doc.decode())
+                line = lines.readline()
+                line = lines.readline()
+                self.assertEqual(line[2:3], cat)  # skip the date
+                cat = 'b'
