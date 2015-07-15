@@ -10,4 +10,4 @@
 #git+git://github.com/amagdas/tinys3@list-buckets#egg=tinys3
 git+git://github.com/superdesk/eve@sync-develop-24-june#egg=Eve==0.6.0-dev
 
--e git+git://github.com/verifiedpixel/superdesk@v1.0-vp#egg=Superdesk-Server
+-e git+git://github.com/verifiedpixel/superdesk@vp20150715#egg=Superdesk-Server
