@@ -20,7 +20,7 @@
 
 // Accent colors
 // -------------------------
-@blue:                  #5d9bc0; //#049cdb;
+@blue:                  #0088CC; //#049cdb;
 @blueDark:              #0064cd;
 @green:                 #46a546;
 @red:                   #9d261d;
@@ -28,7 +28,7 @@
 @orange:                #f89406;
 
 
-@sd-background: 		#f8f8f8;
+@sd-background: 		#f8f8f8; 
 @sd-text:             	@grayDark;
 @sd-blue: 				#5ea9c8;
 @sd-blue-text: 			#3599b6;
@@ -44,14 +44,14 @@
 
 // Links
 // -------------------------
-@linkColor:             #5d9bc0;
-@linkColorHover:        lighten(@linkColor, 15%);
+@linkColor:             #08c;
+@linkColorHover:        darken(@linkColor, 15%);
 
 
 // Typography
 // -------------------------
 @baseFontSize:          13px;
-@baseFontFamily:        "Roboto", Helvetica, Arial, sans-serif;
+@baseFontFamily:        "Open Sans", Helvetica, Arial, sans-serif;
 @baseLineHeight:        18px;
 @altFontFamily:         Georgia, "Times New Roman", Times, serif;
 
@@ -62,7 +62,7 @@
 
 // Tables
 // -------------------------
-@tableBackground:                   transparent; // overall background-color
+@tableBackground:                   white; // overall background-color
 @tableBackgroundAccent:             #f9f9f9; // for striping
 @tableBackgroundHover:              #f5f5f5; // for hover
 @tableBorder:                       #ddd; // table and cell border
@@ -93,8 +93,8 @@
 // Try to avoid customizing these :)
 @zindexDropdown:          1000;
 @zindexPopover:           1010;
+@zindexTooltip:           1020;
 @zindexFixedNavbar:       1030;
-@zindexTooltip:           1035;
 @zindexModalBackdrop:     1040;
 @zindexModal:             1050;
 
@@ -103,6 +103,7 @@
 // -------------------------
 @iconSpritePath:          "../../images/glyphicons-halflings.png";
 @iconWhiteSpritePath:     "../../images/glyphicons-halflings-white.png";
+@iconWarningSpritePath:     "../../images/glyphicons-halflings-warning.png";
 
 
 // Input placeholder text color
@@ -160,7 +161,7 @@
 // Positioning
 // -------------------------
 @topspace : @nav-height;
-@subnav-height: 48px;  /*was 65*/
+@subnav-height: 49px;  /*was 65*/
 @subnav-mobile-height: 45px;
 
 @subnav-level2: 40px;
@@ -168,15 +169,15 @@
 
 // Tablists and Tabpanes
 // -------------------------
-@tablist-width : 			48px;
-@tablist-background:  		#a1a1a1;
+@tablist-width :            48px;
+@tablist-background:        #a1a1a1;
 
-@tabpane-background:  		#f5f5f5;
-@tabpane-border:      		#7c7c7c;
-@tabpane-width:       		330px;
-@tabpane-extended-width: 	460px;
-@tabcontent-padding:  		15px;
-@article-tabpane-padding: 	10px;
+@tabpane-background:        #f5f5f5;
+@tabpane-border:            #7c7c7c;
+@tabpane-width:             330px;
+@tabpane-extended-width:    460px;
+@tabcontent-padding:        15px;
+@article-tabpane-padding:   10px;
 
 
 
@@ -185,8 +186,13 @@
 @notification-pane-width: 300px;
 
 // Scratchpad
+// @scratchpad-closed : 36px; /* when scratchpad enabled */
 @scratchpad-closed : 0px;
-@scratchpad-content-height : 0px;
+@scratchpad-content-height : 285px;
+
+
+//Layout 
+@bottom-view-padding: @scratchpad-closed;
 
 // Article edit screen
 @authoring-opened-articles: 30px;
@@ -206,7 +212,6 @@
 @state-color-orange: rgb(218, 138, 51);
 @state-color-navy: rgb(0, 0, 128);
 @state-color-red: rgb(206, 69, 51);
-
 
 //Search
 @generic-searchbar: 320px;

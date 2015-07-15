@@ -34,6 +34,13 @@ define('main', [
         superdesk.constant('config', config);
         superdesk.constant('lodash', _);
 
+        // verifiedpixel list must be the default page
+        /*
+        superdesk.config(['$routeProvider', function($routeProvider) {
+            $routeProvider.when('/', {redirectTo: '/verifiedpixel'});
+        }]);
+        */
+
         // load apps & bootstrap
         var body = angular.element('body');
         body.ready(function() {

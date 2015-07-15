@@ -130,6 +130,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'apps.publish.content_purge',
         'schedule': crontab(minute=30)
     },
+    'verify:update': {
+        'task': 'apps.verifiedpixel.verify_ingest',
+        'schedule': timedelta(seconds=30)
+    },
 }
 
 SENTRY_DSN = env('SENTRY_DSN')
@@ -151,14 +155,14 @@ INSTALLED_APPS = [
     'superdesk.io.ftp',
     'superdesk.io.rss',
     'superdesk.publish',
-    'superdesk.macro_register',
     'superdesk.commands',
     'superdesk.data_consistency',
+
+    'apps.verifiedpixel',
 
     'apps.archive',
     'apps.stages',
     'apps.desks',
-    'apps.planning',
     'apps.coverages',
     'apps.tasks',
     'apps.preferences',
@@ -170,9 +174,7 @@ INSTALLED_APPS = [
     'apps.search',
     'apps.privilege',
     'apps.rules',
-    'apps.highlights',
     'apps.publish',
-    'apps.macros',
     'apps.dictionaries',
     'apps.duplication',
     'apps.aap_mm',

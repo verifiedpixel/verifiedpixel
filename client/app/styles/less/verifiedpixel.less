@@ -1,0 +1,61 @@
+@import 'mixins.less';
+@import 'variables.less';
+
+.main-section {
+	z-index: auto;
+}
+
+.navbtn.hover {
+	background: #e0e0e0;
+}
+
+.button-stack {
+    &.right-stack {
+        .navbtn {
+            line-height: 46px;
+        }
+    }
+    &.active {
+        background-color: #eaeaea;
+        &.right-stack {
+            border-left: 1px solid #d1d1d1 !important;
+            height: 49px !important;
+            .navbtn {
+                border-left: none !important;
+                &:hover {
+                    background-color: transparent;
+                }
+            }
+        }
+    }
+    .nav-tabs {
+        margin-left: 20px;
+    }
+}
+
+.homebtn {
+	width: 48px;
+	padding: 0;
+}
+
+[ng-click],
+[data-ng-click],
+[x-ng-click] {
+    cursor: pointer;
+}
+
+// Hide the link to desks in the menu.
+// Needed since we import superdesk.desks in the modules
+#main-menu .content > ul > li > a[href="#/desks/"],
+.nav-tabs > li > a[href="#/settings/desks"],
+.nav-tabs > li > a[href="#/settings/user-roles"] {
+    display: none !important;
+}
+
+// Remove language options from general and blog settings
+// because the feature is not implemented yet
+// FIXME: must be uncommented after release (LBSD-546)
+.blog-settings-view div.form-group:nth-child(5),
+.general-settings div.form-group:nth-child(1) {
+    display: none !important;
+}
