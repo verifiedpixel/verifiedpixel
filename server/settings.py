@@ -21,7 +21,7 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-from publicapi.settings import MONGO_DBNAME as PUBLICAPI_DBNAME  # noqa @UnusedImport
+from publicapi.settings import PUBLICAPI_MONGO_DBNAME  # noqa @UnusedImport
 
 
 def env(variable, fallback_value=None):
@@ -64,26 +64,12 @@ X_HEADERS = ['Content-Type', 'Authorization', 'If-Match']
 
 MONGO_DBNAME = env('MONGO_DBNAME', 'verifiedpixel')
 MONGO_URI = env('MONGO_URI', 'mongodb://localhost/%s' % MONGO_DBNAME)
-if env('MONGOLAB_URI'):
-    MONGO_URI = env('MONGOLAB_URI')
-elif env('MONGODB_PORT'):
-    MONGO_URI = '{0}/{1}'.format(env('MONGODB_PORT').replace('tcp:', 'mongodb:'), MONGO_DBNAME)
-
 LEGAL_ARCHIVE_DBNAME = env('LEGAL_ARCHIVE_DBNAME', 'legal_archive')
-if env('LEGAL_ARCHIVE_URI'):
-    LEGAL_ARCHIVE_URI = env('LEGAL_ARCHIVE_URI')
-elif env('LEGAL_ARCHIVEDB_PORT'):
-    LEGAL_ARCHIVE_URI = '{0}/{1}'.format(env('LEGAL_ARCHIVEDB_PORT').replace('tcp:', 'mongodb:'),
-                                         LEGAL_ARCHIVE_DBNAME)
-
-if env('PUBLICAPI_URI'):
-    PUBLICAPI_URI = env('PUBLICAPI_URI')
-elif env('PUBLICAPI_PORT'):
-    PUBLICAPI_URI = '{0}/{1}'.format(env('PUBLICAPI_PORT').replace('tcp:', 'mongodb:'),
-                                     PUBLICAPI_DBNAME)
+LEGAL_ARCHIVE_URI = env('LEGAL_ARCHIVE_URI')
+PUBLICAPI_MONGO_URI = env('PUBLICAPI_MONGO_URI')
 
 ELASTICSEARCH_URL = env('ELASTICSEARCH_URL', 'http://localhost:9200')
-ELASTICSEARCH_INDEX = env('ELASTICSEARCH_INDEX', 'verfifiedpixel')
+ELASTICSEARCH_INDEX = env('ELASTICSEARCH_INDEX', 'verifiedpixel')
 if env('ELASTIC_PORT'):
     ELASTICSEARCH_URL = env('ELASTIC_PORT').replace('tcp:', 'http:')
 
@@ -172,6 +158,7 @@ INSTALLED_APPS = [
     'apps.rules',
     'apps.highlights',
     'apps.publish',
+    'apps.publish.publish_filters',
     'apps.macros',
     'apps.dictionaries',
     'apps.duplication',
@@ -181,7 +168,8 @@ INSTALLED_APPS = [
     'apps.text_archive',
     'apps.validators',
     'apps.validate',
-    'apps.publicapi_publish'
+    #'apps.publicapi_publish',
+    #'apps.workspace',
 ]
 
 RESOURCE_METHODS = ['GET', 'POST']
@@ -261,7 +249,7 @@ CONTENT_EXPIRY_MINUTES = 43200
 
 # The number of minutes before ingest items purged
 # 2880 = 2 days in minutes
-INGEST_EXPIRY_MINUTES = 2880
+INGEST_EXPIRY_MINUTES = int(env('INGEST_EXPIRY_MINUTES', '2880'))
 
 # The number of minutes before published items purged
 # 4320 = 3 days in minutes
