@@ -41,13 +41,6 @@ ROOT_GROUP = 'root'
 SEQUENCE = 'sequence'
 PUBLISH_STATES = ['published', 'killed', 'corrected', 'scheduled']
 CUSTOM_HATEOAS = {'self': {'title': 'Archive', 'href': '/archive/{_id}'}}
-ITEM_OPERATION = 'operation'
-ITEM_CREATE = 'create'
-ITEM_UPDATE = 'update'
-ITEM_RESTORE = 'restore'
-ITEM_DUPLICATE = 'duplicate'
-ITEM_DESCHEDULE = 'deschedule'
-item_operations = [ITEM_CREATE, ITEM_UPDATE, ITEM_RESTORE, ITEM_DUPLICATE, ITEM_DESCHEDULE]
 
 
 def update_version(updates, original):
@@ -73,8 +66,6 @@ def on_create_item(docs, repo_type=ARCHIVE):
 
         set_default_state(doc, 'draft')
         doc.setdefault('_id', doc[GUID_FIELD])
-        if not doc.get(ITEM_OPERATION):
-            doc[ITEM_OPERATION] = ITEM_CREATE
 
 
 def on_duplicate_item(doc):
@@ -349,11 +340,6 @@ def item_schema(extra=None):
         'marked_for_not_publication': {
             'type': 'boolean',
             'default': False
-        },
-        ITEM_OPERATION: {
-            'type': 'string',
-            'allowed': item_operations,
-            'index': 'not_analyzed'
         },
         'targeted_for': {
             'type': 'list',
