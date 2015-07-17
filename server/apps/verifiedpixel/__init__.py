@@ -18,16 +18,22 @@ import string
 import time
 import urllib
 import urllib3
+from bson.objectid import ObjectId
+from gridfs import GridFS
+from flask import current_app as app
+from eve.utils import ParsedRequest
+# from eve.io.mongo.media import GridFSMediaStorage
 
 import superdesk
 from superdesk.celery_app import celery
-from bson.objectid import ObjectId
-# from eve.io.mongo.media import GridFSMediaStorage
-from gridfs import GridFS
-from flask import current_app as app
+
 
 logger = logging.getLogger('superdesk')
 logger.setLevel(logging.INFO)
+
+
+class ImageNotFoundException(Exception):
+    pass
 
 
 def get_original_image(item):
@@ -40,6 +46,13 @@ def get_original_image(item):
                 _file = _fs.get(ObjectId(v['media']))
                 content = _file.read()
                 return content
+    raise ImageNotFoundException()
+
+
+class TinEyeGracefulException(Exception):
+
+    def __init__(self, message):
+        super(Exception, self).__init__(message)
 
 
 def get_tineye_results(filename, content):
@@ -65,11 +78,15 @@ def get_tineye_results(filename, content):
         'nonce': nonce,
         'api_sig': signature
     }
-    r = urllib3.connection_from_url(TINEYE_API_URL).request_encode_body(
+    response = urllib3.connection_from_url(TINEYE_API_URL).request_encode_body(
         'POST', TINEYE_API_URL + '?' + urllib.parse.urlencode(data),
         fields={'image_upload': content}, multipart_boundary=boundary
     )
-    return json.loads(r.data)
+    result = json.loads(response.data.decode("utf-8"))
+    status_code = response.status
+    if status_code not in [200]:
+        raise TinEyeGracefulException(result)
+    return result
 
 
 def get_gris_results(content):
@@ -112,11 +129,15 @@ def verify_ingest():
           maintain counter for retries and only attempt api lookups 3 times
     '''
     lookup = {'type': 'picture'}
-    items = superdesk.get_resource_service(
-        'ingest').get(req=None, lookup=lookup)
+    items = superdesk.get_resource_service('ingest').get(
+        req=ParsedRequest(), lookup=lookup
+    )
     for item in items:
         filename = item['slugline']
-        content = get_original_image(item)
+        try:
+            content = get_original_image(item)
+        except ImageNotFoundException:
+            continue
 
         izitru_results = get_izitru_results(content)
         gris_results = get_gris_results(content)
