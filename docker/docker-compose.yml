@@ -8,32 +8,32 @@ redis:
   volumes:
    - ../data/redis:/data
 
-#logstash:
-  #image: logstash
-  #command: logstash -f /usr/share/logstash/logstash.conf
-  #links:
-  #- elastic
-  #volumes:
-  #- logstash:/usr/share/logstash
+logstash:
+  image: logstash
+  command: logstash -f /usr/share/logstash/logstash.conf
+  links:
+  - elastic
+  volumes:
+  - logstash:/usr/share/logstash
 
-#kibana:
-  #build: kibana
-  #restart: always
-  #links:
-  #- elastic
-  #ports:
-  #- "5601:5601"
+kibana:
+  build: kibana
+  restart: always
+  links:
+  - elastic
+  ports:
+  - "5601:5601"
 
 elastic:
   image: elasticsearch:1.5
   volumes:
    - ../data/elastic:/usr/share/elasticsearch/data
 
-#postfix:
-  #image: catatnight/postfix
-  #environment:
-  #- maildomain=mail.sourcefabric.org
-  #- smtp_user=user:pwd
+postfix:
+  image: catatnight/postfix
+  environment:
+  - maildomain=mail.sourcefabric.org
+  - smtp_user=user:pwd
 
 backend:
   build: ../server
@@ -42,8 +42,8 @@ backend:
    - mongodb
    - redis
    - elastic
-   #- logstash
-   #- postfix
+   - logstash
+   - postfix
   environment:
    - MONGO_URI=mongodb://mongodb/test
    - PUBLICAPI_MONGO_URI=mongodb://mongodb/test
