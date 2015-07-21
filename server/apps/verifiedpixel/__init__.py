@@ -10,19 +10,17 @@
 
 import logging
 import hashlib
-# from hashlib import sha1
-import hmac
 import json
-import random
-import string
 import time
-import urllib
-import urllib3
+import requests
+import datetime
 from bson.objectid import ObjectId
 from gridfs import GridFS
 from flask import current_app as app
 from eve.utils import ParsedRequest
 # from eve.io.mongo.media import GridFSMediaStorage
+from pytineye import TinEyeAPIRequest
+from apiclient.discovery import build
 
 import superdesk
 from superdesk.celery_app import celery
@@ -45,7 +43,8 @@ def get_original_image(item):
             if k == 'original':
                 _file = _fs.get(ObjectId(v['media']))
                 content = _file.read()
-                return content
+                href = v['href']
+                return (href, content)
     raise ImageNotFoundException()
 
 
@@ -56,45 +55,38 @@ class TinEyeGracefulException(Exception):
 
 
 def get_tineye_results(filename, content):
-    TINEYE_API_URL = 'http://api.tineye.com/rest/search/'
-    TINEYE_PUBLIC_KEY = 'Q6oV_*ayv-NxRrT8jd=2y'
-    TINEYE_SECRET_KEY = 'EtqaAOtzYOUkfnWU0mlJT2dIDGEgLX3c_JbddB=Z'
-    t = int(time.time())
-    nonce = ''.join(
-        random.choice(string.ascii_lowercase + string.digits) for _ in range(10))
-    boundary = ''.join(
-        random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-    to_sign = TINEYE_SECRET_KEY + 'POST' + \
-        'multipart/form-data; boundary=' + boundary + \
-        urllib.parse.quote_plus(filename) + str(t) + nonce + TINEYE_API_URL
-    signature = hmac.new(
-        TINEYE_SECRET_KEY.encode(), to_sign.encode()).hexdigest()
+    TINEYE_API_URL = 'https://api.tineye.com/rest/'
+    #TINEYE_PUBLIC_KEY = 'Q6oV_*ayv-NxRrT8jd=2'
+    #TINEYE_SECRET_KEY = 'EtqaAOtzYOUkfnWU0mlJT2dIDGEgLX3c_JbddB=Z'
+    # This are test keys
+    TINEYE_PUBLIC_KEY = 'LCkn,2K7osVwkX95K4Oy'
+    TINEYE_SECRET_KEY = '6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^'
+    api = TinEyeAPIRequest(TINEYE_API_URL, TINEYE_PUBLIC_KEY, TINEYE_SECRET_KEY)
+    response = api.search_data(data=content)
 
-    logger.info('signature {}'.format(signature))
+    return response.get_json_results()
+    
 
-    data = {
-        'api_key': TINEYE_PUBLIC_KEY,
-        'date': t,
-        'nonce': nonce,
-        'api_sig': signature
-    }
-    response = urllib3.connection_from_url(TINEYE_API_URL).request_encode_body(
-        'POST', TINEYE_API_URL + '?' + urllib.parse.urlencode(data),
-        fields={'image_upload': content}, multipart_boundary=boundary
-    )
-    result = json.loads(response.data.decode("utf-8"))
-    status_code = response.status
-    if status_code not in [200]:
-        raise TinEyeGracefulException(result)
-    return result
-
-
-def get_gris_results(content):
+def get_gris_results(href):
     GRIS_API_KEY = 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4'
-    return {}
+    service = build('customsearch', 'v1',
+            developerKey=GRIS_API_KEY)
+    res = service.cse().list(
+        q=href,
+        searchType='image',
+        cx='008702632149434239236:xljn9isiv1i',
+    ).execute()
+    
+    return res 
 
 
-def get_izitru_results(content):
+class IzitruGracefulException(Exception):
+
+    def __init__(self, message):
+        super(Exception, self).__init__(message)
+
+
+def get_izitru_results(filename, content):
     IZITRU_PRIVATE_KEY = '11d30480-a579-46e6-a33e-02330b94ce94'
     IZITRU_ACTIVATION_KEY = '20faaa56-edc1-4395-a2d9-1eb6248f0922'
     IZITRU_API_URL = 'https://www.izitru.com/scripts/uploadAPI.pl'
@@ -104,8 +96,6 @@ def get_izitru_results(content):
     m.update(IZITRU_PRIVATE_KEY.encode())
     IZITRU_SECURITY_HASH = m.hexdigest()
 
-    logger.info('generated {}'.format(IZITRU_SECURITY_HASH))
-
     data = {
         'activationKey': IZITRU_ACTIVATION_KEY,
         'securityData': IZITRU_SECURITY_DATA,
@@ -113,10 +103,18 @@ def get_izitru_results(content):
         'exactMatch': 'true',
         'nearMatch': 'false',
         'storeImage': 'true',
-        'upFile': content
+        'image': filename
     }
+    
+    files = {'upFile': (filename, content, 'image/jepg', {'Expires': '0'})}
 
-    return {}
+    response = requests.post(IZITRU_API_URL, files=files, data=data)
+    result = response.json()
+    status_code = response.status_code
+
+    if status_code not in [200]:
+        raise IzitruGracefulException(result)
+    return result
 
 
 @celery.task
@@ -128,23 +126,38 @@ def verify_ingest():
     TODO: lookup image items with no verification metadata
           maintain counter for retries and only attempt api lookups 3 times
     '''
-    lookup = {'type': 'picture'}
-    items = superdesk.get_resource_service('ingest').get(
-        req=ParsedRequest(), lookup=lookup
+    lookup = {
+        'type': 'picture',
+        'verification': { '$exists': False }
+    }
+    ingest_service = superdesk.get_resource_service('ingest')
+    items = ingest_service.get_from_mongo(
+        req=None, lookup=lookup
     )
     for item in items:
+        verification = {
+            'tineye': {},
+            'gris': {},
+            'izitru': {},
+            'attempts': 1,
+            'last_attempt': datetime.datetime.now()
+        }
+
+        item['verification'] = verification
+        # save the attempt first
+        ingest_service.put(item['_id'], item)
+
         filename = item['slugline']
         try:
-            content = get_original_image(item)
+            href, content = get_original_image(item)
         except ImageNotFoundException:
             continue
 
-        izitru_results = get_izitru_results(content)
-        gris_results = get_gris_results(content)
-        tineye_results = get_tineye_results(filename, content)
+        verification['izitru'] = izitru_results = get_izitru_results(filename, content)
+        verification['gris'] = get_gris_results(href)
+        verification['tineye'] = get_tineye_results(filename, content)
 
-        # TODO:appeed verification data to item
-
-        logger.info('found {}'.format(item.get('renditions')))
+        # save updated verification dict to item
+        ingest_service.put(item['_id'], item)
     else:
         logger.info('no ingest items found for {}'.format(lookup))

@@ -251,6 +251,9 @@ metadata_schema = {
     'contents': {
         'type': 'list'
     },
+    'verification': {
+        'type': 'dict'
+    },
 
     # Not Categorized
     'place': {
