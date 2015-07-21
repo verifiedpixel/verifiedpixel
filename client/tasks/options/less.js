@@ -1,63 +1,49 @@
+/**
+ * This file is part of Superdesk.
+ *
+ * Copyright 2013, 2014 Sourcefabric z.u. and contributors.
+ *
+ * For the full copyright and license information, please see the
+ * AUTHORS and LICENSE files distributed with this source code, or
+ * at https://www.sourcefabric.org/superdesk/license
+ */
 
 var files = [
     {
-        dest: '<%= distDir %>/styles/css/bootstrap.css',
-        src: '<%= appDir %>/styles/less/bootstrap.less'
+        dest: '<%= distDir %>/styles/css/verifiedpixel.css',
+        src: '<%= appDir %>/styles/less/verifiedpixel.less'
+    }, {
+        dest: '<%= distDir %>/styles/css/vp-bootstrap.css',
+        src: '<%= appDir %>/styles/less/vp-bootstrap.less'
+    }, {
+        expand: true,
+        dest: '<%= tmpDir %>/',
+        cwd: '<%= appDir %>/scripts/',
+        src: ['verifiedpixel-*/**/*.less'],
+        ext: '.css'
     },
     {
         expand: true,
         dest: '<%= tmpDir %>/',
-        cwd: '<%= appDir %>/scripts/',
-        src: ['superdesk*/**/*.less'],
-        ext: '.css'
-    }, {
-        expand: true,
-        dest: '<%= tmpDir %>/docs/',
-        cwd: '<%= appDir %>/docs/',
-        src: ['styles/*.less'],
+        cwd: '<%= appDir %>/scripts/bower_components/superdesk/client/app/scripts',
+        src: ['superdesk/**/*.less', 'superdesk-*/**/*.less'],
         ext: '.css'
     }
 ];
 
 module.exports = {
-    bower: {
-        files: [
-            {
-                dest: '<%= bowerDir %>/styles/css/bootstrap.css',
-                src: '<%= appDir %>/styles/less/bootstrap.less'
-            }, {
-                expand: true,
-                dest: '<%= tmpDir %>/',
-                cwd: '<%= appDir %>/scripts/',
-                src: ['superdesk/**/*.less', 'superdesk-*/**/*.less'],
-                ext: '.css'
-            }
-        ],
-        options: {
-            paths: ['<%= appDir %>/styles/less'],
-            compress: false,
-            cleancss: true
-        }
-    },
     dev: {
         options: {
-            paths: ['<%= appDir %>/styles/less'],
+            paths: ['<%= appDir %>/styles/less', '<%= appDir %>/scripts/bower_components/superdesk/client/app/styles/less'],
             compress: false,
-            cleancss: true
+            cleancss: true,
+            relativeUrls: true
         },
         files: files
     },
-    docs: {
-        options: {
-            paths: ['<%= appDir %>/styles/less'],
-            compress: false,
-            cleancss: true
-        },
-        files: [files[0], files[2]]
-    },
     prod: {
         options: {
-            paths: ['<%= appDir %>/styles/less'],
+            paths: ['<%= appDir %>/styles/less', '<%= appDir %>/scripts/bower_components/superdesk/client/app/styles/less'],
             compress: false,
             cleancss: true
         },

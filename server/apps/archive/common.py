@@ -49,7 +49,7 @@ def update_version(updates, original):
         updates.setdefault('version', updates[config.VERSION])
 
 
-def on_create_item(docs):
+def on_create_item(docs, repo_type=ARCHIVE):
     """Make sure item has basic fields populated."""
     for doc in docs:
         update_dates_for(doc)
@@ -59,7 +59,7 @@ def on_create_item(docs):
             doc[GUID_FIELD] = generate_guid(type=GUID_NEWSML)
 
         if 'unique_id' not in doc:
-            generate_unique_id_and_name(doc)
+            generate_unique_id_and_name(doc, repo_type)
 
         if 'family_id' not in doc:
             doc['family_id'] = doc[GUID_FIELD]
@@ -70,11 +70,9 @@ def on_create_item(docs):
 
 def on_duplicate_item(doc):
     """Make sure duplicated item has basic fields populated."""
+
     doc[GUID_FIELD] = generate_guid(type=GUID_NEWSML)
-
-    if 'unique_id' not in doc:
-        generate_unique_id_and_name(doc)
-
+    generate_unique_id_and_name(doc)
     doc.setdefault('_id', doc[GUID_FIELD])
 
 
@@ -84,7 +82,7 @@ def update_dates_for(doc):
 
 
 def generate_guid(**hints):
-    '''Generate a GUID based on given hints'''
+    """Generate a GUID based on given hints"""
     newsml_guid_format = 'urn:newsml:%(domain)s:%(timestamp)s:%(identifier)s'
     tag_guid_format = 'tag:%(domain)s:%(year)d:%(identifier)s'
 
@@ -142,7 +140,7 @@ aggregations = {
     'type': {'terms': {'field': 'type'}},
     'desk': {'terms': {'field': 'task.desk'}},
     'stage': {'terms': {'field': 'task.stage'}},
-    'category': {'terms': {'field': 'anpa-category.name'}},
+    'category': {'terms': {'field': 'anpa_category.name'}},
     'source': {'terms': {'field': 'source'}},
     'state': {'terms': {'field': 'state'}},
     'urgency': {'terms': {'field': 'urgency'}},
@@ -152,14 +150,17 @@ aggregations = {
 }
 
 
-def generate_unique_id_and_name(item):
+def generate_unique_id_and_name(item, repo_type=ARCHIVE):
     """
     Generates and appends unique_id and unique_name to item.
     :throws IdentifierGenerationError: if unable to generate unique_id
     """
 
     try:
-        unique_id = update_key("INGEST_SEQ", flag=True)
+        key_name = 'TEST_{}_SEQ'.format(repo_type.upper()) if superdesk.app.config.get('SUPERDESK_TESTING', False) \
+            else '{}_SEQ'.format(repo_type.upper())
+
+        unique_id = update_key(key_name, flag=True)
 
         if unique_id:
             item['unique_id'] = unique_id
@@ -340,9 +341,16 @@ def item_schema(extra=None):
             'type': 'boolean',
             'default': False
         },
-        'restrictions': {
-            'type': 'string',
-            'nullable': True
+        'targeted_for': {
+            'type': 'list',
+            'nullable': True,
+            'schema': {
+                'type': 'dict',
+                'schema': {
+                    'name': {'type': 'string'},
+                    'allow': {'type': 'boolean'}
+                }
+            }
         }
     }
     schema.update(metadata_schema)

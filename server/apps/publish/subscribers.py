@@ -8,15 +8,22 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from collections import namedtuple
+import json
 import logging
 from settings import MAX_VALUE_OF_PUBLISH_SEQUENCE
 from superdesk.celery_app import update_key, set_key
-
+from superdesk import get_resource_service
+from eve.utils import ParsedRequest
+from superdesk.utils import ListCursor
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.errors import SuperdeskApiError
 
 logger = logging.getLogger(__name__)
+
+subscriber_types = ['broadcast', 'digital', 'wire']
+SUBSCRIBER_TYPES = namedtuple('SUBSCRIBER_TYPES', ['BROADCAST', 'DIGITAL', 'WIRE'])(*subscriber_types)
 
 
 class SubscribersResource(Resource):
@@ -35,7 +42,8 @@ class SubscribersResource(Resource):
         },
         'subscriber_type': {
             'type': 'string',
-            'nullable': True
+            'allowed': subscriber_types,
+            'required': True
         },
         'sequence_num_settings': {
             'type': 'dict',
@@ -44,10 +52,6 @@ class SubscribersResource(Resource):
                 'max': {'type': 'integer'}
             },
             'required': True
-        },
-        'can_send_takes_packages': {
-            'type': 'boolean',
-            'default': False
         },
         'email': {
             'type': 'email',
@@ -74,6 +78,8 @@ class SubscribersResource(Resource):
         },
         'destinations': {
             'type': 'list',
+            'required': True,
+            "minlength": 1,
             'schema': {
                 'type': 'dict',
                 'schema': {
@@ -94,6 +100,12 @@ class SubscribersResource(Resource):
                     'default': 'blocking'
                 }
             }
+        },
+        'global_filters': {
+            'type': 'dict',
+            'keyschema': {
+                'type': 'boolean'
+            }
         }
     }
 
@@ -105,6 +117,13 @@ class SubscribersResource(Resource):
 
 
 class SubscribersService(BaseService):
+    def get(self, req, lookup):
+        if req is None:
+            req = ParsedRequest()
+        if req.args and req.args.get('filter_condition'):
+            filter_condition = json.loads(req.args.get('filter_condition'))
+            return ListCursor(self._get_subscribers_by_filter_condition(filter_condition))
+        return super().get(req=req, lookup=lookup)
 
     def on_create(self, docs):
         for doc in docs:
@@ -112,6 +131,30 @@ class SubscribersService(BaseService):
 
     def on_update(self, updates, original):
         self._validate_seq_num_settings(updates)
+
+    def _get_subscribers_by_filter_condition(self, filter_condition):
+        req = ParsedRequest()
+        all_subscribers = list(super().get(req=req, lookup=None))
+        selected_subscribers = {}
+
+        filter_condition_service = get_resource_service('filter_conditions')
+        publish_filter_service = get_resource_service('publish_filters')
+        existing_filter_conditions = filter_condition_service._check_similar(filter_condition)
+        for fc in existing_filter_conditions:
+            existing_publish_filters = publish_filter_service._get_publish_filters_by_filter_condition(fc['_id'])
+            for pf in existing_publish_filters:
+                if pf.get('is_global', False):
+                    for s in all_subscribers:
+                        if any(gf for gf in s.get('global_filters', []) if str(s['_id']) in gf):
+                            selected_subscribers[s['_id']] = s
+                else:
+                    for s in all_subscribers:
+                        if s.get('publish_filter') and \
+                            'filter_id' in s['publish_filter'] and \
+                                s['publish_filter']['filter_id'] == pf['_id']:
+                            selected_subscribers[s['_id']] = s
+
+        return list(selected_subscribers.values())
 
     def _validate_seq_num_settings(self, subscriber):
         """

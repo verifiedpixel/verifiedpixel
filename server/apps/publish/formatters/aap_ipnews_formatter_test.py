@@ -8,13 +8,15 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from apps.publish.subscribers import SUBSCRIBER_TYPES
+
 from superdesk.tests import TestCase
 from apps.publish import init_app
 from apps.publish.formatters.aap_ipnews_formatter import AAPIpNewsFormatter
 
 
 class AapIpNewsFormatterTest(TestCase):
-    subscribers = [{"_id": "1", "name": "Test", "can_send_takes_packages": False, "media_type": "media",
+    subscribers = [{"_id": "1", "name": "Test", "subscriber_type": SUBSCRIBER_TYPES.WIRE, "media_type": "media",
                     "is_active": True, "sequence_num_settings": {"max": 10, "min": 1},
                     "destinations": [{"name": "AAP IPNEWS", "delivery_type": "email", "format": "AAP IPNEWS",
                                       "config": {"recipients": "test@sourcefabric.org"}
@@ -23,7 +25,7 @@ class AapIpNewsFormatterTest(TestCase):
 
     article = {
         'source': 'AAP',
-        'anpa-category': {'qcode': 'a'},
+        'anpa_category': [{'qcode': 'a'}],
         'headline': 'This is a test headline',
         'byline': 'joe',
         'slugline': 'slugline',
@@ -36,10 +38,16 @@ class AapIpNewsFormatterTest(TestCase):
         'priority': '1'
     }
 
+    vocab = [{'_id': 'categories', 'items': [
+        {'is_active': True, 'name': 'Overseas Sport', 'qcode': 'S', 'subject': '15000000'},
+        {'is_active': True, 'name': 'Finance', 'qcode': 'F', 'subject': '04000000'}
+    ]}]
+
     def setUp(self):
         super().setUp()
         with self.app.app_context():
             self.app.data.insert('subscribers', self.subscribers)
+            self.app.data.insert('vocabularies', self.vocab)
             init_app(self.app)
 
     def TestIPNewsFormatter(self):
@@ -47,7 +55,7 @@ class AapIpNewsFormatterTest(TestCase):
             subscriber = self.app.data.find('subscribers', None, None)[0]
 
             f = AAPIpNewsFormatter()
-            seq, item = f.format(self.article, subscriber)
+            seq, item = f.format(self.article, subscriber)[0]
 
             self.assertGreater(int(seq), 0)
             self.assertEquals(seq, item['sequence'])
@@ -65,7 +73,7 @@ class AapIpNewsFormatterTest(TestCase):
     def TestIPNewsHtmlToText(self):
         article = {
             'source': 'AAP',
-            'anpa-category': {'qcode': 'a'},
+            'anpa_category': [{'qcode': 'a'}],
             'headline': 'This is a test headline',
             'byline': 'joe',
             'slugline': 'slugline',
@@ -83,8 +91,39 @@ class AapIpNewsFormatterTest(TestCase):
             subscriber = self.app.data.find('subscribers', None, None)[0]
 
             f = AAPIpNewsFormatter()
-            seq, item = f.format(article, subscriber)
+            seq, item = f.format(article, subscriber)[0]
 
             expected = '\r\nThe story body line 1 \r\nLine 2 \r\n\r\nabcdefghi abcdefghi abcdefghi abcdefghi ' \
                        'abcdefghi abcdefghi abcdefghi abcdefghi \r\nmore'
             self.assertEquals(item['article_text'], expected)
+
+    def TestMultipleCategories(self):
+        article = {
+            'source': 'AAP',
+            'anpa_category': [{'name': 'Finance', 'qcode': 'F'},
+                              {'name': 'Overseas Sport', 'qcode': 'S'}],
+            'headline': 'This is a test headline',
+            'byline': 'joe',
+            'slugline': 'slugline',
+            'subject': [{'qcode': '04001005'}, {'qcode': '15011002'}],
+            'anpa_take_key': 'take_key',
+            'unique_id': '1',
+            'type': 'text',
+            'body_html': 'body',
+            'word_count': '1',
+            'priority': '1'
+        }
+
+        with self.app.app_context():
+            subscriber = self.app.data.find('subscribers', None, None)[0]
+
+            f = AAPIpNewsFormatter()
+            docs = f.format(article, subscriber)
+            self.assertEqual(len(docs), 2)
+            for seq, doc in docs:
+                if doc['category'] == 'S':
+                    self.assertEqual(doc['subject_reference'], '15011002')
+                    self.assertEqual(doc['subject_detail'], 'four-man sled')
+                if doc['category'] == 'F':
+                    self.assertEqual(doc['subject_reference'], '04001005')
+                    self.assertEqual(doc['subject_detail'], 'viniculture')

@@ -19,6 +19,12 @@ require.config({
         'angular-file-upload-shim': 'bower_components/ng-file-upload/angular-file-upload-shim',
         'moment-timezone': 'bower_components/moment-timezone/builds/moment-timezone-with-data-2010-2020',
 
+        'superdesk': 'bower_components/superdesk/client/app/scripts/superdesk',
+        'superdesk-settings': 'bower_components/superdesk/client/app/scripts/superdesk-settings',
+        'superdesk-dashboard': 'bower_components/superdesk/client/app/scripts/superdesk-dashboard',
+        'superdesk-ingest': 'bower_components/superdesk/client/app/scripts/superdesk-ingest',
+        'superdesk-archive': 'bower_components/superdesk/client/app/scripts/superdesk-archive',
+
         'jquery-ui': 'bower_components/jquery-ui/jquery-ui',
         'raven-js': 'bower_components/raven-js/dist/raven'
     },
