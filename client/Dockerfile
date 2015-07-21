@@ -4,7 +4,7 @@ FROM ubuntu:trusty
 # install system-wide dependencies
 RUN apt-get update && \
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-libfreetype6 libfontconfig nodejs npm nginx git \
+libfreetype6 libfontconfig nodejs npm nginx git ca-certificates \
 && echo "\ndaemon off;" >> /etc/nginx/nginx.conf \
 && rm /etc/nginx/sites-enabled/default \
 && ln --symbolic /usr/bin/nodejs /usr/bin/node
