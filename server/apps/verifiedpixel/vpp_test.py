@@ -48,4 +48,3 @@ class UpdateIngestTest(TestCase):
         self.upload_fixture_image()
         with self.app.app_context():
             result = verify_ingest.apply().get()
-            pprint([item for item in result])

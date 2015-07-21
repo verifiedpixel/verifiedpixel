@@ -23,6 +23,9 @@ from gridfs import GridFS
 from flask import current_app as app
 from eve.utils import ParsedRequest
 # from eve.io.mongo.media import GridFSMediaStorage
+from pytineye.api import TinEyeAPIRequest
+from pytineye.exceptions import TinEyeAPIError
+from pprint import pprint
 
 import superdesk
 from superdesk.celery_app import celery
@@ -30,6 +33,16 @@ from superdesk.celery_app import celery
 
 logger = logging.getLogger('superdesk')
 logger.setLevel(logging.INFO)
+
+
+TINEYE_API_URL = 'http://api.tineye.com/rest/'
+TINEYE_PUBLIC_KEY = 'LCkn,2K7osVwkX95K4Oy'
+TINEYE_SECRET_KEY = '6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^'
+tineye_api = TinEyeAPIRequest(
+    api_url=TINEYE_API_URL,
+    public_key=TINEYE_PUBLIC_KEY,
+    private_key=TINEYE_SECRET_KEY)
+
 
 
 class ImageNotFoundException(Exception):
@@ -53,40 +66,15 @@ class TinEyeGracefulException(Exception):
 
     def __init__(self, message):
         super(Exception, self).__init__(message)
+        logger.warning(message)
 
 
-def get_tineye_results(filename, content):
-    TINEYE_API_URL = 'http://api.tineye.com/rest/search/'
-    TINEYE_PUBLIC_KEY = 'Q6oV_*ayv-NxRrT8jd=2y'
-    TINEYE_SECRET_KEY = 'EtqaAOtzYOUkfnWU0mlJT2dIDGEgLX3c_JbddB=Z'
-    t = int(time.time())
-    nonce = ''.join(
-        random.choice(string.ascii_lowercase + string.digits) for _ in range(10))
-    boundary = ''.join(
-        random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-    to_sign = TINEYE_SECRET_KEY + 'POST' + \
-        'multipart/form-data; boundary=' + boundary + \
-        urllib.parse.quote_plus(filename) + str(t) + nonce + TINEYE_API_URL
-    signature = hmac.new(
-        TINEYE_SECRET_KEY.encode(), to_sign.encode()).hexdigest()
-
-    logger.info('signature {}'.format(signature))
-
-    data = {
-        'api_key': TINEYE_PUBLIC_KEY,
-        'date': t,
-        'nonce': nonce,
-        'api_sig': signature
-    }
-    response = urllib3.connection_from_url(TINEYE_API_URL).request_encode_body(
-        'POST', TINEYE_API_URL + '?' + urllib.parse.urlencode(data),
-        fields={'image_upload': content}, multipart_boundary=boundary
-    )
-    result = json.loads(response.data.decode("utf-8"))
-    status_code = response.status
-    if status_code not in [200]:
-        raise TinEyeGracefulException(result)
-    return result
+def get_tineye_results(content):
+    response = tineye_api.search_data(content)
+    #pprint(response)
+    if response.total_results > 0:
+        return response
+    raise TinEyeGracefulException(result)
 
 
 def get_gris_results(content):
@@ -138,13 +126,11 @@ def verify_ingest():
             content = get_original_image(item)
         except ImageNotFoundException:
             continue
-
+        logger.info('VerifiedPixel: found new ingested item: "{}"'.format(filename))
         izitru_results = get_izitru_results(content)
         gris_results = get_gris_results(content)
-        tineye_results = get_tineye_results(filename, content)
-
-        # TODO:appeed verification data to item
-
-        logger.info('found {}'.format(item.get('renditions')))
-    else:
-        logger.info('no ingest items found for {}'.format(lookup))
+        try:
+            tineye_results = get_tineye_results(content)
+        except TinEyeGracefulException:
+            pass
+        # TODO:append verification data to item
