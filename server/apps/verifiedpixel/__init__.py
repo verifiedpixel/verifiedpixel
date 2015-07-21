@@ -10,39 +10,43 @@
 
 import logging
 import hashlib
-# from hashlib import sha1
-import hmac
-import json
-import random
-import string
 import time
-import urllib
-import urllib3
 from bson.objectid import ObjectId
 from gridfs import GridFS
 from flask import current_app as app
 from eve.utils import ParsedRequest
-# from eve.io.mongo.media import GridFSMediaStorage
 from pytineye.api import TinEyeAPIRequest
 from pytineye.exceptions import TinEyeAPIError
-from pprint import pprint
+from requests import request
+from PIL import Image
+from io import BytesIO
 
 import superdesk
 from superdesk.celery_app import celery
 
 
-logger = logging.getLogger('superdesk')
-logger.setLevel(logging.INFO)
+# @TODO: for debug purpose
+from pprint import pprint
 
 
+# @TODO: read from env vars
 TINEYE_API_URL = 'http://api.tineye.com/rest/'
 TINEYE_PUBLIC_KEY = 'LCkn,2K7osVwkX95K4Oy'
 TINEYE_SECRET_KEY = '6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^'
+
+IZITRU_PRIVATE_KEY = '11d30480-a579-46e6-a33e-02330b94ce94'
+IZITRU_ACTIVATION_KEY = '20faaa56-edc1-4395-a2d9-1eb6248f0922'
+IZITRU_API_URL = 'https://www.izitru.com/scripts/uploadAPI.pl'
+
+
+logger = logging.getLogger('superdesk')
+logger.setLevel(logging.INFO)
+
 tineye_api = TinEyeAPIRequest(
     api_url=TINEYE_API_URL,
     public_key=TINEYE_PUBLIC_KEY,
-    private_key=TINEYE_SECRET_KEY)
-
+    private_key=TINEYE_SECRET_KEY
+)
 
 
 class ImageNotFoundException(Exception):
@@ -74,7 +78,7 @@ def get_tineye_results(content):
     #pprint(response)
     if response.total_results > 0:
         return response
-    raise TinEyeGracefulException(result)
+    raise TinEyeGracefulException(response)
 
 
 def get_gris_results(content):
@@ -83,9 +87,6 @@ def get_gris_results(content):
 
 
 def get_izitru_results(content):
-    IZITRU_PRIVATE_KEY = '11d30480-a579-46e6-a33e-02330b94ce94'
-    IZITRU_ACTIVATION_KEY = '20faaa56-edc1-4395-a2d9-1eb6248f0922'
-    IZITRU_API_URL = 'https://www.izitru.com/scripts/uploadAPI.pl'
     IZITRU_SECURITY_DATA = int(time.time())
     m = hashlib.md5()
     m.update(str(IZITRU_SECURITY_DATA).encode())
@@ -94,6 +95,11 @@ def get_izitru_results(content):
 
     logger.info('generated {}'.format(IZITRU_SECURITY_HASH))
 
+    converted_image = BytesIO()
+    img = Image.open(BytesIO(content))
+    img.save(converted_image, 'JPEG')
+    img.close()
+
     data = {
         'activationKey': IZITRU_ACTIVATION_KEY,
         'securityData': IZITRU_SECURITY_DATA,
@@ -101,8 +107,12 @@ def get_izitru_results(content):
         'exactMatch': 'true',
         'nearMatch': 'false',
         'storeImage': 'true',
-        'upFile': content
     }
+    files = {'upFile': converted_image.getvalue()}
+
+    response = request('POST', IZITRU_API_URL, data=data, files=files)
+    converted_image.close()
+    print(response.text)
 
     return {}
 

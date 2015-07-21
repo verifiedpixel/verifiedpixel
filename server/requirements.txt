@@ -3,7 +3,8 @@ google-api-python-client==1.4.1
 # Flask-S3 with support for python3
 #git+git://github.com/amagdas/tinys3@list-buckets#egg=tinys3
 
-#requests==2.7.0
+requests
+Pillow
 
 # hachoir3 and eve come from SD requirements
 # They are added here because they are retrieved from git and hg protocols. (This is not possible with setuptool)
