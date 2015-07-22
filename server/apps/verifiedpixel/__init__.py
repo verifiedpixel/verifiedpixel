@@ -20,6 +20,7 @@ from pytineye.exceptions import TinEyeAPIError  # noqa @TODO: retry
 from requests import request
 from PIL import Image
 from io import BytesIO
+from apiclient.discovery import build
 
 import superdesk
 from superdesk.celery_app import celery
@@ -37,6 +38,8 @@ TINEYE_SECRET_KEY = '6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^'
 IZITRU_PRIVATE_KEY = '11d30480-a579-46e6-a33e-02330b94ce94'
 IZITRU_ACTIVATION_KEY = '20faaa56-edc1-4395-a2d9-1eb6248f0922'
 IZITRU_API_URL = 'https://www.izitru.com/scripts/uploadAPI.pl'
+
+GRIS_API_KEY = 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4'
 
 
 logger = logging.getLogger('superdesk')
@@ -62,40 +65,42 @@ def get_original_image(item):
             if k == 'original':
                 _file = _fs.get(ObjectId(v['media']))
                 content = _file.read()
-                return content
+                href = v['href']
+                return (href, content)
     raise ImageNotFoundException()
 
 
-class TinEyeGracefulException(Exception):
+class APIGracefulException(Exception):
 
     def __init__(self, message):
         super(Exception, self).__init__(message)
         logger.warning(message)
 
 
-@celery.task
 def get_tineye_results(content):
     response = tineye_api.search_data(content)
-    # pprint(response)
     if response.total_results > 0:
-        return response
-    raise TinEyeGracefulException(response)
+        return response.json_results
+    raise APIGracefulException(response)
 
 
-def get_gris_results(content):
-    GRIS_API_KEY = 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4'  # noqa
-    return {}
+def get_gris_results(href):
+    service = build('customsearch', 'v1',
+                    developerKey=GRIS_API_KEY)
+    res = service.cse().list(
+        q=href,
+        searchType='image',
+        cx='008702632149434239236:xljn9isiv1i',
+    ).execute()
+    return res
 
 
-@celery.task
 def get_izitru_results(content):
     IZITRU_SECURITY_DATA = int(time.time())
     m = hashlib.md5()
     m.update(str(IZITRU_SECURITY_DATA).encode())
     m.update(IZITRU_PRIVATE_KEY.encode())
     IZITRU_SECURITY_HASH = m.hexdigest()
-
-    logger.info('generated {}'.format(IZITRU_SECURITY_HASH))
 
     converted_image = BytesIO()
     img = Image.open(BytesIO(content))
@@ -111,43 +116,53 @@ def get_izitru_results(content):
         'storeImage': 'true',
     }
     files = {'upFile': converted_image.getvalue()}
-
     response = request('POST', IZITRU_API_URL, data=data, files=files)
     converted_image.close()
-    print(response.text)
+    return response.json()
 
-    return {}
+
+@celery.task
+def append_api_results_to_item(item, api_name, api_getter, args):
+    filename = item['slugline']
+    logger.info(
+        "VerifiedPixel: {api}: searching matches for {file}...".format(
+            api=api_name, file=filename
+        ))
+    if 'verification' not in item:
+        item['verification'] = {}
+    try:
+        item['verification'][api_name] = api_getter(*args)
+    except APIGracefulException:
+        logger.warning(
+            "VerifiedPixel: {api}: no matches found for {file}.".format(
+                api=api_name, file=filename
+            ))
+        # @TODO: retry a task here too?
+    else:
+        logger.info(
+            "VerifiedPixel: {api}: matchs found for {file}.".format(
+                api=api_name, file=filename
+            ))
+        # pprint(item['verification'][api_name])
+        superdesk.get_resource_service('ingest').put(item['_id'], item)
 
 
 @celery.task
 def process_item(item):
-    '''
-    @TODO:
-    attempt api lookups 3 times
-    '''
     filename = item['slugline']
+
     try:
-        content = get_original_image(item)
+        href, content = get_original_image(item)
     except ImageNotFoundException:
         return
     logger.info('VerifiedPixel: found new ingested item: "{}"'.format(filename))
 
-    izitru_results = get_izitru_results(content)
-
-    gris_results = get_gris_results(content)
-
-    try:
-        tineye_results = get_tineye_results(content)
-    except TinEyeGracefulException:
-        pass
-    else:
-        logger.info('VerifiedPixel: "{}" - found smth on tineye'.format(filename))
-
-    # TODO: append verification data to item:
-    result = {}
-    result['tineye'] = tineye_results
-    result['izitru'] = izitru_results
-    result['gris'] = gris_results
+    for api_name, api_getter, args in [
+        ('izitru', get_izitru_results, (content,)),
+        ('tineye', get_tineye_results, (content,)),
+        ('gris', get_gris_results, (href,)),
+    ]:
+        append_api_results_to_item(item, api_name, api_getter, args)
 
 
 @celery.task

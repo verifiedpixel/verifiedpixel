@@ -1,24 +1,30 @@
 from unittest import TestCase
 from flask import current_app as app
-from eve.utils import config
+from eve.utils import config, ParsedRequest
+import json
 
+import superdesk
 from superdesk import get_resource_service
 from superdesk.tests import setup
 from superdesk.media.renditions import generate_renditions
 from superdesk.upload import url_for_media
 
 from apps.verifiedpixel import verify_ingest
+from .vpp_mock import setup_vpp_mock, teardown_vpp_mock
 
 from pprint import pprint  # noqa @TODO: debug
 
 
 class VerifiedPixelAppTest(TestCase):
 
+    maxDiff = None
+
     def setUp(self):
         setup(context=self)
+        setup_vpp_mock(self)
 
     def tearDown(self):
-        pass
+        teardown_vpp_mock(self)
 
     def upload_fixture_image(self):
         fixture_image_path = './test.png'
@@ -40,12 +46,33 @@ class VerifiedPixelAppTest(TestCase):
             data = [{
                 'headline': 'test',
                 'slugline': 'rebuild',
-                "renditions": renditions,
+                'renditions': renditions,
                 'type': 'picture'
             }]
             get_resource_service('ingest').post(data)
+        with open('./ingest_item_verification.json', 'r') as f:
+            self.verification_result = json.load(f)
 
     def test_pass(self):
         self.upload_fixture_image()
         with self.app.app_context():
-            result = verify_ingest()  # noqa
+            verify_ingest()  # noqa
+
+            lookup = {'type': 'picture'}
+            items = superdesk.get_resource_service('ingest').get(
+                req=ParsedRequest(), lookup=lookup
+            )
+
+            if False:
+                with open('ingest_item_verification.json', 'w') as f:
+                    json.dump(list(items)[0]['verification'], f)
+
+            self.assertEqual(
+                self.verification_result['izitru'],
+                list(items)[0]['verification']['izitru']
+            )
+
+            #self.assertEqual(
+                #self.verification_result,
+                #list(items)[0]['verification']
+            #)
