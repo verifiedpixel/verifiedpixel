@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eu
 
 [ -z "$1" ] &&
 echo "Usage: $0 INSTANCE_NAME" &&
@@ -14,8 +15,10 @@ CLIENT_RESULTS_DIR=$BAMBOO_DIR/results/client
 SCREENSHOTS_DIR=/opt/screenshots/$INSTANCE/$(date +%Y%m%d-%H%M%S)/
 
 # install script requirements
-virtualenv -p python2 $SCRIPT_DIR/env &&
-. $SCRIPT_DIR/env/bin/activate &&
+virtualenv -p python2 $SCRIPT_DIR/env
+set +u
+. $SCRIPT_DIR/env/bin/activate
+set -u
 pip install -q -r $SCRIPT_DIR/requirements.txt || exit 1
 
 
@@ -23,20 +26,23 @@ export COMPOSE_PROJECT_NAME=build_$INSTANCE
 
 
 # clean-up container stuff:
-cd $SCRIPT_DIR &&
-docker-compose stop;
-docker-compose kill;
-docker-compose rm --force;
+cd $SCRIPT_DIR
+docker-compose stop
+docker-compose kill
+docker-compose rm --force
 sudo rm -r $BAMBOO_DIR/data/
 mkdir -p $BAMBOO_DIR/data/{mongodb,elastic,redis}
 
 # cleanup tests' results:
-sudo rm -r $BAMBOO_DIR/results/
-mkdir -p $SERVER_RESULTS_DIR/{unit,behave} &&
-mkdir -p $CLIENT_RESULTS_DIR/unit &&
-sudo rm -r $SCREENSHOTS_DIR
-mkdir -p $SCREENSHOTS_DIR
+set +e
+sudo rm -r $BAMBOO_DIR/results/ ;
+mkdir -p $SERVER_RESULTS_DIR/{unit,behave} ;
+mkdir -p $CLIENT_RESULTS_DIR/unit ;
+sudo rm -r $SCREENSHOTS_DIR ;
+mkdir -p $SCREENSHOTS_DIR ;
+set -e
 
+bamboo_buildKey="${bamboo_buildKey:-}"
 if [ -n $bamboo_buildKey ]
 	then
 		# reset repo files' dates:
@@ -45,22 +51,21 @@ if [ -n $bamboo_buildKey ]
 fi
 
 # build container:
-cd $SCRIPT_DIR &&
-docker-compose pull &&
-docker-compose build &&
-docker-compose up -d &&
+cd $SCRIPT_DIR
+docker-compose pull
+docker-compose build
+docker-compose up -d
 
-(
-	# run backend unit tests:
-	docker-compose run backend ./scripts/fig_wrapper.sh nosetests -sv --with-xunit --xunit-file=./results-unit/unit.xml --logging-level ERROR ;
+set +e
+# run backend unit tests:
+docker-compose run backend ./scripts/fig_wrapper.sh nosetests -sv --with-xunit --xunit-file=./results-unit/unit.xml --logging-level ERROR ;
 
-	# run backend behavior tests:
-	#docker-compose run backend ./scripts/fig_wrapper.sh behave --junit --junit-directory ./results-behave/  --format progress2 --logging-level ERROR ;
+# run backend behavior tests:
+#docker-compose run backend ./scripts/fig_wrapper.sh behave --junit --junit-directory ./results-behave/  --format progress2 --logging-level ERROR ;
 
-	# run frontend unit tests:
-	#docker-compose run frontend bash -c "grunt bamboo && mv test-results.xml ./unit-test-results/" ;
-	#true
-) &&
+# run frontend unit tests:
+#docker-compose run frontend bash -c "grunt bamboo && mv test-results.xml ./unit-test-results/" ;
+#true
 
 # create admin user:
 #docker-compose run backend ./scripts/fig_wrapper.sh python3 manage.py users:create -u admin -p admin -e 'admin@example.com' --admin=true &&
@@ -76,13 +81,14 @@ docker-compose up -d &&
 	#true
 #) &&
 CODE="$?"
+set -e
 
 echo "===clean-up:"
-(
+set +e
 	docker-compose stop;
 	docker-compose kill;
 	killall chromedriver;
-);
+set -e
 test $CODE -gt 0 && (
 	docker-compose rm --force;
 ) ;
