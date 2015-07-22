@@ -118,9 +118,9 @@ def get_izitru_results(content):
     files = {'upFile': converted_image.getvalue()}
     response = request('POST', IZITRU_API_URL, data=data, files=files)
     converted_image.close()
-    #import json
-    #with open('./izitru_response.json', 'w') as f:
-        #json.dump(response.json(), f)
+    import json
+    with open('./izitru_response.json', 'w') as f:
+        json.dump(response.json(), f)
     return response.json()
 
 

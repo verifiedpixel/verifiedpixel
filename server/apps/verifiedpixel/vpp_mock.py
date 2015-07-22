@@ -8,18 +8,34 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from httmock import urlmatch, HTTMock
+from httmock import urlmatch, HTTMock, all_requests
 from urllib.parse import parse_qs
 from os.path import os, basename
 import json
 
 
-@urlmatch(scheme='https', netloc='www.izitru.com', path='/scripts/uploadAPI.pl')
+@urlmatch(scheme='https', netloc='www.izitru.comDEBUG', path='/scripts/uploadAPI.pl')
 def izitru_request(url, request):
     with open('./izitru_response.json', 'r') as f:
         return {'status_code': 200,
                 'content': json.load(f),
                 }
+
+
+@urlmatch(scheme='http', netloc='api.tineye.com', path='/rest')
+def tineye_request(url, request):
+    with open('./izitru_response.json', 'r') as f:
+        return {'status_code': 200,
+                #'content': json.load(f),
+                'content': b'{"foo": "bar"}',
+                }
+
+
+@all_requests
+def debug_request(url, request):
+    print("####### DEBUG ########")
+    print(url)
+    return {'status_code': 200, 'content': b'{"foo": "bar"}', }
 
 
 @urlmatch(scheme='https', netloc='commerce.reuters.com', path='/rmd/rest/xml/login')
@@ -54,7 +70,11 @@ def content_request(url, request):
 
 
 def setup_vpp_mock(context):
-    context.mock = HTTMock(*[izitru_request, login_request, item_request, content_request])
+    context.mock = HTTMock(*[
+        izitru_request,
+        tineye_request,
+        debug_request,
+    ])
     context.mock.__enter__()
 
 

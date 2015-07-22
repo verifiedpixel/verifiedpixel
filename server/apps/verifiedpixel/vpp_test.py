@@ -21,7 +21,7 @@ class VerifiedPixelAppTest(TestCase):
 
     def setUp(self):
         setup(context=self)
-        setup_vpp_mock(self)
+        #setup_vpp_mock(self)
 
     def tearDown(self):
         teardown_vpp_mock(self)
@@ -63,16 +63,19 @@ class VerifiedPixelAppTest(TestCase):
                 req=ParsedRequest(), lookup=lookup
             )
 
-            if False:
+            if True:
                 with open('ingest_item_verification.json', 'w') as f:
                     json.dump(list(items)[0]['verification'], f)
 
+            verification_result = list(items)[0]['verification']
             self.assertEqual(
                 self.verification_result['izitru'],
-                list(items)[0]['verification']['izitru']
+                verification_result['izitru']
             )
 
             #self.assertEqual(
                 #self.verification_result,
                 #list(items)[0]['verification']
             #)
+
+            print(verification_result['tineye']['code'])
