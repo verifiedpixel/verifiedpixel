@@ -1,12 +1,15 @@
 #!/bin/bash
 set -eu
 
-[ -z "$1" ] &&
-echo "Usage: $0 INSTANCE_NAME" &&
-echo "       $0 master" &&
-exit 1
+INSTANCE="${1:-}"
 
-INSTANCE="$1"
+[ -z "$INSTANCE" ] && {
+	echo "
+Usage: $0 INSTANCE_NAME
+       $0 master
+"
+	exit 1
+}
 
 SCRIPT_DIR=$(readlink -e $(dirname "$0"))
 BAMBOO_DIR=$(readlink -e $SCRIPT_DIR/..)
@@ -25,16 +28,14 @@ pip install -q -r $SCRIPT_DIR/requirements.txt || exit 1
 export COMPOSE_PROJECT_NAME=build_$INSTANCE
 
 
-# clean-up container stuff:
+echo "===post clean-up:"
 cd $SCRIPT_DIR
+set +e
 docker-compose stop
 docker-compose kill
 docker-compose rm --force
 sudo rm -r $BAMBOO_DIR/data/
 mkdir -p $BAMBOO_DIR/data/{mongodb,elastic,redis}
-
-# cleanup tests' results:
-set +e
 sudo rm -r $BAMBOO_DIR/results/ ;
 mkdir -p $SERVER_RESULTS_DIR/{unit,behave} ;
 mkdir -p $CLIENT_RESULTS_DIR/unit ;
@@ -83,7 +84,7 @@ docker-compose run backend ./scripts/fig_wrapper.sh nosetests -sv --with-xunit -
 CODE="$?"
 set -e
 
-echo "===clean-up:"
+echo "===post clean-up:"
 set +e
 	docker-compose stop;
 	docker-compose kill;
