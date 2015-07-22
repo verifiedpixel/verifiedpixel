@@ -28,7 +28,7 @@ pip install -q -r $SCRIPT_DIR/requirements.txt || exit 1
 export COMPOSE_PROJECT_NAME=build_$INSTANCE
 
 
-echo "===post clean-up:"
+echo "===pre clean-up:"
 cd $SCRIPT_DIR
 set +e
 docker-compose stop
