@@ -7,9 +7,6 @@
             <li ng-class="{active: tab === 'metadata'}">
                 <button ng-click="tab = 'metadata'"><span translate>Metadata</span></button>
             </li>
-            <li ng-class="{active: tab === 'related'}">
-                <button ng-click="tab = 'related'"><span translate>Related Items</span></button>
-            </li>
         </ul>
         <button ng-click="close()" class="close-preview">
             <i class="icon-close-small"></i>
@@ -17,7 +14,7 @@
     </header>
     <div class="content">
         <div ng-if="tab === 'content'" sd-media-preview data-item="item"></div>
-        <div ng-if="tab === 'metadata'" sd-media-metadata data-item="item"></div>
+        <div ng-if="tab === 'metadata'" vp-media-metadata data-item="item"></div>
         <div ng-if="tab === 'related'" sd-media-related data-item="item"></div>
     </div>
 </div>

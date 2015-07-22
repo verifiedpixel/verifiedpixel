@@ -1233,6 +1233,37 @@
             };
         }])
 
+        .directive('vpMediaMetadata', ['userList', 'asset', function(userList) {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/metadata-view.html',
+                link: function(scope, elem) {
+
+                    scope.$watch('item', reloadData);
+
+                    function reloadData() {
+                        scope.originalCreator = null;
+                        scope.versionCreator = null;
+
+                        if (scope.item.original_creator) {
+                            userList.getUser(scope.item.original_creator)
+                            .then(function(user) {
+                                scope.originalCreator = user.display_name;
+                            });
+                        }
+                        if (scope.item.version_creator) {
+                            userList.getUser(scope.item.version_creator)
+                            .then(function(user) {
+                                scope.versionCreator = user.display_name;
+                            });
+                        }
+                    }
+                }
+            };
+        }])
+
         .config(['superdeskProvider', 'assetProvider', function(superdesk, asset) {
             superdesk.activity('/verifiedpixel', {
                 description: gettext('Find live and archived content'),
