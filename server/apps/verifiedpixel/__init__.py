@@ -145,9 +145,9 @@ def process_item(item):
 
     # TODO: append verification data to item:
     result = {}
-    result.tineye = tineye_results
-    result.izitru = izitru_results
-    result.gris = gris_results
+    result['tineye'] = tineye_results
+    result['izitru'] = izitru_results
+    result['gris'] = gris_results
 
 
 @celery.task
