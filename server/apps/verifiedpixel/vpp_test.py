@@ -12,7 +12,7 @@ from apps.verifiedpixel import verify_ingest
 from pprint import pprint  # noqa @TODO: debug
 
 
-class UpdateIngestTest(TestCase):
+class VerifiedPixelAppTest(TestCase):
 
     def setUp(self):
         setup(context=self)
