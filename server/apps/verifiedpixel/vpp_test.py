@@ -9,10 +9,11 @@ from superdesk.upload import url_for_media
 
 from apps.verifiedpixel import verify_ingest
 
-from pprint import pprint
+from pprint import pprint  # noqa @TODO: debug
 
 
 class UpdateIngestTest(TestCase):
+
     def setUp(self):
         setup(context=self)
 
@@ -47,4 +48,4 @@ class UpdateIngestTest(TestCase):
     def test_pass(self):
         self.upload_fixture_image()
         with self.app.app_context():
-            result = verify_ingest.apply().get()
+            result = verify_ingest()  # noqa

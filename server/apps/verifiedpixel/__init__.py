@@ -16,7 +16,7 @@ from gridfs import GridFS
 from flask import current_app as app
 from eve.utils import ParsedRequest
 from pytineye.api import TinEyeAPIRequest
-from pytineye.exceptions import TinEyeAPIError
+from pytineye.exceptions import TinEyeAPIError  # noqa @TODO: retry
 from requests import request
 from PIL import Image
 from io import BytesIO
@@ -26,7 +26,7 @@ from superdesk.celery_app import celery
 
 
 # @TODO: for debug purpose
-from pprint import pprint
+from pprint import pprint  # noqa
 
 
 # @TODO: read from env vars
@@ -73,19 +73,21 @@ class TinEyeGracefulException(Exception):
         logger.warning(message)
 
 
+@celery.task
 def get_tineye_results(content):
     response = tineye_api.search_data(content)
-    #pprint(response)
+    # pprint(response)
     if response.total_results > 0:
         return response
     raise TinEyeGracefulException(response)
 
 
 def get_gris_results(content):
-    GRIS_API_KEY = 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4'
+    GRIS_API_KEY = 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4'  # noqa
     return {}
 
 
+@celery.task
 def get_izitru_results(content):
     IZITRU_SECURITY_DATA = int(time.time())
     m = hashlib.md5()
@@ -118,29 +120,48 @@ def get_izitru_results(content):
 
 
 @celery.task
+def process_item(item):
+    '''
+    @TODO:
+    attempt api lookups 3 times
+    '''
+    filename = item['slugline']
+    try:
+        content = get_original_image(item)
+    except ImageNotFoundException:
+        return
+    logger.info('VerifiedPixel: found new ingested item: "{}"'.format(filename))
+
+    izitru_results = get_izitru_results(content)
+
+    gris_results = get_gris_results(content)
+
+    try:
+        tineye_results = get_tineye_results(content)
+    except TinEyeGracefulException:
+        pass
+    else:
+        logger.info('VerifiedPixel: "{}" - found smth on tineye'.format(filename))
+
+    # TODO: append verification data to item:
+    result = {}
+    result.tineye = tineye_results
+    result.izitru = izitru_results
+    result.gris = gris_results
+
+
+@celery.task
 def verify_ingest():
     logger.info(
         'VerifiedPixel: Checking for new ingested images for verification...')
 
     '''
     TODO: lookup image items with no verification metadata
-          maintain counter for retries and only attempt api lookups 3 times
+          attempt api lookups 3 times
     '''
     lookup = {'type': 'picture'}
     items = superdesk.get_resource_service('ingest').get(
         req=ParsedRequest(), lookup=lookup
     )
     for item in items:
-        filename = item['slugline']
-        try:
-            content = get_original_image(item)
-        except ImageNotFoundException:
-            continue
-        logger.info('VerifiedPixel: found new ingested item: "{}"'.format(filename))
-        izitru_results = get_izitru_results(content)
-        gris_results = get_gris_results(content)
-        try:
-            tineye_results = get_tineye_results(content)
-        except TinEyeGracefulException:
-            pass
-        # TODO:append verification data to item
+        process_item(item)
