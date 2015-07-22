@@ -131,6 +131,9 @@
                         type: JSON.parse(params.type)
                     };
                     query.post_filter({terms: type});
+                } else {
+                    // default to only picture types
+                    query.post_filter({terms: {type: ['picture']}});
                 }
 
                 if (params.urgency) {
