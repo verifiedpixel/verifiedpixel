@@ -14,7 +14,7 @@ from os.path import os, basename
 import json
 
 
-@urlmatch(scheme='https', netloc='www.izitru.comDEBUG', path='/scripts/uploadAPI.pl')
+@urlmatch(scheme='https', netloc='www.izitru.com', path='/scripts/uploadAPI.pl')
 def izitru_request(url, request):
     with open('./izitru_response.json', 'r') as f:
         return {'status_code': 200,

@@ -21,7 +21,7 @@ class VerifiedPixelAppTest(TestCase):
 
     def setUp(self):
         setup(context=self)
-        #setup_vpp_mock(self)
+        setup_vpp_mock(self)
 
     def tearDown(self):
         teardown_vpp_mock(self)
@@ -63,7 +63,8 @@ class VerifiedPixelAppTest(TestCase):
                 req=ParsedRequest(), lookup=lookup
             )
 
-            if True:
+            # record current werification as a reference
+            if False:
                 with open('ingest_item_verification.json', 'w') as f:
                     json.dump(list(items)[0]['verification'], f)
 
