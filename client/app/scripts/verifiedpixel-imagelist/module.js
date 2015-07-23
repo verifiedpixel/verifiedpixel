@@ -1236,12 +1236,137 @@
             };
         }])
 
-        .directive('vpMediaMetadata', ['userList', function(userList) {
+        .directive('vpMediaAll', ['userList', function(userList) {
             return {
                 scope: {
                     item: '='
                 },
-                templateUrl: 'scripts/verifiedpixel-imagelist/views/metadata-view.html',
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html',
+                link: function(scope, elem) {
+
+                    scope.$watch('item', reloadData);
+
+                    function reloadData() {
+                        scope.originalCreator = null;
+                        scope.versionCreator = null;
+
+                        if (scope.item.original_creator) {
+                            userList.getUser(scope.item.original_creator)
+                            .then(function(user) {
+                                scope.originalCreator = user.display_name;
+                            });
+                        }
+                        if (scope.item.version_creator) {
+                            userList.getUser(scope.item.version_creator)
+                            .then(function(user) {
+                                scope.versionCreator = user.display_name;
+                            });
+                        }
+                    }
+                }
+            };
+        }])
+
+        .directive('vpMediaExif', ['userList', function(userList) {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/exif-view.html',
+                link: function(scope, elem) {
+
+                    scope.$watch('item', reloadData);
+
+                    function reloadData() {
+                        scope.originalCreator = null;
+                        scope.versionCreator = null;
+
+                        if (scope.item.original_creator) {
+                            userList.getUser(scope.item.original_creator)
+                            .then(function(user) {
+                                scope.originalCreator = user.display_name;
+                            });
+                        }
+                        if (scope.item.version_creator) {
+                            userList.getUser(scope.item.version_creator)
+                            .then(function(user) {
+                                scope.versionCreator = user.display_name;
+                            });
+                        }
+                    }
+                }
+            };
+        }])
+
+
+        .directive('vpMediaIzitru', ['userList', function(userList) {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/izitru-view.html',
+                link: function(scope, elem) {
+
+                    scope.$watch('item', reloadData);
+
+                    function reloadData() {
+                        scope.originalCreator = null;
+                        scope.versionCreator = null;
+
+                        if (scope.item.original_creator) {
+                            userList.getUser(scope.item.original_creator)
+                            .then(function(user) {
+                                scope.originalCreator = user.display_name;
+                            });
+                        }
+                        if (scope.item.version_creator) {
+                            userList.getUser(scope.item.version_creator)
+                            .then(function(user) {
+                                scope.versionCreator = user.display_name;
+                            });
+                        }
+                    }
+                }
+            };
+        }])
+
+        .directive('vpMediaTineye', ['userList', function(userList) {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/tineye-view.html',
+                link: function(scope, elem) {
+
+                    scope.$watch('item', reloadData);
+
+                    function reloadData() {
+                        scope.originalCreator = null;
+                        scope.versionCreator = null;
+
+                        if (scope.item.original_creator) {
+                            userList.getUser(scope.item.original_creator)
+                            .then(function(user) {
+                                scope.originalCreator = user.display_name;
+                            });
+                        }
+                        if (scope.item.version_creator) {
+                            userList.getUser(scope.item.version_creator)
+                            .then(function(user) {
+                                scope.versionCreator = user.display_name;
+                            });
+                        }
+                    }
+                }
+            };
+        }])
+
+        .directive('vpMediaGris', ['userList', function(userList) {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/gris-view.html',
                 link: function(scope, elem) {
 
                     scope.$watch('item', reloadData);
