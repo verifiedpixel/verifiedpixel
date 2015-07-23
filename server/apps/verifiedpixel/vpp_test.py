@@ -53,6 +53,7 @@ class VerifiedPixelAppTest(TestCase):
         with open('./ingest_item_verification.json', 'r') as f:
             self.verification_result = json.load(f)
 
+    #@responses.activate
     def test_pass(self):
         self.upload_fixture_image()
         with self.app.app_context():

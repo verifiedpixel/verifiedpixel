@@ -81,3 +81,17 @@ def setup_vpp_mock(context):
 def teardown_vpp_mock(context):
     if hasattr(context, 'mock'):
         context.mock.__exit__(None, None, None)
+
+
+from urllib3_mock import Responses
+import re
+
+responses = Responses('urllib3')
+#responses = Responses('requests.packages.urllib3')
+
+def print_debug(request):
+    print("DEBUG========================urllib3")
+    return (200, {}, b'{"urllib": 3}')
+
+url_re = re.compile(r'/rest/.*')
+responses.add_callback('GET', url_re, callback=print_debug)
