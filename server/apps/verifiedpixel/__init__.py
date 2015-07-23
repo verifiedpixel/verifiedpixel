@@ -129,10 +129,8 @@ def append_api_results_to_item(item, api_name, api_getter, args):
         "VerifiedPixel: {api}: searching matches for {file}...".format(
             api=api_name, file=filename
         ))
-    if 'verification' not in item:
-        item['verification'] = {}
     try:
-        item['verification'][api_name] = api_getter(*args)
+        verification_result = api_getter(*args)
     except APIGracefulException:
         logger.warning(
             "VerifiedPixel: {api}: no matches found for {file}.".format(
@@ -144,8 +142,12 @@ def append_api_results_to_item(item, api_name, api_getter, args):
             "VerifiedPixel: {api}: matchs found for {file}.".format(
                 api=api_name, file=filename
             ))
-        # pprint(item['verification'][api_name])
-        superdesk.get_resource_service('ingest').put(item['_id'], item)
+        superdesk.get_resource_service('ingest').patch(
+            item['_id'],
+            {
+                'verification.%s' % api_name: verification_result
+            },
+        )
 
 
 @celery.task
@@ -161,7 +163,7 @@ def process_item(item):
     for api_name, api_getter, args in [
         ('izitru', get_izitru_results, (content,)),
         ('tineye', get_tineye_results, (content,)),
-        #('gris', get_gris_results, (href,)),
+        # ('gris', get_gris_results, (href,)),
     ]:
         append_api_results_to_item(item, api_name, api_getter, args)
 
