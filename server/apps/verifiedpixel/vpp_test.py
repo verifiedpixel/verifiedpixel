@@ -29,7 +29,7 @@ class VerifiedPixelAppTest(TestCase):
         pass
 
     def upload_fixture_image(self):
-        fixture_image_path = './test.png'
+        fixture_image_path = './test/vpp/test.png'
         file_name = 'test.png'
         content_type = 'image/png'
         file_type = 'image'
@@ -57,11 +57,11 @@ class VerifiedPixelAppTest(TestCase):
         with open('./ingest_item_verification.json', 'r') as f:
             self.verification_result = json.load(f)
 
-    @activate_izitru_mock('./izitru_response.json')
-    @activate_tineye_mock('./tineye_response.json')
+    @activate_izitru_mock('./test/vpp/izitru_response.json')
+    @activate_tineye_mock('./test/vpp/tineye_response.json')
     @activate_gris_mock([
-        './gris_discovery_response.json',
-        './gris_search_response.json'
+        './test/vpp/gris_discovery_response.json',
+        './test/vpp/gris_search_response.json'
     ])
     def test_pass(self):
         self.upload_fixture_image()
