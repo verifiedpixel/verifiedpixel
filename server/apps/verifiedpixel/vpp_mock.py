@@ -9,25 +9,26 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from httmock import urlmatch, HTTMock, all_requests
-from urllib.parse import parse_qs
-from os.path import os, basename
 import json
+
+from pprint import pprint  # noqa
+
+from urllib3.connectionpool import HTTPConnectionPool
+orig_urlopen = HTTPConnectionPool.urlopen
+orig_http = HTTPConnectionPool
+
+
+from urllib3_mock import Responses  # noqa
+import re  # noqa
+from unittest.mock import ANY  # noqa
 
 
 @urlmatch(scheme='https', netloc='www.izitru.com', path='/scripts/uploadAPI.pl')
 def izitru_request(url, request):
+    print("DEBUG========================requests-IZITRU")
     with open('./izitru_response.json', 'r') as f:
         return {'status_code': 200,
                 'content': json.load(f),
-                }
-
-
-@urlmatch(scheme='http', netloc='api.tineye.com', path='/rest')
-def tineye_request(url, request):
-    with open('./izitru_response.json', 'r') as f:
-        return {'status_code': 200,
-                #'content': json.load(f),
-                'content': b'{"foo": "bar"}',
                 }
 
 
@@ -38,43 +39,8 @@ def debug_request(url, request):
     return {'status_code': 200, 'content': b'{"foo": "bar"}', }
 
 
-@urlmatch(scheme='https', netloc='commerce.reuters.com', path='/rmd/rest/xml/login')
-def login_request(url, request):
-    return {'status_code': 200,
-            'content': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><authToken>fake_token</authToken>'}
-
-
-@urlmatch(scheme='http', netloc='rmb.reuters.com', path='/rmd/rest/xml/item')
-def item_request(url, request):
-    try:
-        params = parse_qs(url.query, keep_blank_values=True)
-        fixtures = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'fixtures')
-        file = os.path.join(fixtures, params['id'][0])
-        with open(file, "r") as stored_response:
-            content = stored_response.read()
-            return {'status_code': 200, 'content': content}
-    except Exception:
-        return {'status_code': 404}
-
-
-@urlmatch(scheme='http', netloc='content.reuters.com')
-def content_request(url, request):
-    try:
-        fixtures = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'fixtures')
-        file = os.path.join(fixtures, basename(url.path))
-        with open(file, 'rb') as stored_response:
-            content = stored_response.read()
-            return {'status_code': 200, 'content': content}
-    except Exception:
-        return {'status_code': 404}
-
-
 def setup_vpp_mock(context):
-    context.mock = HTTMock(*[
-        izitru_request,
-        tineye_request,
-        debug_request,
-    ])
+    context.mock = HTTMock(*[izitru_request, debug_request, ])
     context.mock.__enter__()
 
 
@@ -83,15 +49,33 @@ def teardown_vpp_mock(context):
         context.mock.__exit__(None, None, None)
 
 
-from urllib3_mock import Responses
-import re
+###############################################################################
 
 responses = Responses('urllib3')
-#responses = Responses('requests.packages.urllib3')
+
 
 def print_debug(request):
-    print("DEBUG========================urllib3")
-    return (200, {}, b'{"urllib": 3}')
+    print("DEBUG========================urllib3-TINEYE")
+    with open('./tineye_response.json', 'rb') as f:
+        return (200, {}, f.read())
 
-url_re = re.compile(r'/rest/.*')
-responses.add_callback('GET', url_re, callback=print_debug)
+
+url_re = re.compile(r'.*/rest/search/.*')
+responses.add_callback('POST', url_re, callback=print_debug)
+
+
+def pass_through(req):
+    print("DEBUG========================urllib3-pass-through")
+    print((req.method, req.host, req.port, req.url, ))
+
+    new_params = {}
+    for key in ['method', 'headers', 'body', 'url']:
+        new_params[key] = getattr(req, key)
+
+    http = orig_http(host=req.host, port=req.port)
+    res = orig_urlopen(http, **new_params)
+    result = (res.status, res.getheaders(), res.data)
+    return result
+
+responses.add_callback(ANY, re.compile(r'/.*'), callback=pass_through)
+###############################################################################

@@ -10,7 +10,7 @@ from superdesk.media.renditions import generate_renditions
 from superdesk.upload import url_for_media
 
 from apps.verifiedpixel import verify_ingest
-from .vpp_mock import setup_vpp_mock, teardown_vpp_mock
+from .vpp_mock import setup_vpp_mock, teardown_vpp_mock, responses
 
 from pprint import pprint  # noqa @TODO: debug
 
@@ -25,6 +25,7 @@ class VerifiedPixelAppTest(TestCase):
 
     def tearDown(self):
         teardown_vpp_mock(self)
+        pass
 
     def upload_fixture_image(self):
         fixture_image_path = './test.png'
@@ -53,7 +54,7 @@ class VerifiedPixelAppTest(TestCase):
         with open('./ingest_item_verification.json', 'r') as f:
             self.verification_result = json.load(f)
 
-    #@responses.activate
+    @responses.activate
     def test_pass(self):
         self.upload_fixture_image()
         with self.app.app_context():
@@ -63,16 +64,20 @@ class VerifiedPixelAppTest(TestCase):
             items = superdesk.get_resource_service('ingest').get(
                 req=ParsedRequest(), lookup=lookup
             )
+            verification_result = list(items)[0]['verification']
 
             # record current werification as a reference
             if False:
                 with open('ingest_item_verification.json', 'w') as f:
-                    json.dump(list(items)[0]['verification'], f)
+                    json.dump(verification_result, f)
 
-            verification_result = list(items)[0]['verification']
             self.assertEqual(
                 self.verification_result['izitru'],
                 verification_result['izitru']
+            )
+            self.assertEqual(
+                self.verification_result['tineye'],
+                verification_result['tineye']
             )
 
             #self.assertEqual(
