@@ -40,6 +40,7 @@ IZITRU_ACTIVATION_KEY = '20faaa56-edc1-4395-a2d9-1eb6248f0922'
 IZITRU_API_URL = 'https://www.izitru.com/scripts/uploadAPI.pl'
 
 GRIS_API_KEY = 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4'
+GRIS_API_CX = '008702632149434239236:xljn9isiv1i'
 
 
 logger = logging.getLogger('superdesk')
@@ -90,7 +91,7 @@ def get_gris_results(href):
     res = service.cse().list(
         q=href,
         searchType='image',
-        cx='008702632149434239236:xljn9isiv1i',
+        cx=GRIS_API_CX,
     ).execute()
     return res
 
@@ -160,7 +161,7 @@ def process_item(item):
     for api_name, api_getter, args in [
         ('izitru', get_izitru_results, (content,)),
         ('tineye', get_tineye_results, (content,)),
-        ('gris', get_gris_results, (href,)),
+        #('gris', get_gris_results, (href,)),
     ]:
         append_api_results_to_item(item, api_name, api_getter, args)
 

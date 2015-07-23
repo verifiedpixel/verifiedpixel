@@ -8,8 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from httmock import urlmatch, HTTMock, all_requests
+from httmock import urlmatch, HTTMock
 import json
+import logging
 
 from pprint import pprint  # noqa
 
@@ -23,59 +24,59 @@ import re  # noqa
 from unittest.mock import ANY  # noqa
 
 
-@urlmatch(scheme='https', netloc='www.izitru.com', path='/scripts/uploadAPI.pl')
-def izitru_request(url, request):
-    print("DEBUG========================requests-IZITRU")
-    with open('./izitru_response.json', 'r') as f:
-        return {'status_code': 200,
-                'content': json.load(f),
-                }
+logger = logging.getLogger('superdesk')
+logger.setLevel(logging.DEBUG)
 
 
-@all_requests
-def debug_request(url, request):
-    print("####### DEBUG ########")
-    print(url)
-    return {'status_code': 200, 'content': b'{"foo": "bar"}', }
+def activate_izitru_mock(fixture_path):
+    @urlmatch(
+        scheme='https', netloc='www.izitru.com', path='/scripts/uploadAPI.pl'
+    )
+    def izitru_request(url, request):
+        logger.debug("served requests mock for IZITRU")
+        with open(fixture_path, 'r') as f:
+            return {'status_code': 200, 'content': json.load(f), }
+
+    def wrap(f):
+        def test_new(*args):
+            with HTTMock(izitru_request):
+                f(*args)
+        return test_new
+    return wrap
 
 
-def setup_vpp_mock(context):
-    context.mock = HTTMock(*[izitru_request, debug_request, ])
-    context.mock.__enter__()
+def activate_tineye_mock(fixture_path):
+    responses = Responses('urllib3')
 
+    def tineye_response(request):
+        logger.debug("served urllib3 mock for TINEYE")
+        with open(fixture_path, 'rb') as f:
+            return (200, {}, f.read())
+    responses.add_callback(
+        'POST', re.compile(r'.*api\.tineye\.com/rest/search/.*'),
+        callback=tineye_response
+    )
 
-def teardown_vpp_mock(context):
-    if hasattr(context, 'mock'):
-        context.mock.__exit__(None, None, None)
+    def pass_through(req):
+        '''
+        workaround for elasticsearch which uses urllib3 as well
+        '''
+        '''
+        logger.debug("urllib3-PASS-THROUGH: " + str(
+            (req.method, req.host, req.port, req.url, )
+        ))
+        '''
+        new_params = {}
+        for key in ['method', 'headers', 'body', 'url']:
+            new_params[key] = getattr(req, key)
+        http = orig_http(host=req.host, port=req.port)
+        res = orig_urlopen(http, **new_params)
+        return (res.status, res.getheaders(), res.data)
+    responses.add_callback(ANY, re.compile(r'/.*'), callback=pass_through)
 
-
-###############################################################################
-
-responses = Responses('urllib3')
-
-
-def print_debug(request):
-    print("DEBUG========================urllib3-TINEYE")
-    with open('./tineye_response.json', 'rb') as f:
-        return (200, {}, f.read())
-
-
-url_re = re.compile(r'.*/rest/search/.*')
-responses.add_callback('POST', url_re, callback=print_debug)
-
-
-def pass_through(req):
-    print("DEBUG========================urllib3-pass-through")
-    print((req.method, req.host, req.port, req.url, ))
-
-    new_params = {}
-    for key in ['method', 'headers', 'body', 'url']:
-        new_params[key] = getattr(req, key)
-
-    http = orig_http(host=req.host, port=req.port)
-    res = orig_urlopen(http, **new_params)
-    result = (res.status, res.getheaders(), res.data)
-    return result
-
-responses.add_callback(ANY, re.compile(r'/.*'), callback=pass_through)
-###############################################################################
+    def wrap(f):
+        @responses.activate
+        def test_new(*args):
+            f(*args)
+        return test_new
+    return wrap

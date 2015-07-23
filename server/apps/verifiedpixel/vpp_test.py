@@ -10,7 +10,9 @@ from superdesk.media.renditions import generate_renditions
 from superdesk.upload import url_for_media
 
 from apps.verifiedpixel import verify_ingest
-from .vpp_mock import setup_vpp_mock, teardown_vpp_mock, responses
+
+from apiclient.http import HttpMock
+from .vpp_mock import activate_tineye_mock, activate_izitru_mock
 
 from pprint import pprint  # noqa @TODO: debug
 
@@ -21,10 +23,8 @@ class VerifiedPixelAppTest(TestCase):
 
     def setUp(self):
         setup(context=self)
-        setup_vpp_mock(self)
 
     def tearDown(self):
-        teardown_vpp_mock(self)
         pass
 
     def upload_fixture_image(self):
@@ -34,10 +34,12 @@ class VerifiedPixelAppTest(TestCase):
         file_type = 'image'
         with self.app.app_context():
             with open(fixture_image_path, mode='rb') as f:
-                file_id = app.media.put(f, filename=file_name,
-                                        content_type=content_type,
-                                        resource=get_resource_service('ingest').datasource,
-                                        metadata={})
+                file_id = app.media.put(
+                    f, filename=file_name,
+                    content_type=content_type,
+                    resource=get_resource_service('ingest').datasource,
+                    metadata={}
+                )
                 inserted = [file_id]
                 renditions = generate_renditions(
                     f, file_id, inserted, file_type, content_type,
@@ -54,7 +56,8 @@ class VerifiedPixelAppTest(TestCase):
         with open('./ingest_item_verification.json', 'r') as f:
             self.verification_result = json.load(f)
 
-    @responses.activate
+    @activate_izitru_mock('./izitru_response.json')
+    @activate_tineye_mock('./tineye_response.json')
     def test_pass(self):
         self.upload_fixture_image()
         with self.app.app_context():
@@ -71,6 +74,7 @@ class VerifiedPixelAppTest(TestCase):
                 with open('ingest_item_verification.json', 'w') as f:
                     json.dump(verification_result, f)
 
+            # @TODO: add gris mock
             self.assertEqual(
                 self.verification_result['izitru'],
                 verification_result['izitru']
@@ -81,8 +85,6 @@ class VerifiedPixelAppTest(TestCase):
             )
 
             #self.assertEqual(
-                #self.verification_result,
-                #list(items)[0]['verification']
+            #self.verification_result,
+            #list(items)[0]['verification']
             #)
-
-            print(verification_result['tineye']['code'])
