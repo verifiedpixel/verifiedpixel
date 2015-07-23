@@ -11,16 +11,15 @@
 from httmock import urlmatch, HTTMock
 import json
 import logging
+import re
+from unittest import mock
+from apiclient.http import HttpMockSequence as GoogleAPIMockSequence
 
 from pprint import pprint  # noqa
 
 from urllib3.connectionpool import HTTPConnectionPool
 orig_urlopen = HTTPConnectionPool.urlopen
-
-
 from urllib3_mock import Responses  # noqa
-import re  # noqa
-from unittest.mock import ANY  # noqa
 
 
 logger = logging.getLogger('superdesk')
@@ -71,11 +70,30 @@ def activate_tineye_mock(fixture_path):
         http = HTTPConnectionPool(host=req.host, port=req.port)
         res = orig_urlopen(http, **new_params)
         return (res.status, res.getheaders(), res.data)
-    responses.add_callback(ANY, re.compile(r'/.*'), callback=pass_through)
+    responses.add_callback(mock.ANY, re.compile(r'/.*'), callback=pass_through)
 
     def wrap(f):
         @responses.activate
         def test_new(*args):
             f(*args)
+        return test_new
+    return wrap
+
+
+def activate_gris_mock(fixture_paths):
+    sequence = []
+    for fixture_path in fixture_paths:
+        with open(fixture_path, 'r') as f:
+            sequence.append(({'status': 200}, f.read()))
+
+    def get_google_mock():
+        return GoogleAPIMockSequence(sequence)
+    patcher = mock.patch('httplib2.Http', get_google_mock)
+
+    def wrap(f):
+        def test_new(*args):
+            patcher.start()
+            f(*args)
+            patcher.stop()
         return test_new
     return wrap

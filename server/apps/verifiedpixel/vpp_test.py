@@ -11,8 +11,9 @@ from superdesk.upload import url_for_media
 
 from apps.verifiedpixel import verify_ingest
 
-from apiclient.http import HttpMock
-from .vpp_mock import activate_tineye_mock, activate_izitru_mock
+from .vpp_mock import (
+    activate_tineye_mock, activate_izitru_mock, activate_gris_mock
+)
 
 from pprint import pprint  # noqa @TODO: debug
 
@@ -58,33 +59,20 @@ class VerifiedPixelAppTest(TestCase):
 
     @activate_izitru_mock('./izitru_response.json')
     @activate_tineye_mock('./tineye_response.json')
+    @activate_gris_mock([
+        './gris_discovery_response.json',
+        './gris_search_response.json'
+    ])
     def test_pass(self):
         self.upload_fixture_image()
         with self.app.app_context():
-            verify_ingest()  # noqa
+            verify_ingest()
 
             lookup = {'type': 'picture'}
             items = superdesk.get_resource_service('ingest').get(
                 req=ParsedRequest(), lookup=lookup
             )
-            verification_result = list(items)[0]['verification']
-
-            # record current werification as a reference
-            if False:
-                with open('ingest_item_verification.json', 'w') as f:
-                    json.dump(verification_result, f)
-
-            # @TODO: add gris mock
             self.assertEqual(
-                self.verification_result['izitru'],
-                verification_result['izitru']
+                self.verification_result,
+                list(items)[0]['verification']
             )
-            self.assertEqual(
-                self.verification_result['tineye'],
-                verification_result['tineye']
-            )
-
-            #self.assertEqual(
-            #self.verification_result,
-            #list(items)[0]['verification']
-            #)
