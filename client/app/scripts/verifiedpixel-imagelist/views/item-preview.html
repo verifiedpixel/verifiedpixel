@@ -4,8 +4,20 @@
             <li ng-class="{active: tab === 'content'}">
                 <button ng-click="tab = 'content'"><span translate>Content</span></button>
             </li>
-            <li ng-class="{active: tab === 'metadata'}">
-                <button ng-click="tab = 'metadata'"><span translate>Metadata</span></button>
+            <li ng-class="{active: tab === 'all'}">
+                <button ng-click="tab = 'all'"><span translate>All</span></button>
+            </li>
+            <li ng-class="{active: tab === 'exif'}">
+                <button ng-click="tab = 'exif'"><span translate>EXIF</span></button>
+            </li>
+            <li ng-class="{active: tab === 'gris'}">
+                <button ng-click="tab = 'gris'"><span translate>GRIS</span></button>
+            </li>
+            <li ng-class="{active: tab === 'tineye'}">
+                <button ng-click="tab = 'tineye'"><span translate>Tineye</span></button>
+            </li>
+            <li ng-class="{active: tab === 'izitru'}">
+                <button ng-click="tab = 'izitru'"><span translate>Izitru</span></button>
             </li>
         </ul>
         <button ng-click="close()" class="close-preview">
@@ -14,7 +26,10 @@
     </header>
     <div class="content">
         <div ng-if="tab === 'content'" sd-media-preview data-item="item"></div>
-        <div ng-if="tab === 'metadata'" vp-media-metadata data-item="item"></div>
-        <div ng-if="tab === 'related'" sd-media-related data-item="item"></div>
+        <div ng-if="tab === 'all'" vp-media-all data-item="item"></div>
+        <div ng-if="tab === 'exif'" vp-media-exif data-item="item"></div>
+        <div ng-if="tab === 'gris'" vp-media-gris data-item="item"></div>
+        <div ng-if="tab === 'tineye'" vp-media-tineye data-item="item"></div>
+        <div ng-if="tab === 'izitru'" vp-media-izitru data-item="item"></div>
     </div>
 </div>
