@@ -1,0 +1,13 @@
+<div class="metadata-view">
+    <!-- VERIFICATION METADATA -->
+    <!-- file specific data -->
+    <dl ng-if="item.filemeta">
+        <dt translate>Aperture</dt><dd>{{ item.filemeta.ApertureValue[0] }} : {{ item.filemeta.ApertureValue[1] }}</dd>
+        <dt translate>Exposure time</dt><dd>{{ item.filemeta.ExposureTime[0] }} : {{ item.filemeta.ExposureTime[1] }}</dd>
+        <dt translate>Focal length</dt><dd>{{ item.filemeta.FocalLength[0] }} : {{ item.filemeta.FocalLength[1] }}</dd>
+        <dt translate>Iso</dt><dd>{{ item.filemeta.ISOSpeedRatings }}</dd>
+        <dt translate>Flash</dt><dd>{{ item.filemeta.Flash }}</dd>
+    </dl>
+
+    <!-- END VERIFICATION METADATA -->
+</div>

@@ -4,47 +4,9 @@
 @import 'mixins.less';
 @import 'variables.less';
 
-.search-page-container {
-        .archive-content {
-            height: 100%;
-        }
-	.search-page-header {
-		display: flex;
-		position: relative;
-		> div {
-			flex: 0 0 auto;
-		}
-		.searchbar-flex-handler {
-			flex: 1 0 auto;
-		}
-		.multi-action-bar {
-			.border-box();
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			top: 0; left: 0;
-			line-height: 48px;
-			background-color: #fff;
-			padding-left: 16px;
-
-			.navbtn {
-				border: none;
-			}
-                        
-                        #multi-select-count {
-                            margin-left: 15px;
-                        }
-		}
-	}
-}
-
-.item-searchbar {
-	border-left: 1px solid #dfdfdf;
-	position: relative;
-
-	&.focused {
-		border-right: 1px solid #dfdfdf;
-		background: @white;
+.list-pane {
+	.content {
+		background: #000;
 	}
 	.search-icon {
 		.user-select(none);

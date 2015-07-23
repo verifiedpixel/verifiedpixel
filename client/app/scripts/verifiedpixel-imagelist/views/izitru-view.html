@@ -1,0 +1,27 @@
+<div class="metadata-view">
+
+    <!-- VERIFICATION METADATA -->
+    <dl ng-if="item.verification.izitru.verdict">
+        <dt translate>Izitru Verdict</dt>
+        <dd>{{ item.verification.izitru.verdict }}</dd>
+    </dl>
+    <dl ng-if="item.verification.izitru.imageQuality">
+        <dt translate>Image Quality</dt>
+        <dd>{{ item.verification.izitru.imageQuality }}</dd>
+    </dl>
+    <dl ng-if="item.verification.izitru.jpegStructureAnalysis">
+        <dt translate>JPEG Structure Analysis</dt>
+        <dd>{{ item.verification.izitru.jpegStructureAnalysis }}</dd>
+    </dl>
+    <dl ng-if="item.verification.izitru.deviceSignatureAnalysis">
+        <dt translate>Device Signature Analysis</dt>
+        <dd>{{ item.verification.izitru.deviceSignatureAnalysis }}</dd>
+    </dl>
+    <dl ng-if="item.verification.izitru.sensorPatternAnalysis">
+        <dt translate>Sensor Pattern Analysis</dt>
+        <dd>{{ item.verification.izitru.sensorPatternAnalysis }}</dd>
+    </dl>
+    <!-- END VERIFICATION METADATA -->
+
+
+</div>
