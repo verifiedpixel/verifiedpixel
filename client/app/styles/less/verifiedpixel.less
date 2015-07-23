@@ -1,6 +1,65 @@
 @import 'mixins.less';
 @import 'variables.less';
 
+
+// Hide the links to unused superdesk features
+// Needed since we import these in the modules due to depencies
+// but we don't need the links in the user menu
+#main-menu .content > ul > li > a[href="#/workspace"],
+#main-menu .content > ul > li > a[href="#/authoring/"],
+#main-menu .content > ul > li > a[href="#/legal_archive/"],
+#main-menu .content > ul > li > a[href="#/desks/"],
+.nav-tabs > li > a[href="#/settings/dictionaries"],
+.nav-tabs > li > a[href="#/settings/templates"],
+.nav-tabs > li > a[href="#/settings/desks"],
+.nav-tabs > li > a[href="#/settings/user-roles"] {
+    display: none !important;
+}
+
+.list-pane {
+    .content {
+        background: #000;
+    }
+    .list-view {
+        .media-box {
+            min-height: 150px;
+            min-width: 170px;
+            padding: 0;
+            &.media-picture {
+                background: none;
+            }
+            h3 {
+                color: #fff;
+                font-size: 11px;
+            }
+            .media {
+                background: none;
+                margin: 0 0 10px;
+            }
+            &.multi {
+                margin: 0 0 10px;
+            }
+            .media-info {
+                background: #1a1a1a;
+            }
+        }
+    }
+    &.compact-view {
+        .list-view {
+            li {
+                .media-box {
+                    background: #1a1a1a;
+                }
+                &:nth-of-type(even) {
+                    .media-box {
+                        background: #333;
+                    }
+                }
+            }
+        }
+    }
+}
+
 .main-section {
 	z-index: auto;
 }
