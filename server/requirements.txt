@@ -12,3 +12,4 @@ git+git://github.com/superdesk/eve@sync-develop-24-june#egg=Eve==0.6.0-dev
 
 requests
 Pillow
+urllib3-mock
