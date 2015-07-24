@@ -14,25 +14,24 @@
     </dl>
     <!-- END VERIFICATION METADATA -->
 
-<map zoom="11" 
-  center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
-  disable-default-u-i="true"
-  disable-double-click-zoom="true"
-  draggable="false"
-  draggable-cursor="help"
-  dragging-cursor="move"
-  keyboard-shortcuts="false"
-  max-zoom="12"
-  min-zoom="8"
-  tilt="45"
-  map-type-id="TERRAIN">
-  <marker
-      position="[{{ item.gpslat }}, {{ item.gpslon }}]"
-      title="Hello Marker"
-      animation="Animation.BOUNCE"
-      draggable="true"
-      visible="true"></marker>
-</map>
+    <map zoom="11" 
+        center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
+        disable-default-u-i="true"
+        disable-double-click-zoom="true"
+        draggable="false"
+        dragging-cursor="move"
+        keyboard-shortcuts="false"
+        max-zoom="12"
+        min-zoom="8"
+        tilt="45"
+        map-type-id="TERRAIN">
+        <marker
+            position="[{{ item.gpslat }}, {{ item.gpslon }}]"
+            title="GPS Location"
+            draggable="false"
+            visible="true">
+        </marker>
+    </map>
 
 
     <!-- location details -->
