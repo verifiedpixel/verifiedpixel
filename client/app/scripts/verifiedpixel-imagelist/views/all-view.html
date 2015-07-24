@@ -14,6 +14,7 @@
     </dl>
     <!-- END VERIFICATION METADATA -->
 
+    <!-- Map -->
     <div ng-if="item.filemeta.GPSInfo.GPSLatitude && item.filemeta.GPSInfo.GPSLongitude">
         <map zoom="18" 
             center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
@@ -42,6 +43,7 @@
             <dd>{{ item.gpslong }}</dd>
         </dl>
     </div>
+    <!-- END MAP -->
 
     <dl ng-if="item.guid">
         <dt translate>GUID</dt>
