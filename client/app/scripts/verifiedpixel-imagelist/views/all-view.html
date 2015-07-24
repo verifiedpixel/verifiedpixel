@@ -28,6 +28,13 @@
         <dt translate>Capture Location Longitude</dt>
         <dd>{{ item.verification.izitru.EXIF.captureLocationLongitude }}</dd>
     </dl>
+    <!-- from filemeta -->
+    <dl ng-if="item.filemeta.GPSInfo">
+        <dt translate>GPSInfo Latitude</dt>
+        <dd>{{ item.GPSLat }}</dd>
+        <dt translate>GPSInfo Longitude</dt>
+        <dd>{{ item.GPSLong }}</dd>
+    </dl>
     <!-- end location details -->
 
     <dl ng-if="item.guid">
