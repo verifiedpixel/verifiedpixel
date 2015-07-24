@@ -15,7 +15,7 @@
     <!-- END VERIFICATION METADATA -->
 
 <map zoom="11" 
-  center="[40.74, -74.18]" 
+  center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
   disable-default-u-i="true"
   disable-double-click-zoom="true"
   draggable="false"
@@ -27,12 +27,11 @@
   tilt="45"
   map-type-id="TERRAIN">
   <marker
-      position="[40.76, -74.16]"
+      position="[{{ item.gpslat }}, {{ item.gpslon }}]"
       title="Hello Marker"
       animation="Animation.BOUNCE"
       draggable="true"
-      visible="true"
-      icon="beachflag.png"></marker>
+      visible="true"></marker>
 </map>
 
 

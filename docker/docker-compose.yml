@@ -71,9 +71,9 @@ backend:
    - SUPERDESK_CLIENT_URL=http://127.0.0.1
    - SUPERDESK_TESTING=True
   volumes:
-   #- ../results/server/unit:/opt/superdesk/results-unit/
-   #- ../results/server/behave:/opt/superdesk/results-behave/
-   - ../server:/opt/superdesk/
+   - ../results/server/unit:/opt/superdesk/results-unit/
+   - ../results/server/behave:/opt/superdesk/results-behave/
+   #- ../server:/opt/superdesk/
 
 frontend:
   build: ../client

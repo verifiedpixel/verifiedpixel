@@ -1264,8 +1264,8 @@
                             });
                         }
                     }
-                    // with apologies to EranS - https://gist.github.com/erans/983821
-                    function GPSToFloat(input){
+
+                    function GPSToFloat(input, ref){
                         var d0 = input[0][0];
                         var d1 = input[0][1];
                         var d = (d0 / d1);
@@ -1278,21 +1278,20 @@
                         var s1 = input[2][1];
                         var s = (s0 / s1);
                         var value = (d + (m / 60) + (s / 3600));
+
+                        if ((ref === 'S') || (ref === 'W')) {
+                            value = 0 - value;
+                        }
                         return value;
                     }
-                    var GPSLong = GPSToFloat(scope.item.filemeta.GPSInfo.GPSLongitude);
-                    var GPSLat = GPSToFloat(scope.item.filemeta.GPSInfo.GPSLatitude);
-
-                    if (scope.item.filemeta.GPSInfo.GPSLatitudeRef != "N") {
-                        GPSLat = 0 - GPSLat;
-                    }
-                    if (scope.item.filemeta.GPSInfo.GPSLongitudeRef != "E") {
-                        GPSLong = 0 - GPSLong;
-                    }
-
-                    scope.item.GPSLat = GPSLat;
-                    scope.item.GPSLong = GPSLong;
-
+                    scope.item.gpslon = GPSToFloat(
+                        scope.item.filemeta.GPSInfo.GPSLongitude,
+                        scope.item.filemeta.GPSInfo.GPSLongitudeRef
+                    );
+                    scope.item.gpslat = GPSToFloat(
+                        scope.item.filemeta.GPSInfo.GPSLatitude,
+                        scope.item.filemeta.GPSInfo.GPSLatitudeRef 
+                    );
                 }
             };
         }])
