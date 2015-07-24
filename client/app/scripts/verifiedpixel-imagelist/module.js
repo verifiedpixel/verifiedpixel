@@ -420,6 +420,7 @@
     }
 
     angular.module('verifiedpixel.imagelist', [
+        'ngMap',
         'superdesk.api',
         'superdesk.desks',
         'superdesk.activity',
