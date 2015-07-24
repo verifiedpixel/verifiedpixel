@@ -1263,38 +1263,39 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
-                    }
 
-                    function GPSToFloat(input, ref){
-                        var d0 = input[0][0];
-                        var d1 = input[0][1];
-                        var d = (d0 / d1);
+                        function GPSToFloat(input, ref){
+                            var d0 = input[0][0];
+                            var d1 = input[0][1];
+                            var d = (d0 / d1);
 
-                        var m0 = input[1][0];
-                        var m1 = input[1][1];
-                        var m = (m0 / m1);
+                            var m0 = input[1][0];
+                            var m1 = input[1][1];
+                            var m = (m0 / m1);
 
-                        var s0 = input[2][0];
-                        var s1 = input[2][1];
-                        var s = (s0 / s1);
-                        var value = (d + (m / 60) + (s / 3600));
+                            var s0 = input[2][0];
+                            var s1 = input[2][1];
+                            var s = (s0 / s1);
+                            var value = (d + (m / 60) + (s / 3600));
 
-                        if ((ref === 'S') || (ref === 'W')) {
-                            value = 0 - value;
+                            if ((ref === 'S') || (ref === 'W')) {
+                                value = 0 - value;
+                            }
+                            return value;
                         }
-                        return value;
-                    }
-                    // check to see if the file latitude record exists before trying to return anything // longitude is there for the sake of completeness
-                    if (scope.item.filemeta.GPSInfo.GPSLatitude && scope.item.filemeta.GPSInfo.GPSLongitude) {
-                        // lat is always first
-                        scope.item.gpslat = GPSToFloat(
-                            scope.item.filemeta.GPSInfo.GPSLatitude,
-                            scope.item.filemeta.GPSInfo.GPSLatitudeRef 
-                        );
-                        scope.item.gpslon = GPSToFloat(
-                            scope.item.filemeta.GPSInfo.GPSLongitude,
-                            scope.item.filemeta.GPSInfo.GPSLongitudeRef
-                        );
+                        // check to see if the file latitude record exists before trying to return anything // longitude is there for the sake of completeness
+                        if (scope.item.filemeta.GPSInfo.GPSLatitude && scope.item.filemeta.GPSInfo.GPSLongitude) {
+                            // lat is always first
+                            scope.item.gpslat = GPSToFloat(
+                                scope.item.filemeta.GPSInfo.GPSLatitude,
+                                scope.item.filemeta.GPSInfo.GPSLatitudeRef 
+                            );
+                            scope.item.gpslon = GPSToFloat(
+                                scope.item.filemeta.GPSInfo.GPSLongitude,
+                                scope.item.filemeta.GPSInfo.GPSLongitudeRef
+                            );
+                        }
+
                     }
                 }
             };
