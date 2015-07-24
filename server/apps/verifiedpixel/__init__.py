@@ -1,13 +1,3 @@
-# -*- coding: utf-8; -*-
-#
-# This file is part of Superdesk.
-#
-# Copyright 2013, 2014 Sourcefabric z.u. and contributors.
-#
-# For the full copyright and license information, please see the
-# AUTHORS and LICENSE files distributed with this source code, or
-# at https://www.sourcefabric.org/superdesk/license
-
 import logging
 import hashlib
 import time
@@ -150,15 +140,17 @@ def append_api_results_to_item(item, api_name, api_getter, args):
 
 @celery.task
 def process_item(item):
+    '''
+    TODO: attempt api lookups 3 times
+    '''
     filename = item['slugline']
-
     try:
         href, content = get_original_image(item)
     except ImageNotFoundException:
         return
     logger.info(
-        'VerifiedPixel: found new ingested item: "{}"'.format(filename))
-
+        'VerifiedPixel: found new ingested item: "{}"'.format(filename)
+    )
     for api_name, api_getter, args in [
         ('izitru', get_izitru_results, (content,)),
         ('tineye', get_tineye_results, (content,)),
@@ -170,15 +162,14 @@ def process_item(item):
 @celery.task
 def verify_ingest():
     logger.info(
-        'VerifiedPixel: Checking for new ingested images for verification...')
-
-    '''
-    TODO: lookup image items with no verification metadata
-          attempt api lookups 3 times
-    '''
-    lookup = {'type': 'picture'}
-    items = superdesk.get_resource_service('ingest').get(
-        req=ParsedRequest(), lookup=lookup
+        'VerifiedPixel: Checking for new ingested images for verification...'
+    )
+    items = superdesk.get_resource_service('ingest').get_from_mongo(
+        req=ParsedRequest(),
+        lookup={
+            'type': 'picture',
+            'verification': {'$exists': False}
+        }
     )
     for item in items:
         process_item(item)
