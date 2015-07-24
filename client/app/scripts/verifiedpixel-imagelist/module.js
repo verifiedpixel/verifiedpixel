@@ -1263,6 +1263,35 @@
                             });
                         }
                     }
+                    // with apologies to EranS - https://gist.github.com/erans/983821
+                    function GPSToFloat(input){
+                        var d0 = input[0][0];
+                        var d1 = input[0][1];
+                        var d = (d0 / d1);
+
+                        var m0 = input[1][0];
+                        var m1 = input[1][1];
+                        var m = (m0 / m1);
+
+                        var s0 = input[2][0];
+                        var s1 = input[2][1];
+                        var s = (s0 / s1);
+                        var value = (d + (m / 60) + (s / 3600));
+                        return value;
+                    }
+                    var GPSLong = GPSToFloat(scope.item.filemeta.GPSInfo.GPSLongitude);
+                    var GPSLat = GPSToFloat(scope.item.filemeta.GPSInfo.GPSLatitude);
+
+                    if (scope.item.filemeta.GPSInfo.GPSLatitudeRef != "N") {
+                        GPSLat = 0 - GPSLat;
+                    }
+                    if (scope.item.filemeta.GPSInfo.GPSLongitudeRef != "E") {
+                        GPSLong = 0 - GPSLong;
+                    }
+
+                    scope.item.GPSLat = GPSLat;
+                    scope.item.GPSLong = GPSLong;
+
                 }
             };
         }])
