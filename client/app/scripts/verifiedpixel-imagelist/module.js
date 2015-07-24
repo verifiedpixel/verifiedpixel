@@ -1263,7 +1263,10 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
+                        getGPS();
+                    }
 
+                    function getGPS(){
                         function GPSToFloat(input, ref){
                             var d0 = input[0][0];
                             var d1 = input[0][1];
@@ -1294,9 +1297,9 @@
                                 scope.item.filemeta.GPSInfo.GPSLongitude,
                                 scope.item.filemeta.GPSInfo.GPSLongitudeRef
                             );
-                        }
-
+                        }                        
                     }
+                    getGPS();
                 }
             };
         }])
