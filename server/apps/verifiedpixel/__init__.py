@@ -86,7 +86,7 @@ def get_gris_results(href):
     return res
 
 
-def get_izitru_results(content):
+def get_izitru_results(filename, content):
     IZITRU_SECURITY_DATA = int(time.time())
     m = hashlib.md5()
     m.update(str(IZITRU_SECURITY_DATA).encode())
@@ -95,7 +95,8 @@ def get_izitru_results(content):
 
     converted_image = BytesIO()
     img = Image.open(BytesIO(content))
-    img.save(converted_image, 'JPEG')
+    exif = img.info.get('exif', b"")
+    img.save(converted_image, 'JPEG', exif=exif)
     img.close()
 
     data = {
@@ -152,7 +153,7 @@ def process_item(item):
         'VerifiedPixel: found new ingested item: "{}"'.format(filename)
     )
     for api_name, api_getter, args in [
-        ('izitru', get_izitru_results, (content,)),
+        ('izitru', get_izitru_results, (filename, content,)),
         ('tineye', get_tineye_results, (content,)),
         ('gris', get_gris_results, (href,)),
     ]:
