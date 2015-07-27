@@ -95,7 +95,8 @@ def get_izitru_results(content):
 
     converted_image = BytesIO()
     img = Image.open(BytesIO(content))
-    img.save(converted_image, 'JPEG')
+    exif = img.info.get('exif', b"")
+    img.save(converted_image, 'JPEG', exif=exif)
     img.close()
 
     data = {

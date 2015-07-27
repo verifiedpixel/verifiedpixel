@@ -1247,24 +1247,6 @@
 
                     scope.$watch('item', reloadData);
 
-                    function reloadData() {
-                        scope.originalCreator = null;
-                        scope.versionCreator = null;
-
-                        if (scope.item.original_creator) {
-                            userList.getUser(scope.item.original_creator)
-                            .then(function(user) {
-                                scope.originalCreator = user.display_name;
-                            });
-                        }
-                        if (scope.item.version_creator) {
-                            userList.getUser(scope.item.version_creator)
-                            .then(function(user) {
-                                scope.versionCreator = user.display_name;
-                            });
-                        }
-                    }
-
                     function GPSToFloat(input, ref){
                         var d0 = input[0][0];
                         var d1 = input[0][1];
@@ -1284,14 +1266,33 @@
                         }
                         return value;
                     }
-                    scope.item.gpslon = GPSToFloat(
-                        scope.item.filemeta.GPSInfo.GPSLongitude,
-                        scope.item.filemeta.GPSInfo.GPSLongitudeRef
-                    );
-                    scope.item.gpslat = GPSToFloat(
-                        scope.item.filemeta.GPSInfo.GPSLatitude,
-                        scope.item.filemeta.GPSInfo.GPSLatitudeRef 
-                    );
+
+                    function reloadData() {
+                        scope.originalCreator = null;
+                        scope.versionCreator = null;
+
+                        if (scope.item.original_creator) {
+                            userList.getUser(scope.item.original_creator)
+                            .then(function(user) {
+                                scope.originalCreator = user.display_name;
+                            });
+                        }
+                        if (scope.item.version_creator) {
+                            userList.getUser(scope.item.version_creator)
+                            .then(function(user) {
+                                scope.versionCreator = user.display_name;
+                            });
+                        }
+                        scope.item.gpslon = GPSToFloat(
+                            scope.item.filemeta.GPSInfo.GPSLongitude,
+                            scope.item.filemeta.GPSInfo.GPSLongitudeRef
+                        );
+                        scope.item.gpslat = GPSToFloat(
+                            scope.item.filemeta.GPSInfo.GPSLatitude,
+                            scope.item.filemeta.GPSInfo.GPSLatitudeRef 
+                        );
+                    }
+
                 }
             };
         }])
