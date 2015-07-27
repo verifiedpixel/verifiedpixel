@@ -1,6 +1,88 @@
 (function() {
     'use strict';
 
+    var ENTER = 13;
+
+    CommentsService.$inject = ['api'];
+    function CommentsService(api) {
+
+        this.comments = null;
+
+        this.fetch = function(item) {
+            var criteria = {
+                where: {
+                    item: item
+                },
+                embedded: {user: 1}
+            };
+
+            return api.item_comments.query(criteria)
+                .then(angular.bind(this, function(result) {
+                    this.comments = result._items;
+                }));
+        };
+
+        this.save = function(comment) {
+            return api.item_comments.save(comment);
+        };
+    }
+
+    CommentsCtrl.$inject = ['$scope', '$routeParams', 'commentsService', 'api', '$q'];
+    function CommentsCtrl($scope, $routeParams, commentsService, api, $q) {
+
+        $scope.text = null;
+        $scope.saveEnterFlag = false;
+        $scope.$watch('item._id', reload);
+        $scope.users = [];
+
+        $scope.saveOnEnter = function($event) {
+            if (!$scope.saveEnterFlag || $event.keyCode !== ENTER || $event.shiftKey) {
+                return;
+            }
+            $scope.save();
+        };
+
+        $scope.save = function() {
+            var text = $scope.text || '';
+            if (!text.length) {
+                return;
+            }
+
+            $scope.text = '';
+            $scope.flags = {saving: true};
+
+            commentsService.save({
+                text: text,
+                item: $scope.item._id
+            }).then(reload);
+        };
+
+        $scope.cancel = function() {
+            $scope.text = '';
+        };
+
+        function reload() {
+            if ($scope.item) {
+                commentsService.fetch($scope.item._id).then(function() {
+                    $scope.comments = commentsService.comments;
+                });
+            }
+        }
+
+        $scope.$on('item:comment', function(e, data) {
+            if (data.item === $scope.item.guid) {
+                reload();
+            }
+        });
+
+        function setActiveComment() {
+            $scope.active = $routeParams.comments || null;
+        }
+
+        $scope.$on('$locationChangeSuccess', setActiveComment);
+        setActiveComment();
+    }
+
     ImageListService.$inject = ['$location', 'gettext'];
     function ImageListService($location, gettext) {
         var sortOptions = [
@@ -159,6 +241,8 @@
                 if (params.state) {
                     query.post_filter({terms: {'state': JSON.parse(params.state)}});
                 }
+
+                // TODO: add filemeta and verification filters
             }
 
             /**
@@ -421,15 +505,25 @@
 
     angular.module('verifiedpixel.imagelist', [
         'ngMap',
+        'mentio', 
         'superdesk.api',
+        'superdesk.users',
         'superdesk.desks',
         'superdesk.activity',
         'superdesk.list',
         'superdesk.keyboard'
     ])
+        .config(['apiProvider', function(apiProvider) {
+            apiProvider.api('item_comments', {
+                type: 'http',
+                backend: {rel: 'item_comments'}
+            });
+        }])
         .service('search', ImageListService)
         .service('tags', TagService)
+        .service('commentsService', CommentsService)
         .controller('MultiActionBar', MultiActionBarController)
+        .controller('CommentsWidgetCtrl', CommentsCtrl)
         .filter('FacetLabels', function() {
             return function(input) {
                 if (input.toUpperCase() === 'URGENCY') {
@@ -443,8 +537,8 @@
         /**
          * Item filters sidebar
          */
-        .directive('vpSearchFacets', ['$location', 'desks', 'privileges', 'tags', 'asset',
-            function($location, desks, privileges, tags, asset) {
+        .directive('vpSearchFacets', ['$location', 'desks', 'privileges', 'tags',
+            function($location, desks, privileges, tags) {
             desks.initialize();
             return {
                 require: '^vpSearchContainer',
@@ -779,7 +873,7 @@
                     openSingleItem: '='
                 },
                 link: function(scope) {
-                    scope.tab = 'content';
+                    scope.tab = 'all';
                     scope.$watch('item', function(item) {
                         scope.selected = {preview: item || null};
                     });
@@ -1125,6 +1219,37 @@
             };
         }])
 
+        .directive('vpUserMentio', ['userList', function(userList) {
+            return {
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/mentions.html',
+                link: function(scope, elem) {
+                    scope.users = [];
+
+                    // filter user by given prefix
+                    scope.searchUsers = function(prefix) {
+                        return userList.get(prefix, 1, 10)
+                        .then(function(result) {
+                            scope.users = _.sortBy(result._items, 'username');
+                        });
+
+                    };
+
+                    scope.selectUser = function(user) {
+                        return '@' + user.username;
+                    };
+
+                    scope.$watchCollection(
+                        function() { return $('.users-list-embed>li.active');},
+                        function (newValue) {
+                            if (newValue.hasClass('active')){
+                                $('.mentio-menu').scrollTop(newValue.position().top);
+                            }
+                        }
+                    );
+                }
+            };
+        }])
+
         /**
          * Item sort component
          */
@@ -1225,8 +1350,8 @@
             };
         })
 
-        .directive('vpMultiActionBar', ['asset', 'multi',
-        function(asset, multi) {
+        .directive('vpMultiActionBar', ['multi',
+        function(multi) {
             return {
                 controller: 'MultiActionBar',
                 controllerAs: 'action',
@@ -1422,6 +1547,67 @@
             };
         }])
 
+        .directive('vpMediaComments', ['userList', function(userList) {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/comments-view.html',
+                link: function(scope, elem) {
+
+                    scope.$watch('item', reloadData);
+
+                    function reloadData() {
+                        scope.originalCreator = null;
+                        scope.versionCreator = null;
+
+                        if (scope.item.original_creator) {
+                            userList.getUser(scope.item.original_creator)
+                            .then(function(user) {
+                                scope.originalCreator = user.display_name;
+                            });
+                        }
+                        if (scope.item.version_creator) {
+                            userList.getUser(scope.item.version_creator)
+                            .then(function(user) {
+                                scope.versionCreator = user.display_name;
+                            });
+                        }
+                    }
+                }
+            };
+        }])
+
+        .directive('vpCommentText', ['$compile', function($compile) {
+            return {
+                scope: {
+                    comment: '='
+                },
+                link: function(scope, element, attrs) {
+
+                    var html;
+
+                    //replace new lines with paragraphs
+                    html  = attrs.text.replace(/(?:\r\n|\r|\n)/g, '</p><p>');
+
+                    //map user mentions
+                    var mentioned = html.match(/\@([a-zA-Z0-9-_.]\w+)/g);
+                    _.each(mentioned, function(token) {
+                        var username = token.substring(1, token.length);
+                        if (scope.comment.mentioned_users && scope.comment.mentioned_users[username]) {
+                            html = html.replace(token,
+                            '<i sd-user-info data-user="' + scope.comment.mentioned_users[username] + '">' + token + '</i>');
+                        }
+                    });
+
+                    //build element
+                    element.html('<p><b>' + attrs.name + '</b> : ' + html + '</p>');
+
+                    $compile(element.contents())(scope);
+                }
+            };
+        }])
+
         .directive('vpMediaBox', ['$location', 'lock', 'multi', function($location, lock, multi) {
             return {
                 restrict: 'A',
@@ -1506,6 +1692,16 @@
 
     MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring'];
     function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring) {
+        this.download = function() {
+            // TODO: implement multi file download
+            console.log('dowload multi', multi.getItems());
+        };
+
+        this.delete = function() {
+            // TODO: implement multi file delete
+            console.log('delete multi', multi.getItems());
+        };
+
         this.send  = function() {
             return send.all(multi.getItems());
         };
