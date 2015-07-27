@@ -1,9 +1,11 @@
 <div class="preview-pane content-item-preview" ng-if="item">
     <header>
         <ul class="nav nav-tabs">
+            <!--
             <li ng-class="{active: tab === 'content'}">
                 <button ng-click="tab = 'content'"><span translate>Content</span></button>
             </li>
+            -->
             <li ng-class="{active: tab === 'all'}">
                 <button ng-click="tab = 'all'"><span translate>All</span></button>
             </li>
@@ -19,17 +21,21 @@
             <li ng-class="{active: tab === 'izitru'}">
                 <button ng-click="tab = 'izitru'"><span translate>Izitru</span></button>
             </li>
+            <li ng-class="{active: tab === 'comments'}">
+                <button ng-click="tab = 'comments'"><span translate>Comments</span></button>
+            </li>
         </ul>
         <button ng-click="close()" class="close-preview">
             <i class="icon-close-small"></i>
         </button>
     </header>
     <div class="content">
-        <div ng-if="tab === 'content'" sd-media-preview data-item="item"></div>
+        <!-- <div ng-if="tab === 'content'" sd-media-preview data-item="item"></div> -->
         <div ng-if="tab === 'all'" vp-media-all data-item="item"></div>
         <div ng-if="tab === 'exif'" vp-media-exif data-item="item"></div>
         <div ng-if="tab === 'gris'" vp-media-gris data-item="item"></div>
         <div ng-if="tab === 'tineye'" vp-media-tineye data-item="item"></div>
         <div ng-if="tab === 'izitru'" vp-media-izitru data-item="item"></div>
+        <div ng-if="tab === 'comments'" vp-media-comments data-item="item"></div>
     </div>
 </div>

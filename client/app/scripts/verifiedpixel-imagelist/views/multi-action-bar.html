@@ -5,31 +5,48 @@
 		translate-n="multi.count"
 		translate-plural="{{ multi.count }} Items selected">{{ multi.count }} Item selected</span>
 
-    <div class="pull-right" ng-if="type === 'archive'">
-        <button class="navbtn" ng-click="action.createPackage()" title="{{ :: 'Create Package' | translate }}">
-            <i class="icon-package-plus"></i>
-        </button>
-    </div>
-    
-    <div class="dropdown strict highlights-dropdown pull-right" ng-if="type === 'archive'"
-         title="{{ :: 'Mark item' | translate }}" dropdown>
-         <button class="dropdown-toggle" dropdown-toggle>
-         <i class="svg-icon-add-to-list"></i>
-         </button>
-         <ul class="dropdown-menu pull-right" sd-multi-mark-highlights-dropdown></ul>
-    </div>
+	<div class="pull-right">
+		<button id="download-all-btn" class="navbtn"
+		 	title="{{ :: 'Download' | translate }}"
+			ng-click="action.download()">
+      DOWNLOAD
+		</button>
+	</div>
+
+	<div class="pull-right">
+		<button id="download-all-btn" class="navbtn"
+		 	title="{{ :: 'Download' | translate }}"
+			ng-click="action.delete()">
+      DELETE
+		</button>
+   </div>
+
+  <!-- copied from existing superdesk-search module -->
+  <div class="pull-right" ng-if="type === 'archive'">
+      <button class="navbtn" ng-click="action.createPackage()" title="{{ :: 'Create Package' | translate }}">
+          <i class="icon-package-plus"></i>
+      </button>
+  </div>
+   
+  <div class="dropdown strict highlights-dropdown pull-right" ng-if="type === 'archive'"
+     title="{{ :: 'Mark item' | translate }}" dropdown>
+     <button class="dropdown-toggle" dropdown-toggle>
+       <i class="svg-icon-add-to-list"></i>
+     </button>
+     <ul class="dropdown-menu pull-right" sd-multi-mark-highlights-dropdown></ul>
+  </div>
 
 	<div class="pull-right" ng-if="type === 'archive'">
 		<button class="navbtn" ng-click="action.multiedit()" title="{{ :: 'Multiedit' | translate }}">
-    		<i class="big-icon-multiedit"></i>
-        </button>
-        <button class="navbtn" ng-click="action.spikeItems()" tooltip="{{ :: 'Spike' | translate }}" tooltip-placement="bottom"
-        	ng-if="!spike && !publish && action.canSpikeItems()">
-        	<i class="icon-remove"></i>
-        </button>
-        <button class="navbtn" ng-click="action.unspikeItems()" tooltip="{{ :: 'Unspike' | translate }}" tooltip-placement="bottom" ng-if="spike">
-        	<i class="icon-revert"></i>
-        </button>
+  		<i class="big-icon-multiedit"></i>
+    </button>
+    <button class="navbtn" ng-click="action.spikeItems()" tooltip="{{ :: 'Spike' | translate }}" tooltip-placement="bottom"
+    	ng-if="!spike && !publish && action.canSpikeItems()">
+    	<i class="icon-remove"></i>
+    </button>
+    <button class="navbtn" ng-click="action.unspikeItems()" tooltip="{{ :: 'Unspike' | translate }}" tooltip-placement="bottom" ng-if="spike">
+     	<i class="icon-revert"></i>
+    </button>
 	</div>
 
 	<div class="pull-right" ng-if="type === 'ingest'">
@@ -43,4 +60,7 @@
 			ng-click="action.sendAs()">
 			<i class="big-icon-archive"></i>
 		</button>
+  </div>
+  <!-- end copy -->
+
 </div>

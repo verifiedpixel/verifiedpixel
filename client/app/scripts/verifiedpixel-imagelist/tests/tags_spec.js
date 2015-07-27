@@ -7,7 +7,7 @@ describe('Tag Service', function() {
         desk2: {id:'456', title: 'desk2'}
     };
 
-    beforeEach(module('superdesk.search'));
+    beforeEach(module('verifiedpixel.imagelist'));
     beforeEach(module('superdesk.desks'));
 
     it('can populate keywords from location', inject(function($location, tags, $rootScope, desks, $q) {

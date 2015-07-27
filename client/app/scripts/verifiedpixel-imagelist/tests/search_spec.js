@@ -2,7 +2,7 @@
 
 describe('search service', function() {
     beforeEach(module('templates'));
-    beforeEach(module('superdesk.search'));
+    beforeEach(module('verifiedpixel.imagelist'));
 
     it('can create base query', inject(function(search) {
         var query = search.query();
