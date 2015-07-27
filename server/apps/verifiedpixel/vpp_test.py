@@ -22,6 +22,14 @@ class VerifiedPixelAppTest(TestCase):
 
     maxDiff = None
 
+    @classmethod
+    def setUpClass(cls):
+        """
+        workaround for gridfs index problem,
+        reuse the same app context for all the tests
+        """
+        setup(context=cls)
+
     def setUp(self):
         setup(context=self)
 
