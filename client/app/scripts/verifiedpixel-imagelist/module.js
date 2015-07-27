@@ -1287,17 +1287,19 @@
                             return value;
                         }
                         // check to see if the file latitude record exists before trying to return anything // longitude is there for the sake of completeness
-                        if (scope.item.filemeta.GPSInfo.GPSLatitude && scope.item.filemeta.GPSInfo.GPSLongitude) {
-                            // lat is always first
-                            scope.item.gpslat = GPSToFloat(
-                                scope.item.filemeta.GPSInfo.GPSLatitude,
-                                scope.item.filemeta.GPSInfo.GPSLatitudeRef 
-                            );
-                            scope.item.gpslon = GPSToFloat(
-                                scope.item.filemeta.GPSInfo.GPSLongitude,
-                                scope.item.filemeta.GPSInfo.GPSLongitudeRef
-                            );
-                        }                        
+                        if (scope.item.filemeta && scope.item.filemeta.GPSInfo){
+                            if (scope.item.filemeta.GPSInfo.GPSLatitude && scope.item.filemeta.GPSInfo.GPSLongitude) {
+                                // lat is always first
+                                scope.item.gpslat = GPSToFloat(
+                                    scope.item.filemeta.GPSInfo.GPSLatitude,
+                                    scope.item.filemeta.GPSInfo.GPSLatitudeRef 
+                                );
+                                scope.item.gpslon = GPSToFloat(
+                                    scope.item.filemeta.GPSInfo.GPSLongitude,
+                                    scope.item.filemeta.GPSInfo.GPSLongitudeRef
+                                );
+                            }                        
+                        }
                     }
                     getGPS();
                 }
