@@ -93,10 +93,14 @@ def get_izitru_results(content):
     m.update(IZITRU_PRIVATE_KEY.encode())
     IZITRU_SECURITY_HASH = m.hexdigest()
 
-    converted_image = BytesIO()
+    upfile = content
     img = Image.open(BytesIO(content))
-    exif = img.info.get('exif', b"")
-    img.save(converted_image, 'JPEG', exif=exif)
+    if img.format != 'JPEG':
+        exif = img.info.get('exif', b"")
+        converted_image = BytesIO()
+        img.save(converted_image, 'JPEG', exif=exif)
+        upfile = converted_image.getvalue()
+        converted_image.close()
     img.close()
 
     data = {
@@ -107,9 +111,8 @@ def get_izitru_results(content):
         'nearMatch': 'false',
         'storeImage': 'true',
     }
-    files = {'upFile': converted_image.getvalue()}
+    files = {'upFile': upfile}
     response = request('POST', IZITRU_API_URL, data=data, files=files)
-    converted_image.close()
     return response.json()
 
 

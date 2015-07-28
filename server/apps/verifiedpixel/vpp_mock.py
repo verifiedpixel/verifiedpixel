@@ -70,7 +70,7 @@ def activate_tineye_mock(fixture_path):
     return wrap
 
 
-def activate_gris_mock(fixture_paths):
+def activate_gris_mock(*fixture_paths):
     sequence = []
     for fixture_path in fixture_paths:
         with open(fixture_path, 'r') as f:
