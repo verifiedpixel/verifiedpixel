@@ -94,14 +94,23 @@
         }
     }
     &.compact-view {
-        .list-view {
-            li {
-                .media-box {
-                    background: #1a1a1a;
+        li,
+        .active {
+            .media-box {
+                background: #1a1a1a!important;
+                .item-functions {
+                    display: none;
                 }
-                &:nth-of-type(even) {
-                    .media-box {
-                        background: #333;
+            }
+            &:nth-of-type(even) {
+                .media-box {
+                    background: #333!important;
+                    .item-functions {
+                        li {
+                            &::hover {
+                                background: #333!important;
+                            }
+                        }
                     }
                 }
             }
