@@ -42,6 +42,45 @@
             }
             .media-info {
                 background: #1a1a1a;
+                .verification-results {
+                    padding: 5px 0;
+                    dt {
+                        display: none;
+                    }
+                    dd {
+                        display: inline-block;
+                        overflow: hidden;
+                        width: 25px;
+                        height: 25px;
+                        color: transparent;
+                        // iztru icon styles
+                        &.iztru {
+                            background: #333333;
+                        }
+                        &.iztru-1 {
+                            background: #03ff03;
+                        }
+                        &.iztru-2 {
+                            background: #80eb03;
+                        }
+                        &.iztru-3 {
+                            background: #fed703;
+                        }
+                        &.iztru-4 {
+                            background: #fd6c02;
+                        }
+                        &.iztru-5 {
+                            background: #fe0303;
+                        }
+                        // gps icon styles
+                        &.gps {
+                            background: #03ff03;
+                            &.no {
+                                background: #333333;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
