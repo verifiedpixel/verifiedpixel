@@ -42,6 +42,8 @@ backend:
    - elastic
    - logstash
    - postfix
+  volumes:
+   - ../server:/opt/superdesk/
 
 frontend:
   extends:
