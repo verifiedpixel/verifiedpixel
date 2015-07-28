@@ -86,7 +86,7 @@ def get_gris_results(href):
     return res
 
 
-def get_izitru_results(content):
+def get_izitru_results(filename, content):
     IZITRU_SECURITY_DATA = int(time.time())
     m = hashlib.md5()
     m.update(str(IZITRU_SECURITY_DATA).encode())
@@ -111,7 +111,7 @@ def get_izitru_results(content):
         'nearMatch': 'false',
         'storeImage': 'true',
     }
-    files = {'upFile': upfile}
+    files = {'upFile': (filename, upfile, 'image/jepg', {'Expires': '0'})}
     response = request('POST', IZITRU_API_URL, data=data, files=files)
     return response.json()
 
@@ -156,7 +156,7 @@ def process_item(item):
         'VerifiedPixel: found new ingested item: "{}"'.format(filename)
     )
     for api_name, api_getter, args in [
-        ('izitru', get_izitru_results, (content,)),
+        ('izitru', get_izitru_results, (filename, content,)),
         ('tineye', get_tineye_results, (content,)),
         ('gris', get_gris_results, (href,)),
     ]:
