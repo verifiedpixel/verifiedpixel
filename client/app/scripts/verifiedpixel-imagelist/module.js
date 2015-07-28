@@ -1703,7 +1703,42 @@
     function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring) {
         this.download = function() {
             // TODO: implement multi file download
-            console.log('dowload multi', multi.getItems());
+            // get the url of the image
+            var imgLoc = multi.getItems()[0].renditions.original.href;
+            // check to see if for some reason it's empty
+            if (imgLoc != "" || imgLoc != null || imgLoc != undefined){
+                // make a title we can use
+                var title = multi.getItems()[0].slugline.replace(/\.[^/.]+$/, "");
+                // we'll need the parent element later
+                var parent = document.getElementById('main-container');
+                // add an element containing the image
+                var tmpImg = document.createElement('img');
+                    tmpImg.setAttribute('id', 'tmpImg');
+                    tmpImg.setAttribute('src', imgLoc);
+                    console.log(tmpImg);
+                parent.appendChild(tmpImg)
+                var canvas = document.createElement('canvas');
+                    canvas.setAttribute('id', 'canvas');
+                    canvas.height = multi.getItems()[0].renditions.original.height;
+                    canvas.width = multi.getItems()[0].renditions.original.width;
+                var context = canvas.getContext("2d");
+                parent.appendChild(canvas);
+                    context.drawImage(tmpImg, 0, 0);
+
+                // var dataURL = canvas.toDataURL(multi.getItems()[0].renditions.original.mimetype);
+
+                // convert the image to base64
+                // create a new zip object
+                // var zip = new JSZip();
+                // zip.file(title + ".txt", "The content of the comments goes here innit - probably a concat string from the db");
+                // var img = zip.folder("images");
+                // img.file(title + ".jpg", tmpImg[0], {base64: true});
+                // var content = zip.generate({type: "blob"});
+                // saveAs(content, title + ".zip");
+                // when done delete the temp element
+                // parent.removeChild(canvas);
+            }
+            console.log(multi.getItems());
         };
 
         this.delete = function() {

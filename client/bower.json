@@ -16,7 +16,9 @@
   ],
   "dependencies": {
     "superdesk": "https://github.com/verifiedpixel/superdesk.git#vp20150727-2",
-    "ngmap": "~1.9.0"
+    "ngmap": "~1.9.0",
+    "jszip": "Stuk/jszip#~2.5.0",
+    "file-saver.js": "Teleborder/FileSaver.js#~1.20150507.2"
   },
   "resolutions": {
     "angular": "1.3.9",
