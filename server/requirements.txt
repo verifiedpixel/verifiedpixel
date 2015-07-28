@@ -1,18 +1,16 @@
-google-api-python-client==1.4.1
-#jsmin==2.1.1
-# Flask-S3 with support for python3
-#git+git://github.com/amagdas/tinys3@list-buckets#egg=tinys3
-
 # hachoir3 and eve come from SD requirements
 # They are added here because they are retrieved from git and hg protocols.
 # (This is not possible with setuptool)
 -e hg+http://bitbucket.org/haypo/hachoir3/#egg=hachoir3
 git+git://github.com/superdesk/eve@sync-develop-24-june#egg=Eve==0.6.0-dev
+
+# workaround conflict with requests library:
+pip==7.1.0
+
 -e git+git://github.com/verifiedpixel/superdesk@vp20150727-3#egg=Superdesk-Server
 -e git+git://github.com/verifiedpixel/pytineye@vp20150721#egg=pytineye
-
-Pillow
-requests
-httmock
-urllib3-mock
-pip
+google-api-python-client==1.4.1
+Pillow==2.9.0
+requests==2.7.0
+httmock==1.2.3
+urllib3-mock==0.3.3
