@@ -29,16 +29,19 @@
         <span ng-if="item.highlights" sd-highlights-title data-item="item"></span>
 
         <dl>
+<!-- 
             <dt class="source"><span translate>source:</span></dt>
-            <dd class="provider" sd-meta-ingest data-item="item"></dd>
-            <dt translate>updated</dt>
-            <dd><time datetime="{{ item.versioncreated }}" title="{{ item.versioncreated|date:'medium' }}">{{ item.versioncreated|reldate }}</time></dd>
+                <dd class="provider" sd-meta-ingest data-item="item"></dd>
+ -->
+            <dt translate>Taken</dt>
+                <dd><time datetime="{{ item.versioncreated }}" title="{{ item.versioncreated|date:'medium' }}">{{ item.versioncreated|reldate }}</time></dd>
+<!-- 
             <dt ng-show="item.is_spiked" translate>expires</dt>
-            <dd ng-if="item.is_spiked"><time title="{{ item.expiry | date:'medium' }}">{{ item.expiry | reldate }}</time></dd>
+                <dd ng-if="item.is_spiked"><time title="{{ item.expiry | date:'medium' }}">{{ item.expiry | reldate }}</time></dd>
+ -->
         </dl>
 
         <dl class="verification-results">
-
             <dt ng-if="item.verification.izitru.verdict">Izitru Verdict</dt>
             <dd ng-if="item.verification.izitru.verdict" class="iztru-{{ item.verification.izitru.verdict }}" title="Izitru rating of {{ item.verification.izitru.verdict }}">{{ item.verification.izitru.verdict }}</dd>
             <dd ng-if="!item.verification.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
