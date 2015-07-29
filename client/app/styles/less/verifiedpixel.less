@@ -20,7 +20,7 @@
     .content {
         background: #000;
     }
-    .list-view {
+    .mgrid-view {
         .media-box {
             min-height: 150px;
             min-width: 170px;
@@ -35,27 +35,135 @@
             }
             .media {
                 background: none;
-                margin: 0 0 10px;
-            }
-            &.multi {
-                margin: 0 0 10px;
+                margin: 0 0 5px;
+                &.multi {
+                    margin: 0 0 10px;
+                    text-align: center;
+                }
             }
             .media-info {
                 background: #1a1a1a;
+                padding: 5px 0;
+                figure {
+                    position: relative;
+                    img {
+                        margin: 0 auto;
+                    }
+                }
             }
         }
     }
     &.compact-view {
-        .list-view {
-            li {
-                .media-box {
-                    background: #1a1a1a;
-                }
-                &:nth-of-type(even) {
-                    .media-box {
-                        background: #333;
+        .list-item-view {
+            clear: left;
+            .media-box,
+            .media-box.active {
+                border-right: none;
+            }
+            .list-field {
+                border-left: none;
+            }
+            &.active {
+                outline: solid 2px #fbb03b;
+            }
+            .urgency {
+                display: none;
+            }
+            .thumb {
+                float: left;
+                figure {
+                    display: inline-block;
+                    margin: 8px 0 0;
+                    &.media {
+                        img {
+                            height: 40px;
+                        }
                     }
                 }
+            }
+            .verification-results {
+                float: left;
+                margin: 5px 0 0 10px;
+                padding: 0;
+            }
+            .source {
+                color: #f15a25;
+                display: inline-block;
+            }
+        }
+        li,
+        .active {
+            .media-box {
+                background: #1a1a1a!important;
+                .item-functions {
+                    display: none;
+                }
+                .item-info {
+                    .line {
+                        margin-left: 190px;
+                    }
+                }
+            }
+            &:nth-of-type(even) {
+                .media-box {
+                    background: #333!important;
+                    .item-functions {
+                        li {
+                            &::hover {
+                                background: #333!important;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.verification-results {
+    padding: 5px 0;
+    dt {
+        display: none!important;
+    }
+    dd {
+        display: inline-block;
+        overflow: hidden;
+        width: 25px!important;
+        height: 25px!important;
+        color: transparent!important;
+        // iztru icon styles
+        &.iztru {
+            // background: #333333;
+            background: url(../../images/izitru.gif) no-repeat center center transparent;
+        }
+        &.iztru-1 {
+            // background: #03ff03;
+            background: url(../../images/izitru-1.gif) no-repeat center center transparent;
+        }
+        &.iztru-2 {
+            // background: #80eb03;
+            background: url(../../images/izitru-2.gif) no-repeat center center transparent;
+        }
+        &.iztru-3 {
+            // background: #fed703;
+            background: url(../../images/izitru-3.gif) no-repeat center center transparent;
+        }
+        &.iztru-4 {
+            // background: #fd6c02;
+            background: url(../../images/izitru-4.gif) no-repeat center center transparent;
+        }
+        &.iztru-5 {
+            // background: #fe0303;
+            background: url(../../images/izitru-5.gif) no-repeat center center transparent;
+        }
+        // gps icon styles
+        &.gps {
+            background: #03ff03;
+            background: url(../../images/GPSInfo-OK.png) no-repeat center center transparent;
+            &.no {
+                background: #333333;
+                // background: url(../../images/GPSInfo-Error.png) no-repeat center center transparent;
+                background: url(../../images/GPSInfo.png) no-repeat center center transparent;
             }
         }
     }

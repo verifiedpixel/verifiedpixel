@@ -23,6 +23,7 @@ src/
 dist/
 build/
 include/
+assets/
 .idea/
 .vagrant/
 /client/.tern-project
@@ -30,3 +31,4 @@ include/
 /server/.pydevproject
 /server/.settings/org.eclipse.core.resources.prefs
 /results/
+
