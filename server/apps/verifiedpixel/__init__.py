@@ -161,6 +161,7 @@ def process_item(item):
         ('gris', get_gris_results, (href,)),
     ]:
         append_api_results_to_item(item, api_name, api_getter, args)
+    # TODO: Auto fetch to the 'Verified Imges' desk
 
 
 @celery.task
