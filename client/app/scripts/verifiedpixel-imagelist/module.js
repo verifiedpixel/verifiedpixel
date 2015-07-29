@@ -88,6 +88,9 @@
         var sortOptions = [
             {field: 'versioncreated', label: gettext('Updated')},
             {field: 'firstcreated', label: gettext('Created')},
+            {field: 'verification.izitru.verdict', label: gettext('Izitru Verdict')},
+            {field: 'verification.gris.searchinformation.totalResults', label: gettext('GRIS Results')},
+            {field: 'verification.tineye.results.total_results', label: gettext('Tineye Results')},
             {field: 'urgency', label: gettext('News Value')},
             {field: 'anpa_category.name', label: gettext('Category')},
             {field: 'slugline', label: gettext('Keyword')},
@@ -243,6 +246,15 @@
                 }
 
                 // TODO: add filemeta and verification filters
+                if (params.make) {
+                    query.post_filter({terms: {'filemeta.Make': JSON.parse(params.make)}});
+                }
+                if (params.location) {
+                    query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.location)}});
+                }
+                if (params.izitru) {
+                    query.post_filter({terms: {'verification.izitru.verdict': JSON.parse(params.izitru)}});
+                }
             }
 
             /**
@@ -342,10 +354,11 @@
             'week': 1,
             'month': 1,
             'desk': 1,
-            'stage':1,
-            'state':1,
-            'make':1,
-            'location':1
+            'stage': 1,
+            'state': 1,
+            'make': 1,
+            'location': 1,
+            'izitru': 1
         };
 
         function initSelectedParameters (parameters) {
@@ -567,9 +580,9 @@
                             'category': {},
                             'urgency': {},
                             'state':{},
-                            // verified pixel specific aggregiations
                             'make':{},
-                            'location': {}
+                            'location': {},
+                            'izitru': {}
                         };
                     };
 
@@ -605,7 +618,15 @@
                                 });
 
                                 _.forEach(scope.items._aggregations.make.buckets, function(make) {
-                                    scope.aggregations.state[make.key] = make.doc_count;
+                                    scope.aggregations.make[make.key] = make.doc_count;
+                                });
+
+                                _.forEach(scope.items._aggregations.location.buckets, function(location) {
+                                    scope.aggregations.location[location.key] = location.doc_count;
+                                });
+
+                                _.forEach(scope.items._aggregations.izitru.buckets, function(izitru) {
+                                    scope.aggregations.izitru[izitru.key] = izitru.doc_count;
                                 });
 
                                 _.forEach(scope.items._aggregations.day.buckets, function(day) {
