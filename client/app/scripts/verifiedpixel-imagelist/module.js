@@ -343,7 +343,9 @@
             'month': 1,
             'desk': 1,
             'stage':1,
-            'state':1
+            'state':1,
+            'make':1,
+            'location':1
         };
 
         function initSelectedParameters (parameters) {
@@ -564,7 +566,10 @@
                             'source': {},
                             'category': {},
                             'urgency': {},
-                            'state':{}
+                            'state':{},
+                            // verified pixel specific aggregiations
+                            'make':{},
+                            'location': {}
                         };
                     };
 
@@ -597,6 +602,10 @@
 
                                 _.forEach(scope.items._aggregations.state.buckets, function(state) {
                                     scope.aggregations.state[state.key] = state.doc_count;
+                                });
+
+                                _.forEach(scope.items._aggregations.make.buckets, function(make) {
+                                    scope.aggregations.state[make.key] = make.doc_count;
                                 });
 
                                 _.forEach(scope.items._aggregations.day.buckets, function(day) {
@@ -1703,7 +1712,20 @@
     function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring) {
         this.download = function() {
             // TODO: implement multi file download
-            console.log('dowload multi', multi.getItems());
+            multi.getItems().forEach(function(item) {
+                var href = item.renditions.original.href;
+                var img = new Image();
+                var canvas = angular.element('<canvas style="display:none"></canvas>');
+                var ctx = canvas[0].getContext('2d');
+
+                img.onload = function() {
+                    canvas[0].width = img.width;
+                    canvas[0].height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    console.log('def got here');
+                }
+                img.src = href;
+            });
         };
 
         this.delete = function() {

@@ -17,6 +17,20 @@
             <div vp-item-search data-repo="repo" data-context="context" class="pull-left"></div>
         </div>
 
+        <!-- verification fields -->
+        <div sd-toggle-box data-title="{{ 'Camera Make' | translate }}" data-open="true" data-mode="pane">
+            <div sd-toggle-box data-title="{{ 'Camera Makes' | translate }}" ng-hide="isEmpty('filemeta.Make')" data-open="true">
+                <ul class="filter-box content-type-filters">
+                    <li ng-repeat="(key,value) in filemeta.Make" ng-click="toggleFilter('filemeta.Make', key)" ng-class="{checked: hasFilter('filemeta.Make',key)}">
+                        <span class="hover-box">
+                            <i class="filetype-icon-{{key}}"></i>
+                            <span class="sd-checkbox" ng-checked="hasFilter('filemeta.Make',key)"></span>
+                        </span>
+                        <span>{{ key | translate}} <i>{{ value }}</i></span>
+                    </li>
+                </ul>
+            </div>
+
         <div sd-toggle-box data-title="{{ 'Filters' | translate }}" data-open="true" data-mode="pane">
             <div sd-toggle-box data-title="{{ 'Content types' | translate }}" ng-hide="isEmpty('type')" data-open="true">
                 <ul class="filter-box content-type-filters">
