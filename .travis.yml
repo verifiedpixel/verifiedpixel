@@ -108,3 +108,6 @@ after_success:
     - if [ "${TARGET}" = "unit" ]; then
         cd server && coveralls --merge="../client/coveralls.json" ;
       fi
+notifications:
+  slack:
+    secure: pJbVDxWL5J1HB9UhM5oOeBHrDxZk0EG1YyYd1cCwf6XVXnBogb+PS0UB8g8peRCuRgaKZIozy9CQ5MUf1fHKK6ScxUZKQCDE3lWBjff1gSyT7aIu/HNmVDrn8p/3U8D56SDqIiXOZm9riSAa4WgZYLcZgm18sz0CdRG7dEVB1zn5j5gwS3ChwDJe2haQWJbZzrO6dV2Z1qonBJe/CPcV2luRuDEM26PDNXIsCpvPqYFDtqglOLxpSfuBaBxqbTgpJXnDLRd6YPP0Un1FYr3l4DN9c5MWid7KwWvHBLyYAVNAMD/VcoRaEB7km7u+9eruNGf08IorUi0B0MRq8Hea0//xMKSlG5pJ0d/cS5TV7wOHiDEMdaWV3yYq3+xsZBZdk+tk3Su3ecd/6prMiTxyr+MY1bUnSS73Fk/ixgv9okm9IM7IDe8LvicvUkTuw2VbAFdaPe9Nrv77hheZw50d6dmHbaZnC792purAqwyHFTOE4Hl0EyB07STfjw1+LeXfxV36c1CBuiN+3O0zjEMILRvzadLMweJu38GpWFfbeNywb6FoiTPMPXdHzx1DVWIAoKTJeeV7d1A1pzy3XSOtA71C5K7ggxFk6aDZE15K8mV015bcF/iaOK43jAaWV4cpL55EUXq6ut54VlRP3vfeL8HbiUTfpONOX77A+sKiiZA=
