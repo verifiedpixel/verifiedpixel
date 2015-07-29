@@ -69,10 +69,10 @@ before_script:
       fi
 
 script:
+        #cd client && npm test && cd .. ;
+        #cd server && behave ./features/ --format progress2 --logging-level ERROR && cd .. ;
     - if [ "${TARGET}" = "unit" ]; then
-        cd client && npm test && cd .. ;
         cd server && flake8 && cd .. ;
-        cd server && behave ./features/ --format progress2 --logging-level ERROR && cd .. ;
         cd server && nosetests --with-coverage --cover-package=superdesk,apps && cd .. ;
       fi
     - if [ "${TARGET}" = "server_ldap" ]; then
@@ -104,7 +104,7 @@ after_script:
     - killall -9 python
 
 after_success:
+        #cd client && grunt coveralls && cd .. ;
     - if [ "${TARGET}" = "unit" ]; then
-        cd client && grunt coveralls && cd .. ;
         cd server && coveralls --merge="../client/coveralls.json" ;
       fi
