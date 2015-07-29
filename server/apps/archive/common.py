@@ -147,6 +147,9 @@ aggregations = {
     'day': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-24H'}]}},
     'week': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1w'}]}},
     'month': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1M'}]}},
+    'make': {'terms': {'field': 'filemeta.Make'}},
+    'location': {'terms': {'field': 'verification.izitru.EXIF.captureLocation'}},
+    'izitru': {'terms': {'field': 'verification.izitru.verdict'}}
 }
 
 
