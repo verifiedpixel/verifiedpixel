@@ -18,6 +18,35 @@
         </div>
 
         <div sd-toggle-box data-title="{{ 'Filters' | translate }}" data-open="true" data-mode="pane">
+            <!-- verification fields -->
+            <div sd-toggle-box data-title="{{ 'Camera Make' | translate }}" ng-hide="isEmpty('make')" data-open="true">
+                <ul class="filter-box">
+                    <li ng-repeat="(key,value) in aggregations.make" ng-click="toggleFilter('make', key)" ng-class="{checked: hasFilter('make',key)}">
+                        <span class="sd-checkbox" ng-checked="hasFilter('make',key)"></span>
+                        <span>{{ key | translate}} <i>{{ value }}</i></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div sd-toggle-box data-title="{{ 'Capture Location' | translate }}" ng-hide="isEmpty('location')" data-open="true">
+                <ul class="filter-box">
+                    <li ng-repeat="(key,value) in aggregations.location" ng-click="toggleFilter('location', key)" ng-class="{checked: hasFilter('location',key)}">
+                        <span class="sd-checkbox" ng-checked="hasFilter('location',key)"></span>
+                        <span>{{ key | translate}} <i>{{ value }}</i></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div sd-toggle-box data-title="{{ 'Izitru Verdict' | translate }}" ng-hide="isEmpty('izitru')" data-open="true">
+                <ul class="filter-box">
+                    <li ng-repeat="(key,value) in aggregations.izitru" ng-click="toggleFilter('izitru', key)" ng-class="{checked: hasFilter('izitru',key)}">
+                        <span class="sd-checkbox" ng-checked="hasFilter('izitru',key)"></span>
+                        <span>{{ key | translate}} <i>{{ value }}</i></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- we only want to deal with pictures in this module
             <div sd-toggle-box data-title="{{ 'Content types' | translate }}" ng-hide="isEmpty('type')" data-open="true">
                 <ul class="filter-box content-type-filters">
                     <li ng-repeat="(key,value) in aggregations.type" ng-click="toggleFilter('type', key)" ng-class="{checked: hasFilter('type',key)}">
@@ -29,6 +58,7 @@
                     </li>
                 </ul>
             </div>
+            -->
 
             <div sd-toggle-box data-title="{{ 'Desks' | translate }}" ng-hide="isEmpty('desk')" data-open="true">
                 <ul class="filter-box">
