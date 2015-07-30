@@ -91,7 +91,7 @@ class VerifiedPixelAppTest(TestCase):
             verify_ingest()
 
             lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('ingest').get(
+            items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
@@ -118,7 +118,7 @@ class VerifiedPixelAppTest(TestCase):
             verify_ingest()
 
             lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('ingest').get(
+            items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
