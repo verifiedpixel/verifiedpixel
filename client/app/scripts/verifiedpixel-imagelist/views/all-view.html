@@ -1,4 +1,9 @@
 <div class="metadata-view">
+
+    <button ng-click="openLightbox()" class="fullscreen">
+      <i class="icon-fullscreen"></i>
+    </button>
+
     <!-- VERIFICATION METADATA -->
     <dl ng-if="item.verification.gris.searchInformation">
         <dt translate>GRIS Total Results</dt>
@@ -15,36 +20,7 @@
     <!-- END VERIFICATION METADATA -->
 
     <!-- Map -->
-    <div ng-if="item.filemeta.GPSInfo.GPSLatitude && item.filemeta.GPSInfo.GPSLongitude">
-        <map zoom="18" 
-            center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
-            disable-default-u-i="false"
-            disable-double-click-zoom="true"
-            draggable="false"
-            zoomable="false"
-            dragging-cursor="move"
-            keyboard-shortcuts="false"
-            max-zoom="18"
-            min-zoom="8"
-            tilt="45"
-            map-type-id="TERRAIN"
-            <marker
-                position="[{{ item.gpslat }}, {{ item.gpslon }}]"
-                title="GPS Location"
-                icon="images/GPSInfo-OK.png"
-                draggable="false"
-                visible="true">
-            </marker>
-        </map>
-        <dl ng-if="item.gpslat">
-            <dt translate>Capture Location Latitude</dt>
-            <dd>{{ item.gpslat }}</dd>
-        </dl>
-        <dl ng-if="item.gpslong">
-            <dt translate>Capture Location Longitude</dt>
-            <dd>{{ item.gpslong }}</dd>
-        </dl>
-    </div>
+    <div vp-media-map data-item="item"></div>
     <!-- END MAP -->
 
     <dl ng-if="item.guid">
