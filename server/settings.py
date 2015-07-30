@@ -60,7 +60,8 @@ CACHE_CONTROL = 'max-age=0, no-cache'
 
 X_DOMAINS = '*'
 X_MAX_AGE = 24 * 3600
-X_HEADERS = ['Content-Type', 'Authorization', 'If-Match']
+X_HEADERS = ['Content-Type', 'Authorization', 'If-Match', 'Access-Control-Allow-Origin']
+X_EXPOSE_HEADERS = ['Access-Control-Allow-Origin']
 
 MONGO_DBNAME = env('MONGO_DBNAME', 'verifiedpixel')
 MONGO_URI = env('MONGO_URI', 'mongodb://localhost/%s' % MONGO_DBNAME)
