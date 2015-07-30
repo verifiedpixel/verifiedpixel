@@ -16,14 +16,40 @@ logger = logging.getLogger('superdesk')
 logger.setLevel(logging.DEBUG)
 
 
-def activate_izitru_mock(fixture_path):
+METADATA = 0
+CONTENT = 1
+
+
+def prepare_sequence_from_args(args):
+    sequence = []
+    for arg in args:
+        status = arg.get('status', 200)
+        response = arg.get('response', None)
+        if not response:
+            fixture_path = arg['response_file']
+            with open(fixture_path, 'r') as f:
+                response = f.read()
+        sequence.append(({'status': status}, response))
+    return sequence
+
+
+def get_fixture_generator(fixtures):
+    return (fixture for fixture in prepare_sequence_from_args(fixtures))
+
+
+def activate_izitru_mock(*fixtures):
+    fixture_generator = get_fixture_generator(fixtures)
+
     @urlmatch(
         scheme='https', netloc='www.izitru.com', path='/scripts/uploadAPI.pl'
     )
     def izitru_request(url, request):
         logger.debug("served requests mock for IZITRU")
-        with open(fixture_path, 'r') as f:
-            return {'status_code': 200, 'content': json.load(f), }
+        fixture = next(fixture_generator)
+        return {
+            'status': fixture[METADATA]['status'],
+            'content': json.loads(fixture[CONTENT]),
+        }
 
     def wrap(f):
         def test_new(*args):
@@ -33,13 +59,14 @@ def activate_izitru_mock(fixture_path):
     return wrap
 
 
-def activate_tineye_mock(fixture_path):
+def activate_tineye_mock(*fixtures):
     responses = Responses('urllib3')
+    fixture_generator = get_fixture_generator(fixtures)
 
     def tineye_response(request):
         logger.debug("served urllib3 mock for TINEYE")
-        with open(fixture_path, 'rb') as f:
-            return (200, {}, f.read())
+        fixture = next(fixture_generator)
+        return (fixture[METADATA]['status'], {}, fixture[CONTENT])
     responses.add_callback(
         'POST', re.compile(r'.*api\.tineye\.com/rest/search/.*'),
         callback=tineye_response
@@ -70,15 +97,10 @@ def activate_tineye_mock(fixture_path):
     return wrap
 
 
-def activate_gris_mock(*fixture_paths):
-    sequence = []
-    for fixture_path in fixture_paths:
-        with open(fixture_path, 'r') as f:
-            sequence.append(({'status': 200}, f.read()))
-
-    def get_google_mock():
-        return GoogleAPIMockSequence(sequence)
-    patcher = mock.patch('httplib2.Http', get_google_mock)
+def activate_gris_mock(*fixtures):
+    sequence = prepare_sequence_from_args(fixtures)
+    patcher = mock.patch('httplib2.Http',
+                         lambda: GoogleAPIMockSequence(sequence))
 
     def wrap(f):
         def test_new(*args):
