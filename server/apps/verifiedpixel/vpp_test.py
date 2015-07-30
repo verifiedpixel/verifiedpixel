@@ -68,11 +68,15 @@ class VerifiedPixelAppTest(TestCase):
         with open(verification_result_path, 'r') as f:
             self.verification_result = json.load(f)
 
-    @activate_izitru_mock('./test/vpp/test1_izitru_response.json')
-    @activate_tineye_mock('./test/vpp/test1_tineye_response.json')
+    @activate_izitru_mock(
+        {"response_file": './test/vpp/test1_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test1_tineye_response.json'}
+    )
     @activate_gris_mock(
-        './test/vpp/gris_discovery_response.json',
-        './test/vpp/test1_gris_search_response.json'
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test1_gris_search_response.json'}
     )
     def test_happy_day_image1(self):
         self.upload_fixture_image(
@@ -91,11 +95,15 @@ class VerifiedPixelAppTest(TestCase):
                 list(items)[0]['verification']
             )
 
-    @activate_izitru_mock('./test/vpp/test2_izitru_response.json')
-    @activate_tineye_mock('./test/vpp/test2_tineye_response.json')
+    @activate_izitru_mock(
+        {"response_file": './test/vpp/test2_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test2_tineye_response.json'}
+    )
     @activate_gris_mock(
-        './test/vpp/gris_discovery_response.json',
-        './test/vpp/test2_gris_search_response.json'
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
     def test_happy_day_image2(self):
         self.upload_fixture_image(

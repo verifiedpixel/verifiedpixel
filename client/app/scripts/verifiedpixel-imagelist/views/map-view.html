@@ -1,0 +1,28 @@
+    <div ng-if="item.filemeta.GPSInfo.GPSLatitude && item.filemeta.GPSInfo.GPSLongitude">
+        <map zoom="18" 
+            center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
+            disable-default-u-i="true"
+            disable-double-click-zoom="true"
+            draggable="false"
+            dragging-cursor="move"
+            keyboard-shortcuts="false"
+            max-zoom="18"
+            min-zoom="8"
+            tilt="45"
+            map-type-id="TERRAIN">
+            <marker
+                position="[{{ item.gpslat }}, {{ item.gpslon }}]"
+                title="GPS Location"
+                draggable="false"
+                visible="true">
+            </marker>
+        </map>
+        <dl ng-if="item.gpslat">
+            <dt translate>Capture Location Latitude</dt>
+            <dd>{{ item.gpslat }}</dd>
+        </dl>
+        <dl ng-if="item.gpslong">
+            <dt translate>Capture Location Longitude</dt>
+            <dd>{{ item.gpslong }}</dd>
+        </dl>
+    </div>
