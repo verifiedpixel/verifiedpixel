@@ -1394,10 +1394,16 @@
 
         .directive('vpMediaAll', ['userList', function(userList) {
             return {
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html'
+            };
+        }])
+
+        .directive('vpMediaMap', ['userList', function(userList) {
+            return {
                 scope: {
                     item: '='
                 },
-                templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html',
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/map-view.html',
                 link: function(scope, elem) {
 
                     scope.$watch('item', reloadData);

@@ -18,19 +18,35 @@
         </header>
 
 
-
         <div class="content" sd-updown data-items="items._items" data-select="preview(item)">
             <div class="loading-indicator" ng-show="loading" translate>loading</div>
 
             <div vp-search-tags></div>
 
-            <div sd-shadow>
-                <ul class="{{view}}-view list-view">
-                    <li ng-repeat="item in items._items" class="list-item-view" ng-class="{active: item === selected.preview || item._id === selected.fetch}">
-                        <div vp-media-box></div>
-                    </li>
-                </ul>
+            <div ng-if="selected.preview">
+              <div sd-shadow>
+                  <ul class="{{view}}-view list-view">
+                      <li ng-repeat="item in items._items" class="list-item-view" ng-class="{active: item === selected.preview || item._id === selected.fetch}">
+                          <div vp-media-box></div>
+                      </li>
+                  </ul>
+              </div>
+              <div class="preview-container">
+                  <img src="http://localhost:5000/api/upload/55b9045aac6c1d08300eb8ce/raw?_schema=http">
+                  <p>load big oreview here on click</p>
+              </div>
             </div>
+
+            <div ng-if="!selected.preview">
+              <div sd-shadow>
+                  <ul class="{{view}}-view list-view">
+                      <li ng-repeat="item in items._items" class="list-item-view" ng-class="{active: item === selected.preview || item._id === selected.fetch}">
+                          <div vp-media-box></div>
+                      </li>
+                  </ul>
+              </div>
+            </div>
+
         </div>
     </div>
 
