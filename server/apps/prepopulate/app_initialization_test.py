@@ -39,7 +39,7 @@ class AppInitializeWithDataCommandTestCase(TestCase):
             service.post(docs)
 
             stories_per_desk = 2
-            existing_desks = 1 
+            existing_desks = 1
             command = AppScaffoldDataCommand()
             result = command.run(stories_per_desk)
             self.assertEquals(result, 0)
