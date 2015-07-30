@@ -1,4 +1,5 @@
 from unittest import TestCase
+from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 from flask import current_app as app
 from eve.utils import config, ParsedRequest
 import json
@@ -33,6 +34,9 @@ class VerifiedPixelAppTest(TestCase):
         setup(context=cls)
 
     def setUp(self):
+        with self.app.app_context():
+            command = AppInitializeWithDataCommand()
+            result = command.run()
         setup(context=self)
 
     def tearDown(self):
