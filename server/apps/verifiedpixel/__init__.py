@@ -111,7 +111,7 @@ def get_izitru_results(filename, content):
         'nearMatch': 'false',
         'storeImage': 'true',
     }
-    files = {'upFile': (filename, upfile, 'image/jepg', {'Expires': '0'})}
+    files = {'upFile': (filename, upfile, 'image/jpeg', {'Expires': '0'})}
     response = request('POST', IZITRU_API_URL, data=data, files=files)
     return response.json()
 
