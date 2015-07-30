@@ -161,7 +161,11 @@ def process_item(item):
         ('gris', get_gris_results, (href,)),
     ]:
         append_api_results_to_item(item, api_name, api_getter, args)
-    # TODO: Auto fetch to the 'Verified Imges' desk
+    # Auto fetch items to the 'Verified Imges' desk
+    item_id = str(item['_id'])
+    desk_id = '55b0b4c788f929738fa5d069'
+    logger.info('Fetching item: {} into desk: {}'.format(item_id, desk_id))
+    superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
 
 
 @celery.task
