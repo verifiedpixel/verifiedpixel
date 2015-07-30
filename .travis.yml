@@ -72,8 +72,8 @@ script:
         #cd client && npm test && cd .. ;
         #cd server && behave ./features/ --format progress2 --logging-level ERROR && cd .. ;
     - if [ "${TARGET}" = "unit" ]; then
-        cd server && flake8 && cd .. ;
-        cd server && nosetests --with-coverage --cover-package=superdesk,apps && cd .. ;
+        cd server && nosetests --with-coverage --cover-package=superdesk,apps && cd .. &&
+        cd server && flake8 && cd ..
       fi
     - if [ "${TARGET}" = "server_ldap" ]; then
         cd server &&
