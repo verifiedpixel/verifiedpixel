@@ -36,7 +36,8 @@ class VerifiedPixelAppTest(TestCase):
     def setUp(self):
         setup(context=self)
         with self.app.app_context():
-            AppInitializeWithDataCommand()
+            command = AppInitializeWithDataCommand()
+            command.run()
 
     def tearDown(self):
         pass
