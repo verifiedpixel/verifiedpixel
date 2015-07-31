@@ -1,4 +1,5 @@
 from unittest import TestCase
+from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 from flask import current_app as app
 from eve.utils import config, ParsedRequest
 import json
@@ -34,6 +35,9 @@ class VerifiedPixelAppTest(TestCase):
 
     def setUp(self):
         setup(context=self)
+        with self.app.app_context():
+            command = AppInitializeWithDataCommand()
+            command.run()
 
     def tearDown(self):
         pass
@@ -68,11 +72,15 @@ class VerifiedPixelAppTest(TestCase):
         with open(verification_result_path, 'r') as f:
             self.verification_result = json.load(f)
 
-    @activate_izitru_mock('./test/vpp/test1_izitru_response.json')
-    @activate_tineye_mock('./test/vpp/test1_tineye_response.json')
+    @activate_izitru_mock(
+        {"response_file": './test/vpp/test1_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test1_tineye_response.json'}
+    )
     @activate_gris_mock(
-        './test/vpp/gris_discovery_response.json',
-        './test/vpp/test1_gris_search_response.json'
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test1_gris_search_response.json'}
     )
     def test_happy_day_image1(self):
         self.upload_fixture_image(
@@ -83,7 +91,7 @@ class VerifiedPixelAppTest(TestCase):
             verify_ingest()
 
             lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('ingest').get(
+            items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
@@ -91,11 +99,15 @@ class VerifiedPixelAppTest(TestCase):
                 list(items)[0]['verification']
             )
 
-    @activate_izitru_mock('./test/vpp/test2_izitru_response.json')
-    @activate_tineye_mock('./test/vpp/test2_tineye_response.json')
+    @activate_izitru_mock(
+        {"response_file": './test/vpp/test2_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test2_tineye_response.json'}
+    )
     @activate_gris_mock(
-        './test/vpp/gris_discovery_response.json',
-        './test/vpp/test2_gris_search_response.json'
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
     def test_happy_day_image2(self):
         self.upload_fixture_image(
@@ -106,7 +118,7 @@ class VerifiedPixelAppTest(TestCase):
             verify_ingest()
 
             lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('ingest').get(
+            items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
