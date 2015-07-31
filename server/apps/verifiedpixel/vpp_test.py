@@ -1,4 +1,5 @@
 from unittest import TestCase
+from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 from flask import current_app as app
 from eve.utils import config, ParsedRequest
 import json
@@ -34,6 +35,9 @@ class VerifiedPixelAppTest(TestCase):
 
     def setUp(self):
         setup(context=self)
+        with self.app.app_context():
+            command = AppInitializeWithDataCommand()
+            command.run()
 
     def tearDown(self):
         pass
@@ -87,7 +91,7 @@ class VerifiedPixelAppTest(TestCase):
             verify_ingest()
 
             lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('ingest').get(
+            items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
@@ -114,7 +118,7 @@ class VerifiedPixelAppTest(TestCase):
             verify_ingest()
 
             lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('ingest').get(
+            items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
