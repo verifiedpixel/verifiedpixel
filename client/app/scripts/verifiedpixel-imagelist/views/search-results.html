@@ -30,7 +30,14 @@
                         <span class="prev">Previous</span>
                         <span class="next">Next</span>
                     </nav>
-                    <ul class="slides">
+                    <div ng-if="view !== 'compact'" class="filmstrip">
+                        <ul class="slides">
+                            <li ng-repeat="item in items._items" class="list-item-view" ng-class="{active: item === selected.preview || item._id === selected.fetch}">
+                                <div vp-media-box></div>
+                            </li>
+                        </ul>
+                    </div>
+                    <ul ng-if="view == 'compact'">
                         <li ng-repeat="item in items._items" class="list-item-view" ng-class="{active: item === selected.preview || item._id === selected.fetch}">
                             <div vp-media-box></div>
                         </li>
@@ -38,8 +45,8 @@
                 </div>
               </div>
               <div class="preview-container" ng-if="view !== 'compact'">
-                  <img src="http://localhost:5000/api/upload/55b9045aac6c1d08300eb8ce/raw?_schema=http">
-                  <p>load big preview here on click</p>
+                  <img ng-src="{{ selected.preview.renditions.viewImage.href }}" />
+                  <p></p>
               </div>
             </div>
 

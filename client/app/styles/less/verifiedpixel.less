@@ -186,11 +186,42 @@
 
 // filmstrip
 .filmstrip {
-    outline: solid 1px red;
     overflow: hidden;
-    .mgrid-view {
-        padding-bottom: 0;
-        width: 10000em;
+    width: 10000px;
+    /*height: 120px;*/
+    margin: 0;
+    padding: 2px;
+    /*overflow-x: auto;*/
+    .active {
+        .media-box {
+            .media {
+                outline: solid 2px #d88f41;
+            }
+        }
+    }
+    .media-box {
+        position: relative;
+        padding: 0!important;
+        margin: 0 10px 0 0!important;
+        min-height: auto!important;
+        min-width: auto!important;
+        max-height: auto!important;
+        border: none!important;
+        .media {
+            padding: 0!important;
+            margin: 0!important;
+            figure {
+                max-width: auto;
+                margin: 0!important;
+                img {
+
+                }
+            }
+        }
+        .media-info {
+            position: absolute!important;
+            bottom: 0;
+        }
     }
 }
 

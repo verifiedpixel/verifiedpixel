@@ -6,7 +6,7 @@
         <div class="buttons"></div>
     </div>
 
-    <h3 ng-show="item.slugline">{{ item.slugline }}</h3>
+    <h3 ng-if="item.slugline && !selected.preview">{{ item.slugline }}</h3>
 
     <div class="media multi" ng-show="item.type == 'text' || item.type == 'composite' || item.type == 'preformatted' || item.type == 'picture'" ng-mouseenter="hover=true" ng-mouseleave="hover=false">
         <div sd-item-rendition data-item="item" data-rendition="thumbnail"></div>
@@ -20,25 +20,13 @@
         </div>
     </div>
 
-    <div class="media" ng-show="item.type == 'audio' || item.type == 'video'">
-        <i class="filetype-icon-large-{{ item.type}}"></i>
-    </div>
-
     <div class="media-info">
 
         <span ng-if="item.highlights" sd-highlights-title data-item="item"></span>
 
         <dl>
-<!-- 
-            <dt class="source"><span translate>source:</span></dt>
-                <dd class="provider" sd-meta-ingest data-item="item"></dd>
- -->
             <dt translate>Taken</dt>
                 <dd><time datetime="{{ item.versioncreated }}" title="{{ item.versioncreated|date:'medium' }}">{{ item.versioncreated|reldate }}</time></dd>
-<!-- 
-            <dt ng-show="item.is_spiked" translate>expires</dt>
-                <dd ng-if="item.is_spiked"><time title="{{ item.expiry | date:'medium' }}">{{ item.expiry | reldate }}</time></dd>
- -->
         </dl>
 
         <dl class="verification-results">
