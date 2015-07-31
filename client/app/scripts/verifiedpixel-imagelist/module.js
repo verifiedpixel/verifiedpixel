@@ -235,6 +235,9 @@
 
                 if (params.desk) {
                     query.post_filter({terms: {'task.desk': JSON.parse(params.desk)}});
+                } else {
+                    // default desk to verified images
+                    query.post_filter({terms: {'task.desk': ['55b0b4c788f929738fa5d069']}});
                 }
 
                 if (params.stage) {
@@ -1745,11 +1748,15 @@
                 var canvas = angular.element('<canvas style="display:none"></canvas>');
                 var ctx = canvas[0].getContext('2d');
 
+                img.setAttribute('crossOrigin', 'http://localhost:5000');
                 img.onload = function() {
                     canvas[0].width = img.width;
                     canvas[0].height = img.height;
                     ctx.drawImage(img, 0, 0);
                     console.log('def got here');
+
+                    dataURL = canvas[0].toDataURL('image/jpeg');
+console.log(dataUrl);
                 }
                 img.src = href;
             });

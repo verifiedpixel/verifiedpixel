@@ -26,7 +26,8 @@ require.config({
         'superdesk-archive': 'bower_components/superdesk/client/app/scripts/superdesk-archive',
 
         'jquery-ui': 'bower_components/jquery-ui/jquery-ui',
-        'raven-js': 'bower_components/raven-js/dist/raven'
+        'raven-js': 'bower_components/raven-js/dist/raven',
+        'maps': '//maps.googleapis.com/maps/api/js?sensor=false'
     },
     shim: {
         jquery: {exports: 'jQuery'},
