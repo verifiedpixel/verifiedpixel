@@ -15,7 +15,7 @@
     "tests"
   ],
   "dependencies": {
-    "superdesk": "https://github.com/verifiedpixel/superdesk.git#vp20150727-2",
+    "superdesk": "https://github.com/verifiedpixel/superdesk.git#vp20150731-1",
     "ngmap": "~1.9.0"
   },
   "resolutions": {
