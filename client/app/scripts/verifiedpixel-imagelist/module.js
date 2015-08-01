@@ -237,7 +237,8 @@
                     query.post_filter({terms: {'task.desk': JSON.parse(params.desk)}});
                 } else {
                     // default desk to verified images
-                    query.post_filter({terms: {'task.desk': ['55b0b4c788f929738fa5d069']}});
+                    // TODO: lookup desk by name here
+                    //query.post_filter({terms: {'task.desk': ['55b0b4c788f929738fa5d069']}});
                 }
 
                 if (params.stage) {
@@ -248,7 +249,7 @@
                     query.post_filter({terms: {'state': JSON.parse(params.state)}});
                 }
 
-                // TODO: add filemeta and verification filters
+                // add filemeta and verification filters
                 if (params.make) {
                     query.post_filter({terms: {'filemeta.Make': JSON.parse(params.make)}});
                 }
@@ -1753,18 +1754,19 @@
                     canvas[0].width = img.width;
                     canvas[0].height = img.height;
                     ctx.drawImage(img, 0, 0);
-                    console.log('def got here');
 
-                    dataURL = canvas[0].toDataURL('image/jpeg');
-console.log(dataUrl);
+                    // TODO: make this work with CORS (needs server update
+                    //       as eve doewsn't include CORS headers for GET)
+                    //dataURL = canvas[0].toDataURL('image/jpeg');
                 }
                 img.src = href;
             });
         };
 
         this.delete = function() {
-            // TODO: implement multi file delete
-            console.log('delete multi', multi.getItems());
+            // use spike to delete
+            spike.spikeMultiple(multi.getItems());
+            multi.reset();
         };
 
         this.send  = function() {
