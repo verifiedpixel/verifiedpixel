@@ -1867,11 +1867,18 @@
 
 
 
-    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring'];
-    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring) {
+    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http'];
+    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http) {
         this.download = function() {
             // TODO: implement multi file download
-            items = multi.getItems();
+            multi.getItems().forEach(function (item) {
+                var href = item.renditions.original.href;
+                $http.get(href).then(function(response) {
+                    console.log(response);
+                }, function(response) {
+                    console.log('error', response);
+                });
+            });
         };
 
         this.delete = function() {
