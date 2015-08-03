@@ -1463,7 +1463,14 @@
                                     scope.item.filemeta.GPSInfo.GPSLongitude,
                                     scope.item.filemeta.GPSInfo.GPSLongitudeRef
                                 );
-                            }                        
+                            }
+                        
+                            if (scope.item.filemeta.GPSInfo.GPSImgDirection) {
+                                scope.item.gpsdirection = (
+                                    scope.item.filemeta.GPSInfo.GPSImgDirection[0] /
+                                    scope.item.filemeta.GPSInfo.GPSImgDirection[1]
+                                ).toFixed(3);
+                            }
                         }
                     }
                     getGPS();
@@ -1481,6 +1488,113 @@
 
                     scope.$watch('item', reloadData);
 
+                    function getGPS(){
+                        function GPSToFloat(input, ref){
+                            var d0 = input[0][0];
+                            var d1 = input[0][1];
+                            var d = (d0 / d1);
+
+                            var m0 = input[1][0];
+                            var m1 = input[1][1];
+                            var m = (m0 / m1);
+
+                            var s0 = input[2][0];
+                            var s1 = input[2][1];
+                            var s = (s0 / s1);
+                            var value = (d + (m / 60) + (s / 3600));
+
+                            if ((ref === 'S') || (ref === 'W')) {
+                                value = 0 - value;
+                            }
+                            return value;
+                        }
+                        scope.item.exif = {};
+                        // check to see if the file latitude record exists before 
+                        // trying to return anything // longitude is there for the sake of completeness
+                        if (scope.item.filemeta && scope.item.filemeta.GPSInfo){
+                            if (scope.item.filemeta.GPSInfo.GPSLatitude && scope.item.filemeta.GPSInfo.GPSLongitude) {
+                                // lat is always first
+                                scope.item.gpslat = GPSToFloat(
+                                    scope.item.filemeta.GPSInfo.GPSLatitude,
+                                    scope.item.filemeta.GPSInfo.GPSLatitudeRef 
+                                );
+                                scope.item.gpslon = GPSToFloat(
+                                    scope.item.filemeta.GPSInfo.GPSLongitude,
+                                    scope.item.filemeta.GPSInfo.GPSLongitudeRef
+                                );
+                            }
+                            if (scope.item.filemeta.GPSInfo.GPSImgDirection) {
+                                scope.item.gpsdirection = (
+                                    scope.item.filemeta.GPSInfo.GPSImgDirection[0] /
+                                    scope.item.filemeta.GPSInfo.GPSImgDirection[1]
+                                ).toFixed(3);
+                            }
+                            if (scope.item.filemeta.GPSInfo.GPSAltitude) {
+                                scope.item.gpsaltitude = scope.item.filemeta.GPSInfo.GPSAltitude[0] /
+                                    scope.item.filemeta.GPSInfo.GPSAltitude[1];
+                            }
+                            if (scope.item.filemeta.GPSInfo.GPSSpeed) {
+                                scope.item.gpsspeed = scope.item.filemeta.GPSInfo.GPSSpeed[0] /
+                                    scope.item.filemeta.GPSInfo.GPSSpeed[1];
+                            }
+                            if (scope.item.filemeta.GPSInfo.GPSTrack) {
+                                scope.item.gpstrack = scope.item.filemeta.GPSInfo.GPSTrack[0] /
+                                    scope.item.filemeta.GPSInfo.GPSTrack[1];
+                            }
+                            scope.item.exif = {};
+                            if (scope.item.filemeta.ApertureValue) {
+                                scope.item.exif.aperture = (
+                                    scope.item.filemeta.ApertureValue[0] /
+                                    scope.item.filemeta.ApertureValue[1]
+                                ).toFixed(1);
+                            }
+                            if (scope.item.filemeta.ExposureTime) {
+                                scope.item.exif.exposuretime = (
+                                    scope.item.filemeta.ExposureTime[0] /
+                                    scope.item.filemeta.ExposureTime[1]
+                                ).toFixed(5);
+                            }
+                            if (scope.item.filemeta.FocalLength) {
+                                scope.item.exif.focallength = (
+                                    scope.item.filemeta.FocalLength[0] /
+                                    scope.item.filemeta.FocalLength[1]
+                                ).toFixed(2);
+                            }
+                            if (scope.item.filemeta.ExposureMode > -1) {
+                                switch(scope.item.filemeta.ExposureMode) {
+                                    case 0:
+                                        scope.item.exif.exposuremode = 'Not defined';
+                                        break;
+                                    case 1:
+                                        scope.item.exif.exposuremode = 'Manual';
+                                        break;
+                                    case 2:
+                                        scope.item.exif.exposuremode = 'Normal program';
+                                        break;
+                                    case 3:
+                                        scope.item.exif.exposuremode = 'Aperture priority';
+                                        break;
+                                    case 4:
+                                        scope.item.exif.exposuremode = 'Shutter priority';
+                                        break;
+                                    case 5:
+                                        scope.item.exif.exposuremode = 'Creative program';
+                                        break;
+                                    case 6:
+                                        scope.item.exif.exposuremode = 'Action program';
+                                        break;
+                                    case 7:
+                                        scope.item.exif.exposuremode = 'Portrait mode';
+                                        break;
+                                    case 8:
+                                        scope.item.exif.exposuremode = 'Landscape mode';
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    getGPS();
+
                     function reloadData() {
                         scope.originalCreator = null;
                         scope.versionCreator = null;
@@ -1497,6 +1611,7 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
+                        getGPS();
                     }
                 }
             };
@@ -1675,6 +1790,19 @@
                         }
                     });
 
+                    if (scope.item.filemeta.DateTimeOriginal) {
+                        var dateTimeParts = scope.item.filemeta.DateTimeOriginal.split(' ');
+                        var dateParts =dateTimeParts[0].split(':');
+                        var year = dateParts[0];
+                        var month = dateParts[1];
+                        var day = dateParts[2];
+                        var timeParts = dateTimeParts[1].split(':');
+                        var hour = timeParts[0];
+                        var min = timeParts[1];
+                        var sec = timeParts[2];
+                        var dateString = year+'-'+month+'-'+day+' '+hour+':'+min+':'+ sec; 
+                        scope.item.filemeta.datecaptured = new Date(dateString);
+                    }
                     scope.$watch('item', function(item) {
                         scope.lock.isLocked = item && (lock.isLocked(item) || lock.isLockedByMe(item));
                     });
@@ -1743,24 +1871,7 @@
     function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring) {
         this.download = function() {
             // TODO: implement multi file download
-            multi.getItems().forEach(function(item) {
-                var href = item.renditions.original.href;
-                var img = new Image();
-                var canvas = angular.element('<canvas style="display:none"></canvas>');
-                var ctx = canvas[0].getContext('2d');
-
-                img.setAttribute('crossOrigin', 'http://localhost:5000');
-                img.onload = function() {
-                    canvas[0].width = img.width;
-                    canvas[0].height = img.height;
-                    ctx.drawImage(img, 0, 0);
-
-                    // TODO: make this work with CORS (needs server update
-                    //       as eve doewsn't include CORS headers for GET)
-                    //dataURL = canvas[0].toDataURL('image/jpeg');
-                }
-                img.src = href;
-            });
+            items = multi.getItems();
         };
 
         this.delete = function() {
