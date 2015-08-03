@@ -768,8 +768,8 @@
         /**
          * Item list with sidebar preview
          */
-        .directive('vpSearchResults', ['$location', 'preferencesService', 'packages', 'tags', 'asset',
-            function($location, preferencesService, packages, tags, asset) {
+        .directive('vpSearchResults', ['$timeout', '$location', 'preferencesService', 'packages', 'tags', 'asset',
+            function($timeout, $location, preferencesService, packages, tags, asset) {
             var update = {
                 'archive:view': {
                     'allowed': [
@@ -797,6 +797,23 @@
                     scope.flags = controller.flags;
                     scope.selected = scope.selected || {};
 
+                    // let's get access to the DOM
+                    scope.$watch('items', function(){
+                        $timeout(function(){
+                            filmstrip();
+                        });
+                    });
+                    var filmstrip = function(){
+                        // are there any slides?
+                        var slideLen = $('.slides li').length;
+                        if (slideLen > 0) {
+                            var container = $('.shadow-list-holder');
+                            var activeSlide = $('.slides .active');
+                            var activeSlideOffset = activeSlide.position().left;
+                                console.log(activeSlideOffset);
+                                container.scrollLeft(activeSlideOffset - 2);
+                        }
+                    };
                     scope.preview = function preview(item) {
                         if (multiSelectable) {
                             if (_.findIndex(scope.selectedList, {_id: item._id}) === -1) {
@@ -806,6 +823,11 @@
                             }
                         }
                         scope.selected.preview = item;
+                        if (scope.selected.preview !== undefined) {
+                            $timeout(function(){
+                                filmstrip();
+                            });
+                        }
                         $location.search('_id', item ? item._id : null);
                     };
 

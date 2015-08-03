@@ -24,7 +24,7 @@
 
         <span ng-if="item.highlights" sd-highlights-title data-item="item"></span>
 
-        <dl>
+        <dl ng-if="!selected.preview">
             <dt translate>Taken</dt>
                 <dd><time datetime="{{ item.filemeta.datecaptured }}" title="{{ item.filemeta.datecaptured|date:'medium' }}">{{ item.filemeta.datecaptured|reldate }}</time></dd>
         </dl>
