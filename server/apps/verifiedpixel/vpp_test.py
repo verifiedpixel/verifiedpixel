@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 from flask import current_app as app
 from eve.utils import config, ParsedRequest
@@ -123,6 +123,7 @@ class VerifiedPixelAppTest(TestCase):
                 list(items)[0]['verification']
             )
 
+    @skip
     @activate_izitru_mock(
         {
             "status": 500,
