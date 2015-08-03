@@ -23,7 +23,7 @@ from pprint import pprint  # noqa @TODO: debug
 
 class VerifiedPixelAppTest(TestCase):
 
-    maxDiff = None
+    # maxDiff = None
 
     @classmethod
     def setUpClass(cls):
@@ -36,8 +36,7 @@ class VerifiedPixelAppTest(TestCase):
     def setUp(self):
         setup(context=self)
         with self.app.app_context():
-            command = AppInitializeWithDataCommand()
-            command.run()
+            AppInitializeWithDataCommand().run()
 
     def tearDown(self):
         pass
@@ -82,14 +81,13 @@ class VerifiedPixelAppTest(TestCase):
         {"response_file": './test/vpp/gris_discovery_response.json'},
         {"response_file": './test/vpp/test1_gris_search_response.json'}
     )
-    def test_happy_day_image1(self):
+    def test_happy_day_png(self):
         self.upload_fixture_image(
             './test/vpp/test.png',
             './test/vpp/test1_verification_result.json'
         )
         with self.app.app_context():
             verify_ingest()
-
             lookup = {'type': 'picture'}
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
@@ -109,14 +107,13 @@ class VerifiedPixelAppTest(TestCase):
         {"response_file": './test/vpp/gris_discovery_response.json'},
         {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
-    def test_happy_day_image2(self):
+    def test_happy_day_jpg(self):
         self.upload_fixture_image(
             './test/vpp/test2.jpg',
             './test/vpp/test2_verification_result.json'
         )
         with self.app.app_context():
             verify_ingest()
-
             lookup = {'type': 'picture'}
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
@@ -124,4 +121,67 @@ class VerifiedPixelAppTest(TestCase):
             self.assertEqual(
                 self.verification_result,
                 list(items)[0]['verification']
+            )
+
+    @activate_izitru_mock(
+        {
+            "status": 500,
+            "response": {"foo": "bar"},
+        }, {
+            "status": 404,
+            "response": {"foo": "bar"},
+        },
+        {"response_file": './test/vpp/test1_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test1_tineye_response.json'}
+    )
+    @activate_gris_mock(
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test1_gris_search_response.json'}
+    )
+    def test_retry_succeeded_izitru(self):
+        self.fail("@TODO")
+
+    @activate_izitru_mock(
+        {
+            "status": 500,
+            "response": {"foo": "bar"},
+        }, {
+            "status": 404,
+            "response": {"foo": "bar"},
+        }, {
+            "status": 204,
+            "response": {"foo": "bar"},
+        },
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test1_tineye_response.json'}
+    )
+    @activate_gris_mock(
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test1_gris_search_response.json'}
+    )
+    def test_retry_failed_izitru(self):
+        self.upload_fixture_image(
+            './test/vpp/test.png',
+            './test/vpp/test1_verification_result.json'
+        )
+        with self.app.app_context():
+            verify_ingest()
+            lookup = {'type': 'picture'}
+            items = superdesk.get_resource_service('archive').get(
+                req=ParsedRequest(), lookup=lookup
+            )
+            self.assertNotIn(
+                'izitru',
+                list(items)[0]['verification']
+            )
+            self.assertEqual(
+                self.verification_result['tineye'],
+                list(items)[0]['verification']['tineye']
+            )
+            self.assertEqual(
+                self.verification_result['gris'],
+                list(items)[0]['verification']['gris']
             )

@@ -101,6 +101,9 @@ def get_izitru_results(filename, content):
     }
     files = {'upFile': (filename, upfile, 'image/jpeg', {'Expires': '0'})}
     response = request('POST', superdesk.app.config['IZITRU_API_URL'], data=data, files=files)
+    if response.status_code != 200:
+        raise APIGracefulException(response)
+    # @TODO: mb check here also presence of some of the required fields
     return response.json()
 
 
