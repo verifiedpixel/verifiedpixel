@@ -186,12 +186,8 @@
 
 // filmstrip
 .filmstrip {
-    overflow: hidden;
-    width: 10000px;
-    /*height: 120px;*/
     margin: 0;
     padding: 2px;
-    /*overflow-x: auto;*/
     .active {
         .media-box {
             .media {
@@ -199,15 +195,25 @@
             }
         }
     }
+    .slides {
+        display: table;
+        li {
+            display: table-cell;
+        }
+    }
     .media-box {
+        float: left;
+        background: none!important;
         position: relative;
         padding: 0!important;
         margin: 0 10px 0 0!important;
         min-height: auto!important;
-        min-width: auto!important;
+        /*min-width: auto!important;*/
         max-height: auto!important;
         border: none!important;
+        text-align: center;
         .media {
+            background: none!important;
             padding: 0!important;
             margin: 0!important;
             figure {
