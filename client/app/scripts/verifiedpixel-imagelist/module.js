@@ -1889,18 +1889,21 @@
 
 
 
-    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http'];
-    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http) {
+    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http', '$location'];
+    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http, $location) {
         this.download = function() {
             // TODO: implement multi file download
+            var zip = new JSZip();
             multi.getItems().forEach(function (item) {
                 var href = item.renditions.original.href;
                 $http.get(href).then(function(response) {
-                    console.log(response);
+                   zip.file(item.slugline, response, {binary: true});
                 }, function(response) {
                     console.log('error', response);
                 });
             });
+            var content = zip.generate({type:"blob"});
+            $location.href="data:application/zip;base64," + content;
         };
 
         this.delete = function() {
