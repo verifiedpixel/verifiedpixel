@@ -810,7 +810,6 @@
                             var container = $('.shadow-list-holder');
                             var activeSlide = $('.slides .active');
                             var activeSlideOffset = activeSlide.position().left;
-                                console.log(activeSlideOffset);
                                 container.scrollLeft(activeSlideOffset - 2);
                         }
                     };
