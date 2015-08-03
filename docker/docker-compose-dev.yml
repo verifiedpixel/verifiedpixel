@@ -44,6 +44,7 @@ backend:
    - postfix
   volumes:
    - ../server:/opt/superdesk/
+   - ./Procfile:/opt/superdesk/Procfile
 
 frontend:
   extends:
@@ -51,3 +52,5 @@ frontend:
     service: frontend
   links:
    - backend
+  volumes:
+   - ./vhost_dev.conf:/etc/nginx/sites-enabled/superdesk.conf
