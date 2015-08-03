@@ -294,5 +294,18 @@ ODBC_TEST_CONNECTION_STRING = env('ODBC_TEST_CONNECTION_STRING',
 # This value gets injected into NewsML 1.2 and G2 output documents.
 NEWSML_PROVIDER_ID = env('NEWSML_PROVIDER_ID', 'sourcefabric.org')
 
+
+TINEYE_API_URL = env('TINEYE_API_URL', 'http://api.tineye.com/rest/')
+TINEYE_PUBLIC_KEY = env('TINEYE_PUBLIC_KEY', 'LCkn,2K7osVwkX95K4Oy')
+TINEYE_SECRET_KEY = env('TINEYE_SECRET_KEY', '6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^')
+
+IZITRU_API_URL = env('IZITRU_API_URL', 'https://www.izitru.com/scripts/uploadAPI.pl')
+IZITRU_PRIVATE_KEY = env('IZITRU_PRIVATE_KEY', '11d30480-a579-46e6-a33e-02330b94ce94')
+IZITRU_ACTIVATION_KEY = env('IZITRU_ACTIVATION_KEY', '20faaa56-edc1-4395-a2d9-1eb6248f0922')
+
+GRIS_API_KEY = env('GRIS_API_KEY', 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4')
+GRIS_API_CX = env('GRIS_API_CX', '008702632149434239236:xljn9isiv1i')
+
+
 OrganizationName = "Sourcefabric"
 OrganizationNameAbbreviation = "SF"

@@ -15,32 +15,20 @@ from apiclient.discovery import build
 import superdesk
 from superdesk.celery_app import celery
 
-
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
-
-
-# @TODO: read from env vars
-TINEYE_API_URL = 'http://api.tineye.com/rest/'
-TINEYE_PUBLIC_KEY = 'LCkn,2K7osVwkX95K4Oy'
-TINEYE_SECRET_KEY = '6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^'
-
-IZITRU_PRIVATE_KEY = '11d30480-a579-46e6-a33e-02330b94ce94'
-IZITRU_ACTIVATION_KEY = '20faaa56-edc1-4395-a2d9-1eb6248f0922'
-IZITRU_API_URL = 'https://www.izitru.com/scripts/uploadAPI.pl'
-
-GRIS_API_KEY = 'AIzaSyCUvaKjv5CjNd9Em54HS4jNRVR2AuHr-U4'
-GRIS_API_CX = '008702632149434239236:xljn9isiv1i'
 
 
 logger = logging.getLogger('superdesk')
 logger.setLevel(logging.INFO)
 
-tineye_api = TinEyeAPIRequest(
-    api_url=TINEYE_API_URL,
-    public_key=TINEYE_PUBLIC_KEY,
-    private_key=TINEYE_SECRET_KEY
-)
+
+def init_app(app):
+    app.data.tineye_api = TinEyeAPIRequest(
+        api_url=app.config['TINEYE_API_URL'],
+        public_key=app.config['TINEYE_PUBLIC_KEY'],
+        private_key=app.config['TINEYE_SECRET_KEY']
+    )
 
 
 class ImageNotFoundException(Exception):
@@ -69,7 +57,7 @@ class APIGracefulException(Exception):
 
 
 def get_tineye_results(content):
-    response = tineye_api.search_data(content)
+    response = superdesk.app.data.tineye_api.search_data(content)
     if response.total_results > 0:
         return response.json_results
     raise APIGracefulException(response)
@@ -77,21 +65,21 @@ def get_tineye_results(content):
 
 def get_gris_results(href):
     service = build('customsearch', 'v1',
-                    developerKey=GRIS_API_KEY)
+                    developerKey=superdesk.app.config['GRIS_API_KEY'])
     res = service.cse().list(
         q=href,
         searchType='image',
-        cx=GRIS_API_CX,
+        cx=superdesk.app.config['GRIS_API_CX'],
     ).execute()
     return res
 
 
 def get_izitru_results(filename, content):
-    IZITRU_SECURITY_DATA = int(time.time())
+    izitru_security_data = int(time.time())
     m = hashlib.md5()
-    m.update(str(IZITRU_SECURITY_DATA).encode())
-    m.update(IZITRU_PRIVATE_KEY.encode())
-    IZITRU_SECURITY_HASH = m.hexdigest()
+    m.update(str(izitru_security_data).encode())
+    m.update(superdesk.app.config['IZITRU_PRIVATE_KEY'].encode())
+    izitru_security_hash = m.hexdigest()
 
     upfile = content
     img = Image.open(BytesIO(content))
@@ -104,15 +92,15 @@ def get_izitru_results(filename, content):
     img.close()
 
     data = {
-        'activationKey': IZITRU_ACTIVATION_KEY,
-        'securityData': IZITRU_SECURITY_DATA,
-        'securityHash': IZITRU_SECURITY_HASH,
+        'activationKey': superdesk.app.config['IZITRU_ACTIVATION_KEY'],
+        'securityData': izitru_security_data,
+        'securityHash': izitru_security_hash,
         'exactMatch': 'true',
         'nearMatch': 'false',
         'storeImage': 'true',
     }
     files = {'upFile': (filename, upfile, 'image/jpeg', {'Expires': '0'})}
-    response = request('POST', IZITRU_API_URL, data=data, files=files)
+    response = request('POST', superdesk.app.config['IZITRU_API_URL'], data=data, files=files)
     return response.json()
 
 
