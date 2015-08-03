@@ -26,7 +26,7 @@
 
         <dl>
             <dt translate>Taken</dt>
-                <dd><time datetime="{{ item.versioncreated }}" title="{{ item.versioncreated|date:'medium' }}">{{ item.versioncreated|reldate }}</time></dd>
+                <dd><time datetime="{{ item.filemeta.datecaptured }}" title="{{ item.filemeta.datecaptured|date:'medium' }}">{{ item.filemeta.datecaptured|reldate }}</time></dd>
         </dl>
 
         <dl class="verification-results">

@@ -1,5 +1,8 @@
-    <div ng-if="item.filemeta.GPSInfo.GPSLatitude && item.filemeta.GPSInfo.GPSLongitude">
-        <map zoom="18" 
+    <div
+        ng-if="item.filemeta.GPSInfo.GPSLatitude && item.filemeta.GPSInfo.GPSLongitude">
+        <map
+            style="height: 125px; width: 350px"
+            zoom="14" 
             center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
             disable-default-u-i="true"
             disable-double-click-zoom="true"
@@ -21,8 +24,15 @@
             <dt translate>Capture Location Latitude</dt>
             <dd>{{ item.gpslat }}</dd>
         </dl>
-        <dl ng-if="item.gpslong">
+        <dl ng-if="item.gpslon">
             <dt translate>Capture Location Longitude</dt>
-            <dd>{{ item.gpslong }}</dd>
+            <dd>{{ item.gpslon }}</dd>
+        </dl>
+        <dl ng-if="item.gpsdirection">
+            <dt translate>Capture Direction</dt>
+            <dd>{{ item.gpsdirection }}</dd>
+
+            <dt translate>Capture Direction Ref</dt>
+            <dd>{{ item.filemeta.GPSInfo.GPSImgDirectionRef }}</dd>
         </dl>
     </div>

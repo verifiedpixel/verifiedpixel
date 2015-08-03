@@ -1,13 +1,25 @@
 <div class="metadata-view">
-    <!-- VERIFICATION METADATA -->
     <!-- file specific data -->
     <dl ng-if="item.filemeta">
-        <dt translate>Aperture</dt><dd>{{ item.filemeta.ApertureValue[0] }} : {{ item.filemeta.ApertureValue[1] }}</dd>
-        <dt translate>Exposure time</dt><dd>{{ item.filemeta.ExposureTime[0] }} : {{ item.filemeta.ExposureTime[1] }}</dd>
-        <dt translate>Focal length</dt><dd>{{ item.filemeta.FocalLength[0] }} : {{ item.filemeta.FocalLength[1] }}</dd>
+        <dt translate>Lens Make</dt><dd>{{ item.filemeta.LensMake }}</dd>
+        <dt translate>Lens Model</dt><dd>{{ item.filemeta.LensModel }}</dd>
+        <dt translate>Timestamp</dt><dd>{{ item.filemeta.DateTime }}</dd>
+        <dt translate>Aperture</dt><dd>f/{{ item.exif.aperture }}</dd>
+        <dt translate>Exposure Mode</dt><dd>{{ item.exif.exposuremode }}</dd>
+        <dt translate>Exposure Time</dt><dd>{{ item.exif.exposuretime }} seconds</dd>
+        <dt translate>Focal length</dt><dd>{{ item.exif.focallength }}mm</dd>
         <dt translate>Iso</dt><dd>{{ item.filemeta.ISOSpeedRatings }}</dd>
         <dt translate>Flash</dt><dd>{{ item.filemeta.Flash }}</dd>
     </dl>
 
-    <!-- END VERIFICATION METADATA -->
+    <h4>GPS Info:</h4>
+    <dl ng-if="item.filemeta.GPSInfo">
+        <dt translate>Latitude</dt><dd>{{ item.gpslat }}</dd>
+        <dt translate>Longitude</dt><dd>{{ item.gpslon }}</dd>
+        <dt translate>Altitude</dt><dd>{{ item.gpsaltitude }}</dd>
+        <dt translate>Capture Direction</dt><dd>{{ item.gpsdirection }}</dd>
+        <dt translate>Capture Direction Ref</dt><dd>{{ item.filemeta.GPSInfo.GPSImgDirectionRef }}</dd>
+        <dt ng-if="item.gpsspeed" translate>GPS Speed</dt><dd>{{ item.gpsspeed }}{{ item.filemeta.GPSInfo.GPSSpeedRef }}</dd>
+        <dt ng-if="item.gpstrack" translate>GPS Track</dt><dd>{{ item.gpstrack }}{{ item.filemeta.GPSInfo.GPSTrackRef }}</dd>
+    </dl>
 </div>
