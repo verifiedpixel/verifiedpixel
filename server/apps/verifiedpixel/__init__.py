@@ -114,8 +114,6 @@ def zip_items(result_id, item_ids):
         result_id,
         {'status': "done", "result": uploaded_zip_url},
     )
-    print('done:')
-    print(result_id)
 
 
 class ImageNotFoundException(Exception):

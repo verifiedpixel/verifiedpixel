@@ -2,9 +2,11 @@ from unittest import TestCase, skip
 from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 from flask import current_app as app
 from eve.utils import config, ParsedRequest
+from io import BytesIO
 import json
 import ntpath
 import imghdr
+import zipfile
 
 import superdesk
 from superdesk import get_resource_service
@@ -42,7 +44,7 @@ class VerifiedPixelAppTest(TestCase):
         pass
 
     def upload_fixture_image(
-        self, fixture_image_path, verification_result_path
+        self, fixture_image_path, verification_result_path, headline='test'
     ):
         with self.app.app_context():
             with open(fixture_image_path, mode='rb') as f:
@@ -62,14 +64,15 @@ class VerifiedPixelAppTest(TestCase):
                     url_for_media=url_for_media
                 )
             data = [{
-                'headline': 'test',
+                'headline': headline,
                 'slugline': 'rebuild',
                 'renditions': renditions,
                 'type': 'picture'
             }]
-            get_resource_service('ingest').post(data)
+            image_id = get_resource_service('ingest').post(data)
         with open(verification_result_path, 'r') as f:
             self.verification_result = json.load(f)
+        return image_id
 
     @activate_izitru_mock(
         {"response_file": './test/vpp/test1_izitru_response.json'}
@@ -202,31 +205,48 @@ class VerifiedPixelAppTest(TestCase):
         {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
     def test_zip_output(self):
-        self.upload_fixture_image(
+        image_paths = [
             './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
+            './test/vpp/test2.jpg'
+        ]
+        self.upload_fixture_image(
+            image_paths[0],
+            './test/vpp/test1_verification_result.json',
+            '0',
         )
         self.upload_fixture_image(
-            './test/vpp/test2.jpg',
-            './test/vpp/test2_verification_result.json'
+            image_paths[1],
+            './test/vpp/test2_verification_result.json',
+            '1',
         )
         with self.app.app_context():
             test_client = app.test_client()
             verify_ingest()
-            lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('archive').get(
+            lookup = {'type': 'picture',
+                      'verification': {'$exists': True}}
+            items = list(superdesk.get_resource_service('archive').get_from_mongo(
                 req=ParsedRequest(), lookup=lookup
-            )
-            self.assertEqual(len(list(items)), 2)
-            item_ids = [item['_id'] for item in items]
+            ))
+            item_ids = {i: item['_id']
+                        for item in items
+                        for i in range(2)
+                        if item['headline'] == str(i)}
+            self.assertEqual(len(item_ids), 2, "Items weren't verified.")
+
             vppzip_service = get_resource_service('verifiedpixel_zip')
-            zip_id = vppzip_service.post([{'items': item_ids}])[0]
-            print(zip_id)
-            zip_item = list(vppzip_service.get_from_mongo(
-                req=ParsedRequest(), lookup={"_id": zip_id}
+            zipped_item_id = vppzip_service.post([
+                {'items': list(item_ids.values())}
+            ])[0]
+            zipped_item = list(vppzip_service.get_from_mongo(
+                req=ParsedRequest(), lookup={"_id": zipped_item_id}
             ))[0]
-            pprint(zip_item)
-            response = test_client.get(zip_item['result'])
-            # @TODO: finish the test
-            with open('./test/vpp/output.zip', 'wb') as f:
-                f.write(response.get_data())
+            response = test_client.get(zipped_item['result'])
+            zip_file = zipfile.ZipFile(BytesIO(response.get_data()))
+            self.assertEqual(
+                sorted(zip_file.namelist()),
+                sorted(list(item_ids.values()) + ['verification.json']),
+                "Filelist in zip not match.")
+            for img_id, item_id in item_ids.items():
+                with open(image_paths[img_id], 'rb') as f:
+                    self.assertEqual(zip_file.read(item_id), f.read(),
+                                     "Image in zip not match.")
