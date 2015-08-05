@@ -39,6 +39,7 @@ class VerifiedPixelAppTest(TestCase):
         setup(context=self)
         with self.app.app_context():
             AppInitializeWithDataCommand().run()
+        self.expected_verification_results = []
 
     def tearDown(self):
         pass
@@ -71,7 +72,7 @@ class VerifiedPixelAppTest(TestCase):
             }]
             image_id = get_resource_service('ingest').post(data)
         with open(verification_result_path, 'r') as f:
-            self.verification_result = json.load(f)
+            self.expected_verification_results.append(json.load(f))
         return image_id
 
     @activate_izitru_mock(
@@ -96,7 +97,7 @@ class VerifiedPixelAppTest(TestCase):
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
-                self.verification_result,
+                self.expected_verification_results[0],
                 list(items)[0]['verification']
             )
 
@@ -122,7 +123,7 @@ class VerifiedPixelAppTest(TestCase):
                 req=ParsedRequest(), lookup=lookup
             )
             self.assertEqual(
-                self.verification_result,
+                self.expected_verification_results[0],
                 list(items)[0]['verification']
             )
 
@@ -182,11 +183,11 @@ class VerifiedPixelAppTest(TestCase):
                 list(items)[0]['verification']
             )
             self.assertEqual(
-                self.verification_result['tineye'],
+                self.expected_verification_results[0]['tineye'],
                 list(items)[0]['verification']['tineye']
             )
             self.assertEqual(
-                self.verification_result['gris'],
+                self.expected_verification_results[0]['gris'],
                 list(items)[0]['verification']['gris']
             )
 
@@ -224,18 +225,18 @@ class VerifiedPixelAppTest(TestCase):
             verify_ingest()
             lookup = {'type': 'picture',
                       'verification': {'$exists': True}}
-            items = list(superdesk.get_resource_service('archive').get_from_mongo(
+            verified_items = list(superdesk.get_resource_service('archive').get_from_mongo(
                 req=ParsedRequest(), lookup=lookup
             ))
-            item_ids = {i: item['_id']
-                        for item in items
-                        for i in range(2)
-                        if item['headline'] == str(i)}
-            self.assertEqual(len(item_ids), 2, "Items weren't verified.")
+            verified_items_ids = {i: item['_id']
+                                  for item in verified_items
+                                  for i in range(2)
+                                  if item['headline'] == str(i)}
+            self.assertEqual(len(verified_items_ids), 2, "Items weren't verified.")
 
             vppzip_service = get_resource_service('verifiedpixel_zip')
             zipped_item_id = vppzip_service.post([
-                {'items': list(item_ids.values())}
+                {'items': list(verified_items_ids.values())}
             ])[0]
             zipped_item = list(vppzip_service.get_from_mongo(
                 req=ParsedRequest(), lookup={"_id": zipped_item_id}
@@ -244,9 +245,20 @@ class VerifiedPixelAppTest(TestCase):
             zip_file = zipfile.ZipFile(BytesIO(response.get_data()))
             self.assertEqual(
                 sorted(zip_file.namelist()),
-                sorted(list(item_ids.values()) + ['verification.json']),
+                sorted(list(verified_items_ids.values()) + ['verification.json']),
                 "Filelist in zip not match.")
-            for img_id, item_id in item_ids.items():
+            verification_dict = json.loads(
+                zip_file.read('verification.json').decode()
+            )
+            for img_id, item_id in verified_items_ids.items():
+                self.assertEqual(
+                    verification_dict[item_id],
+                    self.expected_verification_results[img_id],
+                    "Verification json in zip not match"
+                )
                 with open(image_paths[img_id], 'rb') as f:
-                    self.assertEqual(zip_file.read(item_id), f.read(),
-                                     "Image in zip not match.")
+                    self.assertEqual(
+                        zip_file.read(item_id),
+                        f.read(),
+                        "Image in zip not match."
+                    )

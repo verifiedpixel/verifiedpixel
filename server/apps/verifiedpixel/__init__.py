@@ -33,8 +33,8 @@ logger.setLevel(logging.INFO)
 class VerifiedPixelZipService(BaseService):
     def on_created(self, doc):
         self_id = doc[0]['_id']
-        item_ids = doc[0]['items']
-        zip_items(self_id, item_ids)
+        items_ids = doc[0]['items']
+        zip_items(self_id, items_ids)
 
     def on_delete(self, doc):
         # @TODO: delete file
@@ -79,7 +79,7 @@ def init_app(app):
 
 
 @celery.task
-def zip_items(result_id, item_ids):
+def zip_items(result_id, items_ids):
     archive_service = get_resource_service('archive')
     vppzip_service = get_resource_service('verifiedpixel_zip')
 
@@ -89,7 +89,7 @@ def zip_items(result_id, item_ids):
     )
 
     items = archive_service.get_from_mongo(req=ParsedRequest(),
-                                           lookup={'_id': {'$in': item_ids}})
+                                           lookup={'_id': {'$in': items_ids}})
     verification_data_object = StringIO()
     verification_data = {}
     zip_file_object = BytesIO()
@@ -104,7 +104,7 @@ def zip_items(result_id, item_ids):
     zip_file.close()
 
     uploaded_zip_id = app.media.put(
-        zip_file_object.getvalue(), filename=str(item_ids),
+        zip_file_object.getvalue(), filename=str(items_ids),
         content_type='application/zip',
         resource=vppzip_service.datasource,
         metadata={}
