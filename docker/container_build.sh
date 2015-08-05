@@ -64,7 +64,7 @@ function post_clean_up {
 	) ;
 	echo "+++post clean-up done"
 }
-trap post_clean_up EXIT
+trap post_clean_up EXIT SIGHUP SIGINT SIGTERM
 
 
 # {{{
