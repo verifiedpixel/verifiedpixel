@@ -173,7 +173,7 @@ class VerifiedPixelAppTest(TestCase):
             './test/vpp/test1_verification_result.json'
         )
         with self.app.app_context():
-            verify_ingest()
+            verify_ingest.apply_async(retry=True)
             lookup = {'type': 'picture'}
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup

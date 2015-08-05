@@ -192,8 +192,9 @@ def get_izitru_results(filename, content):
     return response.json()
 
 
-@celery.task
-def append_api_results_to_item(item, api_name, api_getter, args):
+@celery.task(max_retries=3, bind=True)
+def append_api_results_to_item(self, item, api_name, api_getter, args):
+    print(api_name)
     filename = item['slugline']
     logger.info(
         "VerifiedPixel: {api}: searching matches for {file}...".format(
@@ -201,12 +202,13 @@ def append_api_results_to_item(item, api_name, api_getter, args):
         ))
     try:
         verification_result = api_getter(*args)
-    except APIGracefulException:
+    except APIGracefulException as e:
         logger.warning(
-            "VerifiedPixel: {api}: no matches found for {file}.".format(
-                api=api_name, file=filename
+            "VerifiedPixel: {api}: API exception raised during "
+            "verification of {file}:\n {exception}".format(
+                api=api_name, file=filename, exception=e
             ))
-        # @TODO: retry a task here too?
+        self.retry(exc=e)
     else:
         logger.info(
             "VerifiedPixel: {api}: matchs found for {file}.".format(
