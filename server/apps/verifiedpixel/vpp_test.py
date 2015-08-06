@@ -228,10 +228,8 @@ class VerifiedPixelAppTest(TestCase):
             verified_items = list(superdesk.get_resource_service('archive').get_from_mongo(
                 req=ParsedRequest(), lookup=lookup
             ))
-            verified_items_ids = {i: item['_id']
-                                  for item in verified_items
-                                  for i in range(2)
-                                  if item['headline'] == str(i)}
+            verified_items_ids = {int(item['headline']): item['_id']
+                                  for item in verified_items}
             self.assertEqual(len(verified_items_ids), 2, "Items weren't verified.")
 
             vppzip_service = get_resource_service('verifiedpixel_zip')
