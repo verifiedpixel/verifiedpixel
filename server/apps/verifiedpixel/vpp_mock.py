@@ -25,6 +25,8 @@ def prepare_sequence_from_args(args):
     for arg in args:
         status = arg.get('status', 200)
         response = arg.get('response', None)
+        if isinstance(response, dict):
+            response = json.dumps(response)
         if not response:
             fixture_path = arg['response_file']
             with open(fixture_path, 'r') as f:
@@ -47,7 +49,7 @@ def activate_izitru_mock(*fixtures):
         logger.debug("served requests mock for IZITRU")
         fixture = next(fixture_generator)
         return {
-            'status': fixture[METADATA]['status'],
+            'status_code': fixture[METADATA]['status'],
             'content': json.loads(fixture[CONTENT]),
         }
 

@@ -21,6 +21,8 @@ kibana:
     service: kibana
   links:
   - elastic
+  ports:
+  - "5601:5601"
 
 elastic:
   extends:
@@ -44,6 +46,7 @@ backend:
    - postfix
   volumes:
    - ../server:/opt/superdesk/
+   - ./Procfile:/opt/superdesk/Procfile
 
 frontend:
   extends:
@@ -51,3 +54,8 @@ frontend:
     service: frontend
   links:
    - backend
+  volumes:
+   - ./vhost_dev.conf:/etc/nginx/sites-enabled/superdesk.conf
+  ports:
+   - "443:443"
+   - "80:80"
