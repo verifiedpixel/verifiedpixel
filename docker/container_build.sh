@@ -28,21 +28,47 @@ pip install -q -r $SCRIPT_DIR/requirements.txt || exit 1
 export COMPOSE_PROJECT_NAME=build_$INSTANCE
 
 
+# {{{
 echo "===pre clean-up:"
 cd $SCRIPT_DIR
+
 set +e
 docker-compose stop
 docker-compose kill
-docker-compose rm --force
+#docker-compose rm --force
+
 sudo rm -r $BAMBOO_DIR/data/
 mkdir -p $BAMBOO_DIR/data/{mongodb,elastic,redis}
+
 sudo rm -r $BAMBOO_DIR/results/ ;
 mkdir -p $SERVER_RESULTS_DIR/{unit,behave} ;
 mkdir -p $CLIENT_RESULTS_DIR/unit ;
+
 sudo rm -r $SCREENSHOTS_DIR ;
 mkdir -p $SCREENSHOTS_DIR ;
-set -e
 
+set -e
+echo "+++pre clean-up done"
+# }}}
+
+function post_clean_up {
+	echo "===post clean-up:"
+	set +e
+		docker-compose stop;
+		docker-compose kill;
+		killall chromedriver;
+	set -e
+	test $CODE -gt 0 && (
+		echo "===removing failed containers:"
+		docker-compose rm --force;
+	) ;
+	echo "+++post clean-up done"
+}
+trap post_clean_up EXIT SIGHUP SIGINT SIGTERM
+
+
+# {{{
+echo "===updating containers:"
 bamboo_buildKey="${bamboo_buildKey:-}"
 if [ -n $bamboo_buildKey ]
 	then
@@ -50,12 +76,12 @@ if [ -n $bamboo_buildKey ]
 		cd $BAMBOO_DIR
 		find ./ -print0 | grep -vzZ .git/ | xargs -0 touch -t 200001010000.00
 fi
-
 # build container:
 cd $SCRIPT_DIR
 docker-compose pull
 docker-compose build
 docker-compose up -d
+# }}}
 
 set +e
 # run backend unit tests:
@@ -82,17 +108,5 @@ docker-compose run backend ./scripts/fig_wrapper.sh nosetests -sv --with-xunit -
 	#true
 #) &&
 CODE="$?"
-set -e
-
-echo "===post clean-up:"
-set +e
-	docker-compose stop;
-	docker-compose kill;
-	killall chromedriver;
-set -e
-test $CODE -gt 0 && (
-	docker-compose rm --force;
-) ;
-echo "+++clean-up done"
 
 exit $CODE
