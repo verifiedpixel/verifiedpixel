@@ -1888,21 +1888,30 @@
 
 
 
-    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http', '$location'];
-    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http, $location) {
+    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http'];
+    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http) {
         this.download = function() {
-            // TODO: implement multi file download
+            // implement multi file download
+            var added = 0;
+            var items = multi.getItems();
             var zip = new JSZip();
-            multi.getItems().forEach(function (item) {
+            items.forEach(function (item) {
                 var href = item.renditions.original.href;
-                $http.get(href).then(function(response) {
-                   zip.file(item.slugline, response, {binary: true});
+                $http.get(href, {responseType: "arraybuffer"}).then(function(response) {
+                    // add the image
+                    zip.file(item.slugline, response.data);
+                    zip.file(item.slugline + '.verification.json', JSON.stringify(item.verification));
+                    zip.file(item.slugline + '.metadata.json', JSON.stringify(item.filemeta));
+                    added++;
+                    if (added === items.length) {
+                        var blob = zip.generate({type:"blob"});
+                        saveAs(blob, 'verified-images.zip');
+                    }
                 }, function(response) {
                     console.log('error', response);
                 });
             });
-            var content = zip.generate({type:"blob"});
-            $location.href="data:application/zip;base64," + content;
+            
         };
 
         this.delete = function() {
