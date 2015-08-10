@@ -1888,11 +1888,30 @@
 
 
 
-    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring'];
-    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring) {
+    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http'];
+    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http) {
         this.download = function() {
-            // TODO: implement multi file download
-            items = multi.getItems();
+            // implement multi file download
+            var added = 0;
+            var items = multi.getItems();
+            var zip = new JSZip();
+            items.forEach(function (item) {
+                var href = item.renditions.original.href;
+                $http.get(href, {responseType: "arraybuffer"}).then(function(response) {
+                    // add the image
+                    zip.file(item.slugline, response.data);
+                    zip.file(item.slugline + '.verification.json', JSON.stringify(item.verification));
+                    zip.file(item.slugline + '.metadata.json', JSON.stringify(item.filemeta));
+                    added++;
+                    if (added === items.length) {
+                        var blob = zip.generate({type:"blob"});
+                        saveAs(blob, 'verified-images.zip');
+                    }
+                }, function(response) {
+                    console.log('error', response);
+                });
+            });
+            
         };
 
         this.delete = function() {

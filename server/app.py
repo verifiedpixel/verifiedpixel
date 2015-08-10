@@ -18,6 +18,7 @@ import eve
 import settings
 import superdesk
 from flask.ext.mail import Mail
+from flask.ext.cors import CORS
 from eve.io.mongo import MongoJSONEncoder
 from eve.render import send_response
 from superdesk.celery_app import init_celery
@@ -69,6 +70,8 @@ def get_app(config=None):
         json_encoder=MongoJSONEncoder,
         validator=SuperdeskValidator)
 
+    # CORS added to support non eve flask routes (/api/upload/* for example)
+    CORS(app)
     superdesk.app = app
 
     custom_loader = jinja2.ChoiceLoader([
