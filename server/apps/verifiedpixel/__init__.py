@@ -2,8 +2,8 @@ from superdesk import get_backend
 
 from .ingest_task import init_tineye
 from .ingest_task import verify_ingest  # noqa
-from .zip_resource import (  # noqa
-    VerifiedPixelZipService, VerifiedPixelZipResource, zip_items
+from .zip_resource import (
+    VerifiedPixelZipService, VerifiedPixelZipResource
 )
 
 
