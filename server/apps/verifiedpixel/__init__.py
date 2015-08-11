@@ -1,26 +1,21 @@
 import logging
-import hashlib
-import time
 import json
 import zipfile
-from bson.objectid import ObjectId
-from gridfs import GridFS
 from flask import current_app as app
 from eve.utils import ParsedRequest
 from pytineye.api import TinEyeAPIRequest
 from pytineye.exceptions import TinEyeAPIError  # noqa @TODO: retry
-from requests import request
-from PIL import Image
 from io import BytesIO, StringIO
-from apiclient.discovery import build
 
-import superdesk
 from superdesk.celery_app import celery
 from superdesk import get_backend
 from superdesk.resource import Resource
 from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.upload import url_for_media
+
+from .ingest_task import verify_ingest  # noqa
+from .ingest_task import get_original_image
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
@@ -114,154 +109,3 @@ def zip_items(result_id, items_ids):
         result_id,
         {'status': "done", "result": uploaded_zip_url},
     )
-
-
-class ImageNotFoundException(Exception):
-    pass
-
-
-def get_original_image(item):
-    if item['renditions']:
-        driver = app.data.mongo
-        px = driver.current_mongo_prefix('ingest')
-        _fs = GridFS(driver.pymongo(prefix=px).db)
-        for k, v in item['renditions'].items():
-            if k == 'original':
-                _file = _fs.get(ObjectId(v['media']))
-                content = _file.read()
-                href = v['href']
-                return (href, content)
-    raise ImageNotFoundException()
-
-
-class APIGracefulException(Exception):
-
-    def __init__(self, message):
-        super(Exception, self).__init__(message)
-        logger.warning(message)
-
-
-def get_tineye_results(content):
-    response = superdesk.app.data.tineye_api.search_data(content)
-    if response.total_results > 0:
-        return response.json_results
-    raise APIGracefulException(response)
-
-
-def get_gris_results(href):
-    service = build('customsearch', 'v1',
-                    developerKey=superdesk.app.config['GRIS_API_KEY'])
-    res = service.cse().list(
-        q=href,
-        searchType='image',
-        cx=superdesk.app.config['GRIS_API_CX'],
-    ).execute()
-    return res
-
-
-def get_izitru_results(filename, content):
-    izitru_security_data = int(time.time())
-    m = hashlib.md5()
-    m.update(str(izitru_security_data).encode())
-    m.update(superdesk.app.config['IZITRU_PRIVATE_KEY'].encode())
-    izitru_security_hash = m.hexdigest()
-
-    upfile = content
-    img = Image.open(BytesIO(content))
-    if img.format != 'JPEG':
-        exif = img.info.get('exif', b"")
-        converted_image = BytesIO()
-        img.save(converted_image, 'JPEG', exif=exif)
-        upfile = converted_image.getvalue()
-        converted_image.close()
-    img.close()
-
-    data = {
-        'activationKey': superdesk.app.config['IZITRU_ACTIVATION_KEY'],
-        'securityData': izitru_security_data,
-        'securityHash': izitru_security_hash,
-        'exactMatch': 'true',
-        'nearMatch': 'false',
-        'storeImage': 'true',
-    }
-    files = {'upFile': (filename, upfile, 'image/jpeg', {'Expires': '0'})}
-    response = request('POST', superdesk.app.config['IZITRU_API_URL'], data=data, files=files)
-    if response.status_code != 200:
-        raise APIGracefulException(response)
-    # @TODO: mb check here also presence of some of the required fields
-    return response.json()
-
-
-@celery.task(max_retries=3, bind=True)
-def append_api_results_to_item(self, item, api_name, api_getter, args):
-    print(api_name)
-    filename = item['slugline']
-    logger.info(
-        "VerifiedPixel: {api}: searching matches for {file}...".format(
-            api=api_name, file=filename
-        ))
-    try:
-        verification_result = api_getter(*args)
-    except APIGracefulException as e:
-        logger.warning(
-            "VerifiedPixel: {api}: API exception raised during "
-            "verification of {file}:\n {exception}".format(
-                api=api_name, file=filename, exception=e
-            ))
-        self.retry(exc=e)
-    else:
-        logger.info(
-            "VerifiedPixel: {api}: matchs found for {file}.".format(
-                api=api_name, file=filename
-            ))
-        superdesk.get_resource_service('ingest').patch(
-            item['_id'],
-            {'verification.%s' % api_name: verification_result},
-        )
-
-
-@celery.task
-def process_item(item):
-    '''
-    TODO: attempt api lookups 3 times
-    '''
-    filename = item['slugline']
-    try:
-        href, content = get_original_image(item)
-    except ImageNotFoundException:
-        return
-    logger.info(
-        'VerifiedPixel: found new ingested item: "{}"'.format(filename)
-    )
-    for api_name, api_getter, args in [
-        ('izitru', get_izitru_results, (filename, content,)),
-        ('tineye', get_tineye_results, (content,)),
-        ('gris', get_gris_results, (href,)),
-    ]:
-        append_api_results_to_item(item, api_name, api_getter, args)
-
-    # Auto fetch items to the 'Verified Imges' desk
-    desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
-    desk_id = str(desk['_id'])
-    item_id = str(item['_id'])
-    logger.info('Fetching item: {} into desk: {}'.format(item_id, desk_id))
-    superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
-
-    # Delete the ingest item
-    superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
-
-
-@celery.task
-def verify_ingest():
-    logger.info(
-        'VerifiedPixel: Checking for new ingested images for verification...'
-    )
-    items = superdesk.get_resource_service('ingest').get_from_mongo(
-        req=ParsedRequest(),
-        lookup={
-            'type': 'picture',
-            'verification': {'$exists': False}
-        }
-    )
-    for item in items:
-        process_item(item)
