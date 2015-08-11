@@ -9,9 +9,12 @@ from requests import request
 from PIL import Image
 from apiclient.discovery import build
 from io import BytesIO
+from pytineye.exceptions import TinEyeAPIError  # noqa @TODO: retry
+from pytineye.api import TinEyeAPIRequest
 
 import superdesk
 from superdesk.celery_app import celery
+
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
@@ -19,6 +22,14 @@ from pprint import pprint  # noqa
 
 logger = logging.getLogger('superdesk')
 logger.setLevel(logging.INFO)
+
+
+def init_tineye(app):
+    app.data.tineye_api = TinEyeAPIRequest(
+        api_url=app.config['TINEYE_API_URL'],
+        public_key=app.config['TINEYE_PUBLIC_KEY'],
+        private_key=app.config['TINEYE_SECRET_KEY']
+    )
 
 
 class ImageNotFoundException(Exception):
