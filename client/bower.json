@@ -15,7 +15,7 @@
     "tests"
   ],
   "dependencies": {
-    "superdesk": "https://github.com/verifiedpixel/superdesk.git#vp20150804-4",
+    "superdesk": "https://github.com/verifiedpixel/superdesk.git#vp20150811-6",
     "ngmap": "~1.9.0",
     "jszip": "Stuk/jszip#~2.5.0",
     "file-saver.js": "~1.20150507.2"
