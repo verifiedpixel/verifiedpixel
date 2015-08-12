@@ -22,14 +22,14 @@ logger.setLevel(logging.INFO)
 
 
 class VerifiedPixelZipService(BaseService):
-    def on_created(self, doc):
-        self_id = doc[0]['_id']
-        items_ids = doc[0]['items']
-        zip_items(self_id, items_ids)
+    def on_created(self, docs):
+        for doc in docs:
+            self_id = doc['_id']
+            items_ids = doc['items']
+            zip_items(self_id, items_ids)
 
     def on_delete(self, doc):
-        # @TODO: delete file
-        pass
+        app.media.delete(doc['result_id'])
 
 
 class VerifiedPixelZipResource(Resource):
@@ -40,6 +40,9 @@ class VerifiedPixelZipResource(Resource):
         'items': {
             'type': 'list',
             'schema': Resource.rel('fetch', False)
+        },
+        'result_id': {
+            'type': 'string',
         },
         'result': {
             'type': 'string',
@@ -89,7 +92,8 @@ def zip_items(result_id, items_ids):
         metadata={}
     )
     uploaded_zip_url = url_for_media(uploaded_zip_id)
-    vppzip_service.patch(
-        result_id,
-        {'status': "done", "result": uploaded_zip_url},
-    )
+    vppzip_service.patch(result_id, {
+        "status": "done",
+        "result": uploaded_zip_url,
+        "result_id": uploaded_zip_id
+    })

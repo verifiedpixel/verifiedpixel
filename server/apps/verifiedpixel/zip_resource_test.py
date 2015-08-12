@@ -112,3 +112,65 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
                         f.read(),
                         "Image in zip not match."
                     )
+
+    @activate_izitru_mock(
+        {"response_file": './test/vpp/test1_izitru_response.json'},
+        {"response_file": './test/vpp/test2_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test1_tineye_response.json'},
+        {"response_file": './test/vpp/test2_tineye_response.json'}
+    )
+    @activate_gris_mock(
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test1_gris_search_response.json'},
+        {"response_file": './test/vpp/gris_discovery_response.json'},
+        {"response_file": './test/vpp/test2_gris_search_response.json'}
+    )
+    def test_zip_output_delete(self):
+        image_paths = [
+            './test/vpp/test.png',
+            './test/vpp/test2.jpg'
+        ]
+        self.upload_fixture_image(
+            image_paths[0],
+            './test/vpp/test1_verification_result.json',
+            '0',
+        )
+        self.upload_fixture_image(
+            image_paths[1],
+            './test/vpp/test2_verification_result.json',
+            '1',
+        )
+        with self.app.app_context():
+            verify_ingest()
+            lookup = {'type': 'picture',
+                      'verification': {'$exists': True}}
+            verified_items = list(superdesk.get_resource_service('archive').get_from_mongo(
+                req=ParsedRequest(), lookup=lookup
+            ))
+            verified_items_ids = {int(item['headline']): item['_id']
+                                  for item in verified_items}
+            self.assertEqual(len(verified_items_ids), 2, "Items weren't verified.")
+
+            vppzip_service = get_resource_service('verifiedpixel_zip')
+            zipped_item_id = vppzip_service.post([
+                {'items': list(verified_items_ids.values())}
+            ])[0]
+            zipped_item = list(vppzip_service.get_from_mongo(
+                req=ParsedRequest(), lookup={"_id": zipped_item_id}
+            ))[0]
+            vppzip_service.delete_action({'_id': zipped_item_id})
+
+            self.assertEqual(
+                len(list(vppzip_service.get_from_mongo(
+                    req=ParsedRequest(), lookup={"_id": zipped_item_id}
+                ))),
+                0
+            )
+            self.assertIsNone(
+                self.app.media.get(
+                    zipped_item['result_id'],
+                    resource=vppzip_service.datasource,
+                )
+            )
