@@ -12,7 +12,7 @@ logstash:
   image: logstash
   command: logstash -f /usr/share/logstash/logstash.conf
   volumes:
-  - logstash:/usr/share/logstash
+  - ./logstash:/usr/share/logstash
 
 kibana:
   build: kibana
