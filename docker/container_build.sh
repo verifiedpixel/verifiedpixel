@@ -17,6 +17,12 @@ SERVER_RESULTS_DIR=$BAMBOO_DIR/results/server
 CLIENT_RESULTS_DIR=$BAMBOO_DIR/results/client
 SCREENSHOTS_DIR=/opt/screenshots/$INSTANCE/$(date +%Y%m%d-%H%M%S)/
 
+# allow some bamboo values to be unfilled
+RUN_BACKEND_UNIT=${bamboo_RUN_BACKEND_UNIT:=1}
+RUN_BACKEND_BEHAVE=${bamboo_RUN_BACKEND_BEHAVE:=0}
+RUN_FRONTEND_UNIT=${bamboo_RUN_FRONTEND_UNIT:=0}
+RUN_E2E=${bamboo_RUN_E2E:=0}
+
 # install script requirements
 virtualenv -p python2 $SCRIPT_DIR/env
 set +u
@@ -33,9 +39,8 @@ echo "===pre clean-up:"
 cd $SCRIPT_DIR
 
 set +e
-docker-compose stop
 docker-compose kill
-#docker-compose rm --force
+docker-compose rm -fv
 
 sudo rm -r $BAMBOO_DIR/data/
 mkdir -p $BAMBOO_DIR/data/{mongodb,elastic,redis}
@@ -54,13 +59,12 @@ echo "+++pre clean-up done"
 function post_clean_up {
 	echo "===post clean-up:"
 	set +e
-		docker-compose stop;
 		docker-compose kill;
 		killall chromedriver;
 	set -e
 	test $CODE -gt 0 && (
 		echo "===removing failed containers:"
-		docker-compose rm --force;
+		docker-compose rm -fv;
 	) ;
 	echo "+++post clean-up done"
 }
@@ -83,30 +87,37 @@ docker-compose build
 docker-compose up -d
 # }}}
 
+# don't give if some of the tests failed:
 set +e
-# run backend unit tests:
-docker-compose run backend ./scripts/fig_wrapper.sh nosetests -sv --with-xunit --xunit-file=./results-unit/unit.xml --logging-level ERROR ;
 
-# run backend behavior tests:
-#docker-compose run backend ./scripts/fig_wrapper.sh behave --junit --junit-directory ./results-behave/  --format progress2 --logging-level ERROR ;
+if [[ $RUN_BACKEND_UNIT = 1 ]] ; then
+	docker-compose run backend ./scripts/fig_wrapper.sh nosetests --with-xunit --xunit-file=./results-unit/unit.xml --logging-level ERROR ;
+fi
 
-# run frontend unit tests:
-#docker-compose run frontend bash -c "grunt bamboo && mv test-results.xml ./unit-test-results/" ;
-#true
+if [[ $RUN_BACKEND_BEHAVE = 1 ]] ; then
+	docker-compose run backend ./scripts/fig_wrapper.sh behave --junit --junit-directory ./results-behave/  --format progress2 --logging-level ERROR ;
+fi
 
-# create admin user:
-#docker-compose run backend ./scripts/fig_wrapper.sh python3 manage.py users:create -u admin -p admin -e 'admin@example.com' --admin=true &&
-#echo "+++ new user has been created" &&
+if [[ $RUN_FRONTEND_UNIT = 1 ]] ; then
+	docker-compose run frontend bash -c "grunt bamboo && mv test-results.xml ./unit-test-results/" ;
+fi
 
-# run e2e tests:
-#(
-	#cd $BAMBOO_DIR/client &&
-	#sh $SCRIPT_DIR/run_e2e_tests.sh ;
-	#mv $BAMBOO_DIR/client/e2e-test-results $CLIENT_RESULTS_DIR/e2e
-	#mv $BAMBOO_DIR/client/screenshots $SCREENSHOTS_DIR &&
-		#echo "!!! Screenshots were saved to $SCREENSHOTS_DIR"
-	#true
-#) &&
+if [[ $RUN_E2E = 1 ]] ; then
+	# create admin user:
+	docker-compose run backend ./scripts/fig_wrapper.sh python3 manage.py users:create -u admin -p admin -e 'admin@example.com' --admin=true &&
+	echo "+++ new user has been created" &&
+
+	# run e2e tests:
+	(
+		cd $BAMBOO_DIR/client &&
+		sh $SCRIPT_DIR/run_e2e_tests.sh ;
+		mv $BAMBOO_DIR/client/e2e-test-results $CLIENT_RESULTS_DIR/e2e
+		mv $BAMBOO_DIR/client/screenshots $SCREENSHOTS_DIR &&
+			echo "!!! Screenshots were saved to $SCREENSHOTS_DIR"
+		true
+	)
+fi
+
 CODE="$?"
 
 exit $CODE

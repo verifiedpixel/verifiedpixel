@@ -297,8 +297,6 @@ NEWSML_PROVIDER_ID = env('NEWSML_PROVIDER_ID', 'sourcefabric.org')
 TINEYE_API_URL = env('TINEYE_API_URL', 'http://api.tineye.com/rest/')
 TINEYE_PUBLIC_KEY = env('TINEYE_PUBLIC_KEY', 'LCkn,2K7osVwkX95K4Oy')
 TINEYE_SECRET_KEY = env('TINEYE_SECRET_KEY', '6mm60lsCNIB,FwOWjJqA80QZHh9BMwc-ber4u=t^')
-#TINEYE_PUBLIC_KEY = 'Q6oV_*ayv-NxRrT8jd=2y'
-#TINEYE_SECRET_KEY = 'EtqaAOtzYOUkfnWU0mlJT2dIDGEgLX3c_JbddB=Z'
 
 IZITRU_API_URL = env('IZITRU_API_URL', 'https://www.izitru.com/scripts/uploadAPI.pl')
 IZITRU_PRIVATE_KEY = env('IZITRU_PRIVATE_KEY', '11d30480-a579-46e6-a33e-02330b94ce94')
