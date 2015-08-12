@@ -1487,10 +1487,19 @@
                             }
                         
                             if (scope.item.filemeta.GPSInfo.GPSImgDirection) {
-                                scope.item.gpsdirection = (
+                                var actualDirection = (
                                     scope.item.filemeta.GPSInfo.GPSImgDirection[0] /
                                     scope.item.filemeta.GPSInfo.GPSImgDirection[1]
                                 ).toFixed(3);
+                                scope.item.gpsdirection = actualDirection;
+                                scope.item.markerdirection = Math.ceil(actualDirection / 10) * 10; 
+
+                                scope.item.gpsicon = {
+                                    url: '/images/gpsdirection/view-' + scope.item.markerdirection + '.png',
+                                    size: new google.maps.Size(100, 100),
+                                    origin: new google.maps.Point(0,0),
+                                    anchor: new google.maps.Point(50, 50)
+                                };
                             }
                         }
                     }

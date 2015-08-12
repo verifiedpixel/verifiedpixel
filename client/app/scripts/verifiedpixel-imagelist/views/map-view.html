@@ -2,10 +2,10 @@
         ng-if="item.filemeta.GPSInfo.GPSLatitude && item.filemeta.GPSInfo.GPSLongitude">
         <map
             style="height: 125px; width: 350px"
-            zoom="14" 
+            zoom="17" 
             center="[{{ item.gpslat }}, {{ item.gpslon }}]" 
-            disable-default-u-i="true"
-            disable-double-click-zoom="true"
+            disable-default-u-i="false"
+            disable-double-click-zoom="false"
             draggable="false"
             dragging-cursor="move"
             keyboard-shortcuts="false"
@@ -15,11 +15,16 @@
             map-type-id="TERRAIN">
             <marker
                 position="[{{ item.gpslat }}, {{ item.gpslon }}]"
+                icon="{{item.gpsicon}}"
                 title="GPS Location"
                 draggable="false"
                 visible="true">
             </marker>
         </map>
+        <dl ng-if="item.verification.izitru.EXIF.captureLocation">
+            <dt translate>Capture Location</dt>
+            <dd>{{ item.verification.izitru.EXIF.captureLocation }}</dd>
+        </dl>
         <dl ng-if="item.gpslat">
             <dt translate>Capture Location Latitude</dt>
             <dd>{{ item.gpslat }}</dd>
