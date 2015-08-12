@@ -167,8 +167,7 @@ def process_item(item):
     superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
 
 
-@celery.task
-def verify_ingest():
+def verify_ingest_task():
     logger.info(
         'VerifiedPixel: Checking for new ingested images for verification...'
     )
