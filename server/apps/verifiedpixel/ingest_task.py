@@ -7,10 +7,12 @@ from flask import current_app as app
 from eve.utils import ParsedRequest
 from requests import request
 from PIL import Image
-from apiclient.discovery import build
 from io import BytesIO
-from pytineye.exceptions import TinEyeAPIError  # noqa @TODO: retry
-from pytineye.api import TinEyeAPIRequest
+
+from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
+
+from apiclient.discovery import build as google_build
+from apiclient.discovery import HttpError as GoogleHttpError
 
 import superdesk
 from superdesk.celery_app import celery
@@ -37,7 +39,7 @@ class ImageNotFoundException(Exception):
 
 
 def get_original_image(item):
-    if item['renditions']:
+    if 'renditions' in item:
         driver = app.data.mongo
         px = driver.current_mongo_prefix('ingest')
         _fs = GridFS(driver.pymongo(prefix=px).db)
@@ -58,20 +60,28 @@ class APIGracefulException(Exception):
 
 
 def get_tineye_results(content):
-    response = superdesk.app.data.tineye_api.search_data(content)
-    if response.total_results > 0:
+    try:
+        response = superdesk.app.data.tineye_api.search_data(content)
+    except TinEyeAPIError as e:
+        raise APIGracefulException(e)
+    except KeyError as e:
+        if e.args[0] == 'code':
+            raise APIGracefulException(e)
+    else:
         return response.json_results
-    raise APIGracefulException(response)
 
 
 def get_gris_results(href):
-    service = build('customsearch', 'v1',
-                    developerKey=superdesk.app.config['GRIS_API_KEY'])
-    res = service.cse().list(
-        q=href,
-        searchType='image',
-        cx=superdesk.app.config['GRIS_API_CX'],
-    ).execute()
+    try:
+        service = google_build('customsearch', 'v1',
+                               developerKey=superdesk.app.config['GRIS_API_KEY'])
+        res = service.cse().list(
+            q=href,
+            searchType='image',
+            cx=superdesk.app.config['GRIS_API_CX'],
+        ).execute()
+    except GoogleHttpError as e:
+        raise APIGracefulException(e)
     return res
 
 
@@ -104,13 +114,14 @@ def get_izitru_results(filename, content):
     response = request('POST', superdesk.app.config['IZITRU_API_URL'], data=data, files=files)
     if response.status_code != 200:
         raise APIGracefulException(response)
-    # @TODO: mb check here also presence of some of the required fields
-    return response.json()
+    result = response.json()
+    if 'verdict' not in result:
+        raise APIGracefulException(result)
+    return result
 
 
 @celery.task(max_retries=3, bind=True)
 def append_api_results_to_item(self, item, api_name, api_getter, args):
-    print(api_name)
     filename = item['slugline']
     logger.info(
         "VerifiedPixel: {api}: searching matches for {file}...".format(
@@ -124,7 +135,7 @@ def append_api_results_to_item(self, item, api_name, api_getter, args):
             "verification of {file}:\n {exception}".format(
                 api=api_name, file=filename, exception=e
             ))
-        self.retry(exc=e)
+        self.retry(exc=e, countdown=60)
     else:
         logger.info(
             "VerifiedPixel: {api}: matchs found for {file}.".format(
@@ -138,9 +149,6 @@ def append_api_results_to_item(self, item, api_name, api_getter, args):
 
 @celery.task
 def process_item(item):
-    '''
-    TODO: attempt api lookups 3 times
-    '''
     filename = item['slugline']
     try:
         href, content = get_original_image(item)
