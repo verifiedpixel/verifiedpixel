@@ -117,7 +117,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute=30)
     },
     'verify:update': {
-        'task': 'vpp.verifiedpixel.ingest_task.verify_ingest',
+        'task': 'vpp.verifiedpixel.verify_ingest',
         'schedule': timedelta(seconds=30)
     },
 }

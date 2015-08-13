@@ -47,6 +47,7 @@ backend:
   volumes:
    - ../server:/opt/superdesk/
    - ./Procfile:/opt/superdesk/Procfile
+  restart: always
 
 frontend:
   extends:
@@ -59,4 +60,3 @@ frontend:
   ports:
    - "443:443"
    - "80:80"
-  restart: always
