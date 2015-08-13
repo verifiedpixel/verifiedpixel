@@ -167,7 +167,7 @@ def process_item(self, item):
                     "verification of {file}:\n {exception}".format(
                         api=api_name, file=filename, exception=e
                     ))
-                self.retry(exc=e, countdown=60, args=(item, ))
+                #self.retry(exc=e, countdown=60, args=(item, ))
                 # @TODO: handle max retries
             else:
                 logger.info(
