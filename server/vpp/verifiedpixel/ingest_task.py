@@ -167,7 +167,7 @@ def append_api_results_to_item(self, item_id, api_name):
                 ))
             verification_result = {
                 "status": "error",
-                "message": e.args[0]
+                "message": repr(e)
             }
     else:
         logger.info(
