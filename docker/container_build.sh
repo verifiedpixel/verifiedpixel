@@ -62,6 +62,7 @@ function post_clean_up {
 		docker-compose kill;
 		killall chromedriver;
 	set -e
+	CODE=${CODE:-}
 	test $CODE -gt 0 && (
 		echo "===removing failed containers:"
 		docker-compose rm -fv;
