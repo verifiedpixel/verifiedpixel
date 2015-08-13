@@ -241,6 +241,32 @@
             text-overflow: ellipsis;
         }
     }
+    .fa {
+        &.tineye {
+            &::before {
+                display: inline-block;
+                background: url("../../images/preview-icons/tineye-icon-full.png") no-repeat center center transparent;
+                content:" ";
+                width: 35px;
+                height: 35px;
+                margin: -35px 2px 0 0;
+                position: relative;
+                top: 10px;
+            }
+        }
+        &.izitru {
+            &::before {
+                display: inline-block;
+                background: url("../../images/preview-icons/izitru-icon.png") no-repeat center center transparent;
+                content:" ";
+                width: 35px;
+                height: 35px;
+                margin: -35px 2px 0 0;
+                position: relative;
+                top: 10px;
+            }
+        }
+    }
     // preview container
     .preview-container {
         img {
