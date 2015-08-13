@@ -128,9 +128,23 @@ API_GETTERS = {
 
 
 @celery.task(max_retries=3, bind=True)
-def append_api_results_to_item(self, item, api_name, args):
-    api_getter = globals()['get_{api_name}_results'.format(api_name=api_name)]
+def append_api_results_to_item(self, item_id, api_name):
+    item = superdesk.get_resource_service('ingest').find_one(
+        req=None,
+        _id=item_id
+    )
     filename = item['slugline']
+    try:
+        href, content = get_original_image(item)
+    except ImageNotFoundException:
+        return
+    all_args = {
+        'izitru': (filename, content,),
+        'tineye': (content,),
+        'gris': (href,),
+    }
+    args = all_args[api_name]
+    api_getter = API_GETTERS[api_name]
     logger.info(
         "VerifiedPixel: {api}: searching matches for {file}...".format(
             api=api_name, file=filename
@@ -150,37 +164,28 @@ def append_api_results_to_item(self, item, api_name, args):
                 api=api_name, file=filename
             ))
         superdesk.get_resource_service('ingest').patch(
-            item['_id'],
+            item_id,
             {'verification.%s' % api_name: verification_result},
         )
+        if 'verification' in item and len(item['verification']) == len(API_GETTERS) - 1:
+            # Auto fetch items to the 'Verified Imges' desk
+            desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
+            desk_id = str(desk['_id'])
+            item_id = str(item['_id'])
+            logger.info('Fetching item: {} into desk: {}'.format(item_id, desk_id))
+            superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
+
+            # Delete the ingest item
+            superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
 
 
-@celery.task
 def process_item(item):
     filename = item['slugline']
-    try:
-        href, content = get_original_image(item)
-    except ImageNotFoundException:
-        return
     logger.info(
         'VerifiedPixel: found new ingested item: "{}"'.format(filename)
     )
-    for api_name, args in [
-        ('izitru', (filename, content,)),
-        ('tineye', (content,)),
-        ('gris', (href,)),
-    ]:
-        append_api_results_to_item.delay(item, api_name, args)
-
-    # Auto fetch items to the 'Verified Imges' desk
-    desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
-    desk_id = str(desk['_id'])
-    item_id = str(item['_id'])
-    logger.info('Fetching item: {} into desk: {}'.format(item_id, desk_id))
-    superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
-
-    # Delete the ingest item
-    superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
+    for api_name in API_GETTERS:
+        append_api_results_to_item(item['_id'], api_name)
 
 
 def verify_ingest_task():
@@ -195,4 +200,4 @@ def verify_ingest_task():
         }
     )
     for item in items:
-        process_item.delay(item)
+        process_item(item)

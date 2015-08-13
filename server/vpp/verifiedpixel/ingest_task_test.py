@@ -99,47 +99,41 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
                 list(items)[0]['verification']
             )
 
+    def upload_image2(self):
+        return self.upload_fixture_image(
+            './test/vpp/test2.jpg',
+            './test/vpp/test2_verification_result.json'
+        )
+
     @activate_izitru_mock({"status": 500, "response": {"foo": "bar"}, })
     def test_retry_failed_izitru500(self):
         with self.assertRaises(APIGracefulException):
-            append_api_results_to_item(
-                self.mock_item, 'izitru',
-                (self.mock_item['slugline'], self.mock_image))
+            append_api_results_to_item(self.upload_image2(), 'izitru')
 
     @activate_izitru_mock({"status": 200, "response": {"foo": "bar"}, })
     def test_retry_failed_izitru200(self):
         with self.assertRaises(APIGracefulException):
-            append_api_results_to_item(
-                self.mock_item, 'izitru',
-                (self.mock_item['slugline'], self.mock_image))
+            append_api_results_to_item(self.upload_image2(), 'izitru')
 
     @activate_tineye_mock({"status": 500, "response": {"foo": "bar"}, })
     def test_retry_failed_tineye500(self):
         with self.assertRaises(APIGracefulException):
-            append_api_results_to_item(
-                self.mock_item, 'tineye',
-                (self.mock_image, ))
+            append_api_results_to_item(self.upload_image2(), 'tineye')
 
     @activate_tineye_mock({"status": 404, "response": {"foo": "bar"}, })
     def test_retry_failed_tineye404(self):
         with self.assertRaises(APIGracefulException):
-            append_api_results_to_item(
-                self.mock_item, 'tineye',
-                (self.mock_image, ))
+            append_api_results_to_item(self.upload_image2(), 'tineye')
 
     @activate_tineye_mock({"status": 200, "response": {"foo": "bar"}, })
     def test_retry_failed_tineye200(self):
         with self.assertRaises(APIGracefulException):
-            append_api_results_to_item(
-                self.mock_item, 'tineye',
-                (self.mock_image, ))
+            append_api_results_to_item(self.upload_image2(), 'tineye')
 
     @activate_gris_mock({"status": 500, "response": {"foo": "bar"}, })
     def test_retry_failed_gris(self):
         with self.assertRaises(APIGracefulException):
-            append_api_results_to_item(
-                self.mock_item, 'gris',
-                ('image.jpg.to', ))
+            append_api_results_to_item(self.upload_image2(), 'gris')
 
     def test_image_not_found(self):
         with self.app.app_context():
