@@ -162,7 +162,7 @@ def process_item(item):
         ('tineye', get_tineye_results, (content,)),
         ('gris', get_gris_results, (href,)),
     ]:
-        append_api_results_to_item(item, api_name, api_getter, args)
+        append_api_results_to_item.delay(item, api_name, api_getter, args)
 
     # Auto fetch items to the 'Verified Imges' desk
     desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
@@ -187,4 +187,4 @@ def verify_ingest_task():
         }
     )
     for item in items:
-        process_item(item)
+        process_item.delay(item)
