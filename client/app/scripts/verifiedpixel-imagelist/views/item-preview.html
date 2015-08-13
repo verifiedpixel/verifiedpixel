@@ -5,23 +5,27 @@
                 <button ng-click="tab = 'all'"><span translate>All</span></button>
             </li>
             <li ng-class="{active: tab === 'exif'}">
-                <button ng-click="tab = 'exif'"><i class="fa fa-2x fa-camera"></i></button>
+                <button ng-click="tab = 'exif'" tooltip="Exif data" tooltip-placement="bottom">
+                    <i class="fa fa-2x fa-camera"></i>
+                </button>
             </li>
             <li ng-class="{active: tab === 'gris'}">
-                <button ng-click="tab = 'gris'"><i class="fa fa-2x fa-google"></i></button>
+                <button ng-click="tab = 'gris'" tooltip="Google Revere Image Search" tooltip-placement="bottom">
+                    <i class="fa fa-2x fa-google"></i> ({{item.verification.gris.searchInformation.totalResults}})
+                </button>
             </li>
             <li ng-class="{active: tab === 'tineye'}">
-                <button ng-click="tab = 'tineye'">
-                    <img src="/images/tineye-icon.png">
+                <button ng-click="tab = 'tineye'" tooltip="Tineye" tooltip-placement="bottom">
+                    <img src="/images/tineye-icon.png"> ({{item.verification.tineye.results.total_results}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'izitru'}">
-                <button ng-click="tab = 'izitru'">
-                    <img src="/images/izitru-icon.png">
+                <button ng-click="tab = 'izitru'" tooltip="Izitru" tooltip-placement="bottom">
+                    <img src="/images/izitru-icon.png"> ({{item.verification.izitru.verdict}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'comments'}">
-                <button ng-click="tab = 'comments'">
+                <button ng-click="tab = 'comments'" tooltips="Comments" tooltip-placement="bottom">
                     <i class="fa fa-2x fa-comments"></i> ({{item.comments.length}})
                 </button>
             </li>
