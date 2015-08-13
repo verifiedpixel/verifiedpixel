@@ -10,7 +10,7 @@ import superdesk
 from superdesk import get_resource_service
 from superdesk.tests import setup
 
-from vpp.verifiedpixel import verify_ingest
+from vpp.verifiedpixel.ingest_task import verify_ingest
 
 from .vpp_mock import (
     activate_tineye_mock, activate_izitru_mock, activate_gris_mock
