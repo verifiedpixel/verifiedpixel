@@ -7,6 +7,7 @@ Documentation (Coming soon) •
 * mongodb
 * elasticsearch
 * redis
+
 ## Build the client
 For the sake of simplification we're going to say that you're in your download location.
 ```bash
