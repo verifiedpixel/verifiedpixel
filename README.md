@@ -1,15 +1,14 @@
 # Verifiedpixel
 *Version 0.1*
 Documentation (Coming soon) •
-
-## Build the client
-For the sake of simplification we're going to say that you're in your download location.
-### Requirements
+## Requirements
 node.js
 python
 mongodb
 elasticsearch
 redis
+## Build the client
+For the sake of simplification we're going to say that you're in your download location.
 ```bash
 $cd client
 $sudo npm install --save-dev
