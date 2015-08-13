@@ -35,3 +35,7 @@ export IZITRU_ACTIVATION_KEY="<IZITRU ACTIVATION KEY>"
 export GRIS_API_KEY="<GRIS API KEY>"
 export GRIS_API_CX="<GRIS API CX>"
 ```
+If you've made your keys into a script into an executable (chmod a+x) execute it with:
+```bash
+(env)$source yourscriptname
+```
