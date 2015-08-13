@@ -808,9 +808,11 @@
                         var slideLen = $('.slides li').length;
                         if (slideLen > 0) {
                             var container = $('.shadow-list-holder');
+                            var containerW = container.width();
                             var activeSlide = $('.slides .active');
+                            var activeSlideW = activeSlide.width();
                             var activeSlideOffset = activeSlide.position().left;
-                                container.scrollLeft(activeSlideOffset - 2);
+                                container.scrollLeft((activeSlideOffset - ((containerW / 2) - (activeSlideW / 2))) - 2);
                         }
                     };
                     scope.preview = function preview(item) {
