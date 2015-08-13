@@ -16,12 +16,14 @@
             </li>
             <li ng-class="{active: tab === 'tineye'}">
                 <button ng-click="tab = 'tineye'" tooltip="Tineye" tooltip-placement="bottom">
-                    <img src="/images/tineye-icon.png"> ({{item.verification.tineye.results.total_results}})
+                    <i ng-class="{active: tab === 'tineye'}" class="fa fa-2x tineye"></i>
+                    ({{item.verification.tineye.results.total_results}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'izitru'}">
                 <button ng-click="tab = 'izitru'" tooltip="Izitru" tooltip-placement="bottom">
-                    <img src="/images/izitru-icon.png"> ({{item.verification.izitru.verdict}})
+                    <i ng-class="{active: tab === 'izitru'}" class="fa fa-2x izitru"></i>
+                    ({{item.verification.izitru.verdict}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'comments'}">
