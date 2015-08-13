@@ -105,7 +105,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute=20)
     },
     'spike:gc': {
-        'task': 'apps.archive.content_purge',
+        'task': 'vpp.archive.content_purge',
         'schedule': crontab(minute=30)
     },
     'publish:transmit': {
@@ -117,7 +117,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute=30)
     },
     'verify:update': {
-        'task': 'apps.verifiedpixel.verify_ingest',
+        'task': 'vpp.verifiedpixel.verify_ingest',
         'schedule': timedelta(seconds=30)
     },
 }
@@ -145,7 +145,8 @@ INSTALLED_APPS = [
     'superdesk.commands',
     'superdesk.data_consistency',
 
-    'apps.archive',
+    'vpp.archive',
+
     'apps.stages',
     'apps.desks',
     'apps.planning',
@@ -175,7 +176,7 @@ INSTALLED_APPS = [
     'apps.publicapi_publish',
     'apps.workspace',
 
-    'apps.verifiedpixel',
+    'vpp.verifiedpixel',
 ]
 
 RESOURCE_METHODS = ['GET', 'POST']
