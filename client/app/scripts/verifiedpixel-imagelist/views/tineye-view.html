@@ -4,32 +4,26 @@
         <dt translate>Tineye Total Results</dt>
         <dd>{{ item.verification.tineye.results.total_results }}</dd>
     </dl>
-    <dl ng-if="item.verification.tineye.results.matches">
-        <dt translate>Tineye Matches</dt>
-        <dd>:</dd>
-    </dl>
 
-    <ul class="tineye-matches">
-      <li ng-repeat="match in item.verification.tineye.results.matches | limitTo:10">
+    <ul ng-if="item.verification.tineye.results.matches" class="tineye-matches">
+      <li ng-repeat="match in item.verification.tineye.results.matches | orderBy: 'earliest_crawl_date' |limitTo:10">
         <dl>
-          <dt><img src="{{ match.image_url }}" width="75" /></dt>
+          <dt>
+            <img src="{{ match.image_url }}" width="75" /><br />
+            {{ match.earliest_crawl_date|reldate }}<br />
+            {{ match.backlinks.length }} Total
+          </dt>
           <dd>
-            <p>Image: {{ match.image_url }}</p>
-            <p>Total: {{ match.backlinks.length }}</p>
+            <ul class="tineye-match-backlinks">
+                <li ng-repeat="link in match.backlinks | orderBy: 'crawl_date' | limitTo:5">
+                    <p>
+                      {{ link.crawl_date }}<br />
+                      <a href="{{ link.backlink }}" target="_blank">{{ link.backlink }}</a>
+                    </p>
+                </li>
+            </ul>
           </dd>
         </dl>
-        <ul class="tineye-match-backlinks">
-            <li ng-repeat="link in match.backlinks | orderBy:crawl_date | limitTo:5">
-                <dl>
-                  <dt>Crawled On:</dt>
-                  <dd>{{ link.crawl_date }}</dd>
-                </dl>
-                <dl>
-                  <dt>Page:</dt>
-                  <dd>{{ link.backlink }}</dd>
-                </dl>
-            </li>
-        </ul>
       </li>
     </ul>
     <!-- END VERIFICATION METADATA -->
