@@ -33,6 +33,9 @@
                 h3 {
                     color: #fff;
                     font-size: 11px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
                 .media {
                     background: none;
@@ -230,10 +233,30 @@
             }
         }
     }
+    .item-info {
+        .keyword {
+            width: 160px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
     // preview container
     .preview-container {
         img {
             width: 100%;
+        }
+    }
+
+    // comments
+    .notification-list-box {
+        .add-comment {
+            form[name="commentsForm"] {
+                margin: 0 10px;
+            }
+        }
+        .actions {
+            margin: 10px 0 0;
         }
     }
 
@@ -279,4 +302,5 @@
     [x-ng-click] {
         cursor: pointer;
     }
+
 }

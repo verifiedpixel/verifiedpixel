@@ -1,13 +1,16 @@
 from unittest import TestCase
-from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 from eve.utils import ParsedRequest
 
 import superdesk
 from superdesk import get_resource_service
 from superdesk.tests import setup
+from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
-from vpp.verifiedpixel import verify_ingest
-from vpp.verifiedpixel.ingest_task import APIGracefulException
+from vpp.verifiedpixel.ingest_task import (
+    APIGracefulException, append_api_results_to_item,
+    get_tineye_results, get_izitru_results, get_gris_results,
+    verify_ingest
+)
 
 from .vpp_mock import (
     activate_tineye_mock, activate_izitru_mock, activate_gris_mock
@@ -28,6 +31,8 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
         reuse the same app context for all the tests
         """
         setup(context=cls)
+        with open('./test/vpp/test2.jpg', 'rb') as f:
+            cls.mock_image = f.read()
 
     @classmethod
     def tearDownClass(cls):
@@ -41,6 +46,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
         with self.app.app_context():
             AppInitializeWithDataCommand().run()
         self.expected_verification_results = []
+        self.mock_item = {"slugline": "test"}
 
     @activate_izitru_mock(
         {"response_file": './test/vpp/test1_izitru_response.json'}
@@ -58,7 +64,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             './test/vpp/test1_verification_result.json'
         )
         with self.app.app_context():
-            verify_ingest()
+            verify_ingest.apply()
             lookup = {'type': 'picture'}
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
@@ -94,179 +100,47 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
                 list(items)[0]['verification']
             )
 
-    @activate_izitru_mock(
-        {
-            "status": 500,
-            "response": {"foo": "bar"},
-        }, {
-            "status": 404,
-            "response": {"foo": "bar"},
-        },
-        {"response_file": './test/vpp/test1_izitru_response.json'}
-    )
-    @activate_tineye_mock(
-        {"response_file": './test/vpp/test1_tineye_response.json'}
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
-    )
-    def test_retry_succeeded_izitru(self):
-        """
-        @TODO: do we really need this test
-        """
-        self.upload_fixture_image(
-            './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
-        )
-        with self.app.app_context():
-            """
-            @TODO: find a way to test it in a more sane way
-            """
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
-            verify_ingest()
-            lookup = {'type': 'picture'}
-            items = superdesk.get_resource_service('archive').get(
-                req=ParsedRequest(), lookup=lookup
-            )
-            self.assertEqual(
-                self.expected_verification_results[0],
-                list(items)[0]['verification']
-            )
-
-    @activate_izitru_mock(
-        {
-            "status": 500,
-            "response": {"foo": "bar"},
-        }
-    )
-    @activate_tineye_mock(
-        {"response_file": './test/vpp/test1_tineye_response.json'}
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
-    )
+    @activate_izitru_mock({"status": 500, "response": {"foo": "bar"}, })
     def test_retry_failed_izitru500(self):
-        self.upload_fixture_image(
-            './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
-        )
-        with self.app.app_context():
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
+        with self.assertRaises(APIGracefulException):
+            append_api_results_to_item(
+                self.mock_item, 'izitru', get_izitru_results,
+                (self.mock_item['slugline'], self.mock_image))
 
-    @activate_izitru_mock(
-        {
-            "status": 200,
-            "response": {"foo": "bar"},
-        }
-    )
-    @activate_tineye_mock(
-        {"response_file": './test/vpp/test1_tineye_response.json'}
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
-    )
+    @activate_izitru_mock({"status": 200, "response": {"foo": "bar"}, })
     def test_retry_failed_izitru200(self):
-        self.upload_fixture_image(
-            './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
-        )
-        with self.app.app_context():
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
+        with self.assertRaises(APIGracefulException):
+            append_api_results_to_item(
+                self.mock_item, 'izitru',
+                get_izitru_results, (self.mock_item['slugline'], self.mock_image))
 
-    @activate_izitru_mock(
-        {"response_file": './test/vpp/test1_izitru_response.json'}
-    )
-    @activate_tineye_mock(
-        {
-            "status": 500,
-            "response": {"foo": "bar"},
-        }
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
-    )
+    @activate_tineye_mock({"status": 500, "response": {"foo": "bar"}, })
     def test_retry_failed_tineye500(self):
-        self.upload_fixture_image(
-            './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
-        )
-        with self.app.app_context():
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
+        with self.assertRaises(APIGracefulException):
+            append_api_results_to_item(
+                self.mock_item, 'tineye',
+                get_tineye_results, (self.mock_image, ))
 
-    @activate_izitru_mock(
-        {"response_file": './test/vpp/test1_izitru_response.json'}
-    )
-    @activate_tineye_mock(
-        {
-            "status": 404,
-            "response": {"foo": "bar"},
-        }
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
-    )
+    @activate_tineye_mock({"status": 404, "response": {"foo": "bar"}, })
     def test_retry_failed_tineye404(self):
-        self.upload_fixture_image(
-            './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
-        )
-        with self.app.app_context():
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
+        with self.assertRaises(APIGracefulException):
+            append_api_results_to_item(
+                self.mock_item, 'tineye',
+                get_tineye_results, (self.mock_image, ))
 
-    @activate_izitru_mock(
-        {"response_file": './test/vpp/test1_izitru_response.json'}
-    )
-    @activate_tineye_mock(
-        {
-            "status": 200,
-            "response": {"foo": "bar"},
-        }
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
-    )
+    @activate_tineye_mock({"status": 200, "response": {"foo": "bar"}, })
     def test_retry_failed_tineye200(self):
-        self.upload_fixture_image(
-            './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
-        )
-        with self.app.app_context():
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
+        with self.assertRaises(APIGracefulException):
+            append_api_results_to_item(
+                self.mock_item, 'tineye',
+                get_tineye_results, (self.mock_image, ))
 
-    @activate_izitru_mock(
-        {"response_file": './test/vpp/test1_izitru_response.json'}
-    )
-    @activate_tineye_mock(
-        {"response_file": './test/vpp/test1_tineye_response.json'}
-    )
-    @activate_gris_mock(
-        {
-            "status": 500,
-            "response": {"foo": "bar"},
-        }
-    )
+    @activate_gris_mock({"status": 500, "response": {"foo": "bar"}, })
     def test_retry_failed_gris(self):
-        self.upload_fixture_image(
-            './test/vpp/test.png',
-            './test/vpp/test1_verification_result.json'
-        )
-        with self.app.app_context():
-            with self.assertRaises(APIGracefulException):
-                verify_ingest()
+        with self.assertRaises(APIGracefulException):
+            append_api_results_to_item(
+                self.mock_item, 'gris',
+                get_gris_results, ('image.jpg.to', ))
 
     def test_image_not_found(self):
         with self.app.app_context():

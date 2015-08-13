@@ -808,9 +808,11 @@
                         var slideLen = $('.slides li').length;
                         if (slideLen > 0) {
                             var container = $('.shadow-list-holder');
+                            var containerW = container.width();
                             var activeSlide = $('.slides .active');
+                            var activeSlideW = activeSlide.width();
                             var activeSlideOffset = activeSlide.position().left;
-                                container.scrollLeft(activeSlideOffset - 2);
+                                container.scrollLeft((activeSlideOffset - ((containerW / 2) - (activeSlideW / 2))) - 2);
                         }
                     };
                     scope.preview = function preview(item) {
@@ -1689,6 +1691,17 @@
 
                     scope.$watch('item', reloadData);
 
+                    function sortTineyeResults() {
+                        var matches = scope.item.verification.tineye.results.matches;
+                        angular.forEach(matches, function(match) {
+
+                            var backlinks = _.sortBy(match.backlinks, 'crawl_date');
+                            var earliestCrawl = backlinks[0]['crawl_date'];
+                            match.earliest_crawl_date = new Date(earliestCrawl); 
+                        })
+                    }
+                    //sortTineyeResults();
+
                     function reloadData() {
                         scope.originalCreator = null;
                         scope.versionCreator = null;
@@ -1705,6 +1718,7 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
+                        sortTineyeResults();
                     }
                 }
             };
