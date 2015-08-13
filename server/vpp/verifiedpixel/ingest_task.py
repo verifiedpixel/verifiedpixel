@@ -154,29 +154,40 @@ def append_api_results_to_item(self, item_id, api_name):
     except APIGracefulException as e:
         logger.warning(
             "VerifiedPixel: {api}: API exception raised during "
-            "verification of {file}:\n {exception}".format(
-                api=api_name, file=filename, exception=e
+            "verification of {file}: retrying...".format(
+                api=api_name, file=filename
             ))
-        self.retry(exc=e, countdown=60)
+        if self.request.retries < self.max_retries:
+            raise self.retry(exc=e, countdown=60)
+        else:
+            logger.warning(
+                "VerifiedPixel: {api}: max reties exceeded API on "
+                "verification of {file}:\n {exception}".format(
+                    api=api_name, file=filename, exception=e
+                ))
+            verification_result = {
+                "status": "error",
+                "message": e.args[0]
+            }
     else:
         logger.info(
             "VerifiedPixel: {api}: matchs found for {file}.".format(
                 api=api_name, file=filename
             ))
-        superdesk.get_resource_service('ingest').patch(
-            item_id,
-            {'verification.%s' % api_name: verification_result},
-        )
-        if 'verification' in item and len(item['verification']) == len(API_GETTERS) - 1:
-            # Auto fetch items to the 'Verified Imges' desk
-            desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
-            desk_id = str(desk['_id'])
-            item_id = str(item['_id'])
-            logger.info('VerifiedPixel: Fetching item: {} into desk: {}'.format(item_id, desk_id))
-            superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
+    superdesk.get_resource_service('ingest').patch(
+        item_id,
+        {'verification.%s' % api_name: verification_result},
+    )
+    if 'verification' in item and len(item['verification']) == len(API_GETTERS) - 1:
+        # Auto fetch items to the 'Verified Imges' desk
+        desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
+        desk_id = str(desk['_id'])
+        item_id = str(item['_id'])
+        logger.info('VerifiedPixel: Fetching item: {} into desk: {}'.format(item_id, desk_id))
+        superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
 
-            # Delete the ingest item
-            superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
+        # Delete the ingest item
+        superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
 
 
 def verify_ingest_task():
