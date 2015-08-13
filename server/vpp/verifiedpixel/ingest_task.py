@@ -8,7 +8,6 @@ from eve.utils import ParsedRequest
 from requests import request
 from PIL import Image
 from io import BytesIO
-import dill
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
@@ -122,8 +121,7 @@ def get_izitru_results(filename, content):
 
 
 @celery.task(max_retries=3, bind=True)
-def append_api_results_to_item(self, item, api_name, serialized_api_getter, args):
-    api_getter = dill.loads(serialized_api_getter)
+def append_api_results_to_item(self, item, api_name, api_getter, args):
     filename = item['slugline']
     logger.info(
         "VerifiedPixel: {api}: searching matches for {file}...".format(
@@ -164,10 +162,7 @@ def process_item(item):
         ('tineye', get_tineye_results, (content,)),
         ('gris', get_gris_results, (href,)),
     ]:
-        serialized_api_getter = dill.dumps(api_getter)
-        append_api_results_to_item.delay(
-            item, api_name, serialized_api_getter, args
-        )
+        append_api_results_to_item.delay(item, api_name, api_getter, args)
 
     # Auto fetch items to the 'Verified Imges' desk
     desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
@@ -180,8 +175,7 @@ def process_item(item):
     superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
 
 
-@celery.task
-def verify_ingest():
+def verify_ingest_task():
     logger.info(
         'VerifiedPixel: Checking for new ingested images for verification...'
     )
