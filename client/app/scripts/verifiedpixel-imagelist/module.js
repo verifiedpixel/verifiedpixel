@@ -918,7 +918,7 @@
             };
         }])
 
-        .directive('vpItemPreview', ['asset', function(asset) {
+        .directive('vpItemPreview', ['asset', 'commentsService', function(asset, commentsService) {
             return {
                 templateUrl: 'scripts/verifiedpixel-imagelist/views/item-preview.html',
                 scope: {
@@ -931,6 +931,12 @@
                     scope.tab = 'all';
                     scope.$watch('item', function(item) {
                         scope.selected = {preview: item || null};
+                        // get comments count
+                        if (item) {
+                            commentsService.fetch(item._id).then(function() {
+                                scope.item.comments = commentsService.comments;
+                            });
+                        }
                     });
                 }
             };
