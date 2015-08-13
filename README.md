@@ -9,7 +9,7 @@ Documentation (Coming soon) •
 * redis
 
 ## Build the server
-Open a new terminal pane.
+For the sake of simplification we're going to say that you're in your download location.
 ```bash
 $cd server
 $virtualenv env
@@ -32,7 +32,7 @@ If you've made your keys into a script into an executable (chmod a+x) execute it
 (env)$source yourscriptname
 ```
 ## Build the client
-For the sake of simplification we're going to say that you're in your download location.
+Open a new terminal pane.
 ```bash
 $cd client
 $sudo npm install
