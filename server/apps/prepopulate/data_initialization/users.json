@@ -1,0 +1,16 @@
+[
+    {
+        "_id" : "55b0af2d88f929737b82d275",
+        "needs_activation" : false,
+        "user_type" : "administrator",
+        "password" : "$2a$12$yFdVup61JjoUc3T6q/7wAOQ72k4TK3IOBSpzpxA7n6jiKRW8bHPsK",
+        "is_enabled" : true,
+        "email" : "admin.verifiedpixel@mailinator.com",
+        "display_name" : "admin",
+        "first_name" : "verifiedpixel",
+        "last_name" : "admin",
+        "is_active" : true,
+        "role" : "55b57339ac6c1d02a6222727",
+        "username" : "admin"
+    }
+]

@@ -1,0 +1,61 @@
+logstash:
+  extends:
+    file: common.yml
+    service: logstash
+  links:
+  - elastic
+
+mongodb:
+  extends:
+    file: common.yml
+    service: mongodb
+
+redis:
+  extends:
+    file: common.yml
+    service: redis
+
+kibana:
+  extends:
+    file: common.yml
+    service: kibana
+  links:
+  - elastic
+  ports:
+  - "5601:5601"
+
+elastic:
+  extends:
+    file: common.yml
+    service: elastic
+
+postfix:
+  extends:
+    file: common.yml
+    service: postfix
+
+backend:
+  extends:
+    file: common.yml
+    service: backend
+  links:
+   - mongodb
+   - redis
+   - elastic
+   - logstash
+   - postfix
+  volumes:
+   - ../server:/opt/superdesk/
+   - ./Procfile:/opt/superdesk/Procfile
+
+frontend:
+  extends:
+    file: common.yml
+    service: frontend
+  links:
+   - backend
+  volumes:
+   - ./vhost_dev.conf:/etc/nginx/sites-enabled/superdesk.conf
+  ports:
+   - "443:443"
+   - "80:80"

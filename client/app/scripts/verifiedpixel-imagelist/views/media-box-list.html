@@ -1,0 +1,66 @@
+<div class="archiving-progress" style="width:{{ _progress }}%" ng-if="_progress"></div>
+
+<div ng-click="clickAction(item)">
+    <!-- <span class="state-border"></span> -->
+
+    <div class="list-field type-icon" ng-mouseenter="hover = true" ng-mouseleave="hover = false">
+        <i class="filetype-icon-{{item.type}}" ng-hide="hover || item.selected"></i>
+        <span sd-check ng-model="item.selected" ng-change="toggleSelected(item)" ng-show="hover || item.selected"></span>
+    </div>
+
+    <div class="list-field urgency">
+        <i class="urgency-icon-{{item.urgency}}"></i>
+        <span class="output-item-label label-{{item.urgency}}">{{ item.urgency }}</span>
+    </div>
+
+    <div sd-item-rendition data-item="item" data-rendition="thumbnail" class="thumb"></div>
+
+<!--
+    <div class="list-field word-count-box">
+        <span class="word-count">{{ item.word_count }}</span>
+		<div ng-if="item.highlights" sd-highlights-title data-item="item"></div>
+        <span class="signal" ng-if="item.signal">{{ item.signal }}</span>
+    </div>
+ -->
+    <div class="item-info">
+        <dl class="verification-results">
+            <dt translate>Izitru Verdict</dt>
+            <dd ng-if="item.verification.izitru.verdict" class="iztru-{{ item.verification.izitru.verdict }}" title="Izitru rating of {{ item.verification.izitru.verdict }}">{{ item.verification.izitru.verdict }}</dd>
+            <dd ng-if="!item.verification.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
+
+            <dt translate>GPS Info Status</dt>
+            <dd class="gps" ng-if="item.filemeta.GPSInfo" title="Item has GPS metadata">Item has GPS metadata</dd>
+            <dd class="gps no" ng-if="!item.filemeta.GPSInfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
+        </dl>
+        <div class="line">
+            <!-- <div class="state-label state-{{item.state}}">{{item.state}}</div> -->
+            <div class="headline">
+                <span class="keyword" title="{{ item.slugline }}" ng-if="item.slugline">{{ item.slugline | limitTo: 40}}</span>
+                <span class="source">{{ item.original_source }}</span>
+                <!-- <span sd-item-container data-item="item" title="{{ item.container }}" class="container"></span> -->
+            </div>
+
+    
+            <time sd-datetime data-date="item.versioncreated"></time>
+        </div>
+        <div class="line">
+            <div class="takekey" ng-if="item.anpa_take_key">{{ item.anpa_take_key }}</div>
+            <div class="category" ng-if="item['anpa_category'].name">{{ item['anpa_category'].name }}</div>
+            <div class="provider" sd-meta-ingest data-item="item"></div>
+            <div ng-if="item.marked_for_not_publication" class="state-label not-for-publication" translate>Not For Publication</div>
+            <div class="expires" ng-if="item.is_spiked"><span translate>expires</span> {{ item.expiry | reldate }}</div>
+            <div ng-if="item.archived"><div sd-fetched-desks data-item="item"></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="item-right list-field">
+    <div class="action">
+        <ul ng-if="extras.activity" class="item-functions"
+            sd-activity-list
+            data-item="item"
+            data-type="{{ spike ? 'spike' : ((type || item._type) === 'published'? 'archive': (type || item._type))}}"
+            data-action="{{extras.activity.action}}">
+        </ul>
+    </div>
+</div>

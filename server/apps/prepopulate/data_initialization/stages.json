@@ -1,0 +1,41 @@
+[
+    {
+        "_id" : "55b0b4c788f929738fa5d068",
+        "desk_order" : 1,
+        "task_status" : "todo",
+        "default_incoming" : true,
+        "name" : "New",
+        "is_visible" : true,
+        "desk" : "55b0b4c788f929738fa5d069"
+    },
+    {
+        "_id" : "55b0b4e888f9297391ebd9b1",
+        "content_expiry" : 43200,
+        "desk" : "55b0b4c788f929738fa5d069",
+        "desk_order" : 2,
+        "task_status" : "in_progress",
+        "default_incoming" : false,
+        "name" : "Viewed",
+        "is_visible" : true
+    },
+    {
+        "_id" : "55b0b4ec88f9297392cdbf89",
+        "content_expiry" : 43200,
+        "desk" : "55b0b4c788f929738fa5d069",
+        "desk_order" : 3,
+        "task_status" : "done",
+        "default_incoming" : false,
+        "name" : "Accepted",
+        "is_visible" : true
+    },
+    {
+        "_id" : "55b0b4f788f9297392cdbf8b",
+        "content_expiry" : 43200,
+        "desk" : "55b0b4c788f929738fa5d069",
+        "desk_order" : 4,
+        "task_status" : "done",
+        "default_incoming" : false,
+        "name" : "Rejected",
+        "is_visible" : true
+    }
+]

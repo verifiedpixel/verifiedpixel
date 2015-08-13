@@ -1,0 +1,282 @@
+@import 'mixins.less';
+@import 'variables.less';
+
+
+// Hide the links to unused superdesk features
+// Needed since we import these in the modules due to depencies
+// but we don't need the links in the user menu
+#main-menu .content > ul > li > a[href="#/workspace"],
+#main-menu .content > ul > li > a[href="#/authoring/"],
+#main-menu .content > ul > li > a[href="#/legal_archive/"],
+#main-menu .content > ul > li > a[href="#/desks/"],
+//.nav-tabs > li > a[href="#/settings/desks"],
+//.nav-tabs > li > a[href="#/settings/user-roles"],
+.nav-tabs > li > a[href="#/settings/dictionaries"],
+.nav-tabs > li > a[href="#/settings/groups"],
+.nav-tabs > li > a[href="#/settings/templates"] {
+    display: none !important;
+}
+.vpp {
+    .list-pane {
+        .content {
+            background: #000;
+        }
+        .mgrid-view {
+            .media-box {
+                min-height: 150px;
+                min-width: 170px;
+                max-width: 170px;
+                padding: 0;
+                &.media-picture {
+                    background: none;
+                }
+                h3 {
+                    color: #fff;
+                    font-size: 11px;
+                }
+                .media {
+                    background: none;
+                    margin: 0 0 5px;
+                    &.multi {
+                        margin: 0 0 10px;
+                        text-align: center;
+                    }
+                }
+                .media-info {
+                    background: #1a1a1a;
+                    padding: 5px 0;
+                    figure {
+                        position: relative;
+                        img {
+                            margin: 0 auto;
+                        }
+                    }
+                }
+            }
+        }
+        &.compact-view {
+            .list-item-view {
+                clear: left;
+                .media-box,
+                .media-box.active {
+                    border-right: none!important;
+                }
+                .media-box {
+                    border-bottom: none;
+                    .item-info {
+                        .headline {
+                            margin-right: 100px;
+                        }
+                    }
+                }
+                .list-field {
+                    border-left: none;
+                    min-width: auto;
+                }
+                &.active {
+                    margin: 2px 0;
+                    > div {
+                        outline: solid 2px #fbb03b;
+                    }
+                }
+                .urgency {
+                    display: none;
+                }
+                .thumb {
+                    float: left;
+                    figure {
+                        display: inline-block;
+                        margin: 8px 0 0;
+                        min-width: 71px;
+                        text-align: center;
+                        &.media {
+                            img {
+                                height: 40px;
+                            }
+                        }
+                    }
+                }
+                .verification-results {
+                    float: left;
+                    margin: 5px 0 0 10px;
+                    padding: 0;
+                }
+                .source {
+                    color: #f15a25;
+                    display: inline-block;
+                }
+            }
+            li,
+            .active {
+                .media-box {
+                    background: #1a1a1a!important;
+                    .item-functions {
+                        display: none;
+                    }
+                    .item-info {
+                        .line {
+                            margin-left: 190px;
+                        }
+                    }
+                }
+                &:nth-of-type(even) {
+                    .media-box {
+                        background: #333!important;
+                        .item-functions {
+                            li {
+                                &::hover {
+                                    background: #333!important;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .verification-results {
+        padding: 5px 0;
+        dt {
+            display: none!important;
+        }
+        dd {
+            display: inline-block;
+            overflow: hidden;
+            width: 25px!important;
+            height: 25px!important;
+            color: transparent!important;
+            // iztru icon styles
+            &.iztru {
+                // background: #333333;
+                background: url(../../images/izitru.gif) no-repeat center center transparent;
+            }
+            &.iztru-1 {
+                // background: #03ff03;
+                background: url(../../images/izitru-1.gif) no-repeat center center transparent;
+            }
+            &.iztru-2 {
+                // background: #80eb03;
+                background: url(../../images/izitru-2.gif) no-repeat center center transparent;
+            }
+            &.iztru-3 {
+                // background: #fed703;
+                background: url(../../images/izitru-3.gif) no-repeat center center transparent;
+            }
+            &.iztru-4 {
+                // background: #fd6c02;
+                background: url(../../images/izitru-4.gif) no-repeat center center transparent;
+            }
+            &.iztru-5 {
+                // background: #fe0303;
+                background: url(../../images/izitru-5.gif) no-repeat center center transparent;
+            }
+            // gps icon styles
+            &.gps {
+                background: #03ff03;
+                background: url(../../images/GPSInfo-OK.png) no-repeat center center transparent;
+                &.no {
+                    background: #333333;
+                    // background: url(../../images/GPSInfo-Error.png) no-repeat center center transparent;
+                    background: url(../../images/GPSInfo.png) no-repeat center center transparent;
+                }
+            }
+        }
+    }
+
+    // filmstrip
+    .filmstrip {
+        margin: 0;
+        padding: 2px;
+        .active {
+            .media-box {
+                .media {
+                    outline: solid 2px #d88f41;
+                }
+            }
+        }
+        .slides {
+            display: table;
+            position: relative;
+            li {
+                display: table-cell;
+            }
+        }
+        .media-box {
+            float: left;
+            background: none!important;
+            position: relative;
+            padding: 0!important;
+            margin: 0 10px 0 0!important;
+            min-height: auto!important;
+            /*min-width: auto!important;*/
+            max-height: auto!important;
+            border: none!important;
+            text-align: center;
+            .media {
+                background: none!important;
+                padding: 0!important;
+                margin: 0!important;
+                figure {
+                    max-width: auto;
+                    margin: 0!important;
+                    img {
+                    }
+                }
+            }
+            .media-info {
+                position: absolute!important;
+                bottom: 0;
+            }
+        }
+    }
+    // preview container
+    .preview-container {
+        img {
+            width: 100%;
+        }
+    }
+
+    .main-section {
+    	z-index: auto;
+    }
+
+    .navbtn.hover {
+    	background: #e0e0e0;
+    }
+
+    .button-stack {
+        &.right-stack {
+            .navbtn {
+                line-height: 46px;
+            }
+        }
+        &.active {
+            background-color: #eaeaea;
+            &.right-stack {
+                border-left: 1px solid #d1d1d1 !important;
+                height: 49px !important;
+                .navbtn {
+                    border-left: none !important;
+                    &:hover {
+                        background-color: transparent;
+                    }
+                }
+            }
+        }
+        .nav-tabs {
+            margin-left: 20px;
+        }
+    }
+
+    .homebtn {
+    	width: 48px;
+    	padding: 0;
+    }
+
+    [ng-click],
+    [data-ng-click],
+    [x-ng-click] {
+        cursor: pointer;
+    }
+}

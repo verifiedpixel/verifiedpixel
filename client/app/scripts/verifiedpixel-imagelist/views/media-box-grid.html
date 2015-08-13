@@ -1,0 +1,45 @@
+<div class="archiving-progress" style="width:{{ _progress }}%" ng-if="_progress"></div>
+
+<div ng-click="clickAction(item)">
+    <div class="error-box" ng-show="item.archiveError">
+        <p class="message" translate>There was an error archiving this item</p>
+        <div class="buttons"></div>
+    </div>
+
+    <h3 ng-if="item.slugline && !selected.preview">{{ item.slugline }}</h3>
+
+    <div class="media multi" ng-show="item.type == 'text' || item.type == 'composite' || item.type == 'preformatted' || item.type == 'picture'" ng-mouseenter="hover=true" ng-mouseleave="hover=false">
+        <div sd-item-rendition data-item="item" data-rendition="thumbnail"></div>
+        <span class="text">
+            <small title="{{ item.headline }}">{{item.headline | limitTo: 90}}</small>
+            <span sd-item-container data-item="item" class="container"></span>
+        </span>
+
+        <div class="selectbox" ng-show="hover || item.selected">
+            <span sd-check ng-model="item.selected" ng-change="toggleSelected(item)"></span>
+        </div>
+    </div>
+
+    <div class="media-info">
+
+        <span ng-if="item.highlights" sd-highlights-title data-item="item"></span>
+
+        <dl ng-if="!selected.preview">
+            <dt translate>Taken</dt>
+                <dd><time datetime="{{ item.filemeta.datecaptured }}" title="{{ item.filemeta.datecaptured|date:'medium' }}">{{ item.filemeta.datecaptured|reldate }}</time></dd>
+        </dl>
+
+        <dl class="verification-results">
+            <dt ng-if="item.verification.izitru.verdict">Izitru Verdict</dt>
+            <dd ng-if="item.verification.izitru.verdict" class="iztru-{{ item.verification.izitru.verdict }}" title="Izitru rating of {{ item.verification.izitru.verdict }}">{{ item.verification.izitru.verdict }}</dd>
+            <dd ng-if="!item.verification.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
+
+            <dt translate>GPS Info Status</dt>
+            <dd class="gps" ng-if="item.filemeta.GPSInfo" title="Item has GPS metadata">Item has GPS metadata</dd>
+            <dd class="gps no" ng-if="!item.filemeta.GPSInfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
+        </dl>
+
+
+    </div>
+
+</div>

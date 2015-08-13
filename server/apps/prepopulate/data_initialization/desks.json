@@ -1,0 +1,13 @@
+[
+    {
+        "_id" : "55b0b4c788f929738fa5d069",
+        "incoming_stage" : "55b0b4c788f929738fa5d068",
+        "description" : "Images that have been collected verification data from configured api sources.",
+        "name" : "Verified Images",
+        "spike_expiry" : 0,
+        "source" : "Verified Images",
+        "members" : [ 
+            { "user" : "55b0af2d88f929737b82d275" }
+        ]
+    }
+]
