@@ -149,9 +149,8 @@ def append_api_results_to_item(self, item, api_name, serialized_api_getter, args
         )
 
 
-@celery.task(bind=True)
-def process_item(self, item):
-    self.serialization = None
+@celery.task
+def process_item(item):
     filename = item['slugline']
     try:
         href, content = get_original_image(item)
