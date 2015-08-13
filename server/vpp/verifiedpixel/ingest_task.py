@@ -22,7 +22,7 @@ from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
 from .elastic import handle_elastic_write_problems_wrapper
-from .vpp_mock import prepare_sequence_from_args
+from .exceptions import APIGracefulException, ImageNotFoundException
 
 
 # @TODO: for debug purpose
@@ -41,10 +41,6 @@ def init_tineye(app):
     )
 
 
-class ImageNotFoundException(Exception):
-    pass
-
-
 def get_original_image(item):
     if 'renditions' in item:
         driver = app.data.mongo
@@ -57,10 +53,6 @@ def get_original_image(item):
                 href = v['href']
                 return (href, content)
     raise ImageNotFoundException()
-
-
-class APIGracefulException(Exception):
-    pass
 
 
 def get_tineye_results(content):
