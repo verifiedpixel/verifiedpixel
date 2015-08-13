@@ -47,6 +47,7 @@ backend:
   volumes:
    - ../server:/opt/superdesk/
    - ./Procfile:/opt/superdesk/Procfile
+  restart: always
 
 frontend:
   extends:
