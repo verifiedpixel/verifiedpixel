@@ -8,6 +8,7 @@ from eve.utils import ParsedRequest
 from requests import request
 from PIL import Image
 from io import BytesIO
+import concurrent
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
@@ -120,35 +121,28 @@ def get_izitru_results(filename, content):
     return result
 
 
-@celery.task(max_retries=3, bind=True)
-def append_api_results_to_item(self, item, api_name, api_getter, args):
+def append_api_results_to_item(item, api_name, api_getter, args):
+    """
+    @TODO: refactor
+    """
     filename = item['slugline']
     logger.info(
         "VerifiedPixel: {api}: searching matches for {file}...".format(
             api=api_name, file=filename
         ))
-    try:
-        verification_result = api_getter(*args)
-    except APIGracefulException as e:
-        logger.warning(
-            "VerifiedPixel: {api}: API exception raised during "
-            "verification of {file}:\n {exception}".format(
-                api=api_name, file=filename, exception=e
-            ))
-        self.retry(exc=e, countdown=60)
-    else:
-        logger.info(
-            "VerifiedPixel: {api}: matchs found for {file}.".format(
-                api=api_name, file=filename
-            ))
-        superdesk.get_resource_service('ingest').patch(
-            item['_id'],
-            {'verification.%s' % api_name: verification_result},
-        )
+    verification_result = api_getter(*args)
+    logger.info(
+        "VerifiedPixel: {api}: matchs found for {file}.".format(
+            api=api_name, file=filename
+        ))
+    return verification_result
 
 
-@celery.task
-def process_item(item):
+@celery.task(bind=True, max_retries=3)
+def process_item(self, item):
+    """
+    @TODO: refactor
+    """
     filename = item['slugline']
     try:
         href, content = get_original_image(item)
@@ -157,12 +151,35 @@ def process_item(item):
     logger.info(
         'VerifiedPixel: found new ingested item: "{}"'.format(filename)
     )
-    for api_name, api_getter, args in [
-        ('izitru', get_izitru_results, (filename, content,)),
-        ('tineye', get_tineye_results, (content,)),
-        ('gris', get_gris_results, (href,)),
-    ]:
-        append_api_results_to_item.delay(item, api_name, api_getter, args)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_results = {}
+        for api_name, api_getter, args in [
+            ('izitru', get_izitru_results, (filename, content,)),
+            ('tineye', get_tineye_results, (content,)),
+            ('gris', get_gris_results, (href,)),
+        ]:
+            if ('verification' not in item) or (api_name not in item['verification']):
+                future_results[executor.submit(
+                    append_api_results_to_item,
+                    item, api_name, api_getter, args
+                )] = api_name
+        for future in concurrent.futures.as_completed(future_results):
+            api_name = future_results[future]
+            try:
+                verification_result = future.result()
+            except APIGracefulException as e:
+                logger.warning(
+                    "VerifiedPixel: {api}: API exception raised during "
+                    "verification of {file}:\n {exception}".format(
+                        api=api_name, file=filename, exception=e
+                    ))
+                self.retry(exc=e, countdown=60, args=(item, ))
+                # @TODO: handle max retries
+            else:
+                superdesk.get_resource_service('ingest').patch(
+                    item['_id'],
+                    {'verification.%s' % api_name: verification_result},
+                )
 
     # Auto fetch items to the 'Verified Imges' desk
     desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
@@ -175,7 +192,8 @@ def process_item(item):
     superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
 
 
-def verify_ingest_task():
+@celery.task
+def verify_ingest():
     logger.info(
         'VerifiedPixel: Checking for new ingested images for verification...'
     )

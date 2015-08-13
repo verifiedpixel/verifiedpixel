@@ -92,7 +92,7 @@ docker-compose up -d
 set +e
 
 if [[ $RUN_BACKEND_UNIT = 1 ]] ; then
-	docker-compose run backend ./scripts/fig_wrapper.sh nosetests --with-xunit --xunit-file=./results-unit/unit.xml --logging-level ERROR ;
+	docker-compose run backend ./scripts/fig_wrapper.sh nosetests vpp --with-xunit --xunit-file=./results-unit/unit.xml --logging-level ERROR ;
 fi
 
 if [[ $RUN_BACKEND_BEHAVE = 1 ]] ; then

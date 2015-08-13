@@ -6,10 +6,10 @@ from superdesk import get_resource_service
 from superdesk.tests import setup
 from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
-from vpp.verifiedpixel import verify_ingest
 from vpp.verifiedpixel.ingest_task import (
     APIGracefulException, append_api_results_to_item,
-    get_tineye_results, get_izitru_results, get_gris_results
+    get_tineye_results, get_izitru_results, get_gris_results,
+    verify_ingest
 )
 
 from .vpp_mock import (
@@ -64,7 +64,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             './test/vpp/test1_verification_result.json'
         )
         with self.app.app_context():
-            verify_ingest()
+            verify_ingest.apply()
             lookup = {'type': 'picture'}
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
