@@ -172,20 +172,11 @@ def append_api_results_to_item(self, item_id, api_name):
             desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
             desk_id = str(desk['_id'])
             item_id = str(item['_id'])
-            logger.info('Fetching item: {} into desk: {}'.format(item_id, desk_id))
+            logger.info('VerifiedPixel: Fetching item: {} into desk: {}'.format(item_id, desk_id))
             superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
 
             # Delete the ingest item
             superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
-
-
-def process_item(item):
-    filename = item['slugline']
-    logger.info(
-        'VerifiedPixel: found new ingested item: "{}"'.format(filename)
-    )
-    for api_name in API_GETTERS:
-        append_api_results_to_item(item['_id'], api_name)
 
 
 def verify_ingest_task():
@@ -200,4 +191,9 @@ def verify_ingest_task():
         }
     )
     for item in items:
-        process_item(item)
+        filename = item['slugline']
+        logger.info(
+            'VerifiedPixel: found new ingested item: "{}"'.format(filename)
+        )
+        for api_name in API_GETTERS:
+            append_api_results_to_item.delay(item['_id'], api_name)
