@@ -19,12 +19,17 @@ import superdesk
 from superdesk.celery_app import celery
 
 
+from kombu.serialization import register
+
+
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
 
 
 logger = logging.getLogger('superdesk')
 logger.setLevel(logging.INFO)
+
+register('dill', dill.dumps, dill.loads, content_type='application/xfunction-mimetype', content_encoding='binary')
 
 
 def init_tineye(app):
@@ -121,9 +126,8 @@ def get_izitru_results(filename, content):
     return result
 
 
-@celery.task(max_retries=3, bind=True)
-def append_api_results_to_item(self, item, api_name, serialized_api_getter, args):
-    api_getter = dill.loads(serialized_api_getter)
+@celery.task(max_retries=3, bind=True, serializer='dill')
+def append_api_results_to_item(self, item, api_name, api_getter, args):
     filename = item['slugline']
     logger.info(
         "VerifiedPixel: {api}: searching matches for {file}...".format(
@@ -149,9 +153,8 @@ def append_api_results_to_item(self, item, api_name, serialized_api_getter, args
         )
 
 
-@celery.task(bind=True)
-def process_item(self, item):
-    self.serialization = None
+@celery.task(serializer='dill')
+def process_item(item):
     filename = item['slugline']
     try:
         href, content = get_original_image(item)
@@ -165,9 +168,8 @@ def process_item(self, item):
         ('tineye', get_tineye_results, (content,)),
         ('gris', get_gris_results, (href,)),
     ]:
-        serialized_api_getter = dill.dumps(api_getter)
         append_api_results_to_item.delay(
-            item, api_name, serialized_api_getter, args
+            item, api_name, api_getter, args
         )
 
     # Auto fetch items to the 'Verified Imges' desk
