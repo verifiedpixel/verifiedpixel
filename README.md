@@ -2,19 +2,12 @@
 *Version 0.1*
 Documentation (Coming soon) •
 ## Requirements
-node.js
-python
-mongodb
-elasticsearch
-redis
-## Build the client
-For the sake of simplification we're going to say that you're in your download location.
-```bash
-$cd client
-$sudo npm install --save-dev
-$bower install
-$grunt server
-```
+* node.js
+* python
+* mongodb
+* elasticsearch
+* redis
+
 ## Build the server
 Open a new terminal pane.
 ```bash
@@ -37,4 +30,16 @@ export GRIS_API_CX="<GRIS API CX>"
 If you've made your keys into a script into an executable (chmod a+x) execute it with:
 ```bash
 (env)$source yourscriptname
+```
+## Build the client
+For the sake of simplification we're going to say that you're in your download location.
+```bash
+$cd client
+$sudo npm install
+$bower install
+$grunt server
+```
+Start your redis, elasticearch, and mongodb services. Start the application.
+```bash
+(env)$honcho start
 ```
