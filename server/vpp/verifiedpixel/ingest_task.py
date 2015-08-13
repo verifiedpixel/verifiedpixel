@@ -120,8 +120,16 @@ def get_izitru_results(filename, content):
     return result
 
 
+API_GETTERS = {
+    'izitru': get_izitru_results,
+    'tineye': get_tineye_results,
+    'gris': get_gris_results,
+}
+
+
 @celery.task(max_retries=3, bind=True)
-def append_api_results_to_item(self, item, api_name, api_getter, args):
+def append_api_results_to_item(self, item, api_name, args):
+    api_getter = globals()['get_{api_name}_results'.format(api_name=api_name)]
     filename = item['slugline']
     logger.info(
         "VerifiedPixel: {api}: searching matches for {file}...".format(
@@ -157,12 +165,12 @@ def process_item(item):
     logger.info(
         'VerifiedPixel: found new ingested item: "{}"'.format(filename)
     )
-    for api_name, api_getter, args in [
-        ('izitru', get_izitru_results, (filename, content,)),
-        ('tineye', get_tineye_results, (content,)),
-        ('gris', get_gris_results, (href,)),
+    for api_name, args in [
+        ('izitru', (filename, content,)),
+        ('tineye', (content,)),
+        ('gris', (href,)),
     ]:
-        append_api_results_to_item.delay(item, api_name, api_getter, args)
+        append_api_results_to_item.delay(item, api_name, args)
 
     # Auto fetch items to the 'Verified Imges' desk
     desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
