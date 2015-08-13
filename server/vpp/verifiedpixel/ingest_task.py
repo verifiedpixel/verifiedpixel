@@ -125,7 +125,17 @@ def append_api_results_to_item(item, api_name, api_getter, args):
     """
     @TODO: refactor
     """
-    return api_getter(*args)
+    filename = item['slugline']
+    logger.info(
+        "VerifiedPixel: {api}: searching matches for {file}...".format(
+            api=api_name, file=filename
+        ))
+    verification_result = api_getter(*args)
+    logger.info(
+        "VerifiedPixel: {api}: matchs found for {file}.".format(
+            api=api_name, file=filename
+        ))
+    return verification_result
 
 
 @celery.task(bind=True, max_retries=3)
@@ -149,10 +159,6 @@ def process_item(self, item):
             ('gris', get_gris_results, (href,)),
         ]:
             if ('verification' not in item) or (api_name not in item['verification']):
-                logger.info(
-                    "VerifiedPixel: {api}: searching matches for {file}...".format(
-                        api=api_name, file=filename
-                    ))
                 future_results[executor.submit(
                     append_api_results_to_item,
                     item, api_name, api_getter, args
@@ -170,10 +176,6 @@ def process_item(self, item):
                 self.retry(exc=e, countdown=60, args=(item, ))
                 # @TODO: handle max retries
             else:
-                logger.info(
-                    "VerifiedPixel: {api}: matchs found for {file}.".format(
-                        api=api_name, file=filename
-                    ))
                 superdesk.get_resource_service('ingest').patch(
                     item['_id'],
                     {'verification.%s' % api_name: verification_result},
