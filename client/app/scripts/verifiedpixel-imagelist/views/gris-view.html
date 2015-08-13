@@ -4,17 +4,16 @@
         <dt translate>GRIS Total Results</dt>
         <dd>{{ item.verification.gris.searchInformation.formattedTotalResults }}</dd>
     </dl>
-    <dl ng-if="item.verification.gris.results.matches">
+    <dl ng-if="item.verification.gris.results">
         <dt translate>GRIS Matches</dt>
         <dd>:</dd>
     </dl>
 
-    <ul class="gris-matches">
+    <ul ng-if="item.verification.gris.results" class="gris-matches">
       <li ng-repeat="match in item.verification.gris.items | limitTo:10">
-        <dl>
-          <dt><img src="{{ match.image.thumbnailLink }}" width="75" /></dt>
+        <dl ng-if="match.image">
+          <dt><img ng-src="{{ match.image.thumbnailLink }}" width="75" /></dt>
           <dd>
-            <p>Image: {{ match.displayLink }}</p>
           </dd>
         </dl>
       </li>

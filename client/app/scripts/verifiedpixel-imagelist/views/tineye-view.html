@@ -9,12 +9,16 @@
       <li ng-repeat="match in item.verification.tineye.results.matches | orderBy: 'earliest_crawl_date' |limitTo:10">
         <dl>
           <dt>
-            <img src="{{ match.image_url }}" width="75" /><br />
-            {{ match.earliest_crawl_date|reldate }}<br />
-            {{ match.backlinks.length }} Total
+            <ul>
+              <li class="tineye-image"><img src="{{ match.image_url }}" width="75" /></li>
+              <li class="tineye-label">
+                    <i class="icon-desk-time"></i> <time sd-datetime data-date="match.earliest_crawl_date"></time>
+              </li>
+              <li class="tineye-label">{{ match.backlinks.length }} Total</li>
+            </ul>
           </dt>
           <dd>
-            <ul class="tineye-match-backlinks">
+            <ul class="tineye-backlinks">
                 <li ng-repeat="link in match.backlinks | orderBy: 'crawl_date' | limitTo:5">
                     <p>
                       {{ link.crawl_date }}<br />
