@@ -79,8 +79,8 @@ if env('REDIS_PORT'):
 BROKER_URL = env('CELERY_BROKER_URL', REDIS_URL)
 CELERY_RESULT_BACKEND = BROKER_URL
 CELERY_ALWAYS_EAGER = (env('CELERY_ALWAYS_EAGER', False) == 'True')
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_ACCEPT_CONTENT = ['pickle', 'json']  # it's using pickle when in eager mode
+#CELERY_TASK_SERIALIZER = 'json'
+#CELERY_ACCEPT_CONTENT = ['pickle', 'json']  # it's using pickle when in eager mode
 CELERY_IGNORE_RESULT = True
 CELERY_DISABLE_RATE_LIMITS = True
 CELERYD_TASK_SOFT_TIME_LIMIT = 300
