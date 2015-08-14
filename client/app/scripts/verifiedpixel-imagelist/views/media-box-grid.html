@@ -30,13 +30,23 @@
         </dl>
 
         <dl class="verification-results">
-            <dt ng-if="item.verification.izitru.verdict">Izitru Verdict</dt>
-            <dd ng-if="item.verification.izitru.verdict" class="iztru-{{ item.verification.izitru.verdict }}" title="Izitru rating of {{ item.verification.izitru.verdict }}">{{ item.verification.izitru.verdict }}</dd>
-            <dd ng-if="!item.verification.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
-
             <dt translate>GPS Info Status</dt>
-            <dd class="gps" ng-if="item.filemeta.GPSInfo" title="Item has GPS metadata">Item has GPS metadata</dd>
-            <dd class="gps no" ng-if="!item.filemeta.GPSInfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
+                <dd class="gps" ng-if="item.filemeta.GPSInfo" title="Item has GPS metadata">Item has GPS metadata</dd>
+                <dd class="gps no" ng-if="!item.filemeta.GPSInfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
+
+            <dt translate>Google Reverse Image Search</dt>
+                <dd ng-if="item.filemeta.verification.gris == 0">Item has no matches from Google Reverse Image Search</dd>
+                <dd ng-if="item.filemeta.verification.gris > 0">Item has matches from Google Reverse Image Search</dd>
+                <dd ng-if="!item.filemeta.verification.gris">Something went wrong with the Google Reverse Image Search</dd>
+
+            <dt translate>Tineye</dt>
+                <dd ng-if="item.filemeta.verification.tineye.results.total_results == 0">Item has no matches from Tineye</dd>
+                <dd ng-if="item.filemeta.verification.tineye.results.total_results > 0">Item has matches from Tineye</dd>
+                <dd ng-if="!item.filemeta.verification.tineye.results">Something went wrong with the Tineye search</dd>
+
+            <dt ng-if="item.verification.izitru.verdict">Izitru Verdict</dt>
+                <dd ng-if="item.verification.izitru.verdict" class="iztru-{{ item.verification.izitru.verdict }}" title="Izitru rating of {{ item.verification.izitru.verdict }}">{{ item.verification.izitru.verdict }}</dd>
+                <dd ng-if="!item.verification.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
         </dl>
 
 
