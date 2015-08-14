@@ -62,6 +62,7 @@ module.exports = function (grunt) {
         'cssmin',
         'copy:assets',
         'copy:js',
+        'copy:fonts',
         'copy:docs',
         'template:test',
         'nggettext_compile',

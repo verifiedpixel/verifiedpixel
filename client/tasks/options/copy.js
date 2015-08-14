@@ -45,6 +45,19 @@ module.exports = {
             ]
         }]
     },
+    fonts: {
+        files: [{
+            expand: true,
+            dot: true,
+            cwd: '<%= appDir %>',
+            dest: '<%= distDir %>',
+            src: [
+                'scripts/bower_components/**/*.ttf',
+                'scripts/bower_components/**/*.woff',
+                'scripts/bower_components/**/*.woff2'
+            ]
+        }]
+    },
     bower: {
         files: [{
             expand: true,
