@@ -9,6 +9,7 @@ from PIL import Image
 from io import BytesIO
 from kombu.serialization import register
 import dill
+from elasticsearch.exceptions import ConnectionTimeout as ElasticConnectionTimeout
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
@@ -126,7 +127,28 @@ API_GETTERS = {
 }
 
 
-@celery.task(max_retries=3, bind=True, serializer='dill')
+def handle_elastic_timeout(max_retries=3, retry_interval=30):
+    retries_done = 0
+
+    def wrap(f, *fargs):
+        def wrapped(self, *args):
+            nonlocal retries_done
+            try:
+                f(self, *args)
+            except ElasticConnectionTimeout as e:
+                warning("Can't connect to elasticsearch, retrying in "
+                        "{interval}s:\n {exception}".format(
+                            interval=retry_interval, exception=list(e.args)))
+                retries_done += 1
+                if retries_done < max_retries:
+                    self.max_retries += 1
+                    raise self.retry(exc=e, countdown=30)
+        return wrapped
+    return wrap
+
+
+@celery.task(max_retries=3, bind=True, serializer='dill', name='append_api_result')
+@handle_elastic_timeout()
 def append_api_results_to_item(self, item, api_name, args):
     filename = item['slugline']
     api_getter = API_GETTERS[api_name]
@@ -167,7 +189,9 @@ def append_api_results_to_item(self, item, api_name, args):
         ingest_service.delete(lookup={'_id': item_id})
 
 
-def verify_ingest_task():
+@celery.task(bind=True, name='verify_ingest')
+@handle_elastic_timeout()
+def verify_ingest(self):
     info(
         'Checking for new ingested images for verification...'
     )

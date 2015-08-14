@@ -6,9 +6,8 @@ from superdesk import get_resource_service
 from superdesk.tests import setup
 from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
-from vpp.verifiedpixel import verify_ingest
 from vpp.verifiedpixel.ingest_task import (
-    APIGracefulException, append_api_results_to_item,
+    APIGracefulException, append_api_results_to_item, verify_ingest
 )
 
 from .vpp_mock import (
