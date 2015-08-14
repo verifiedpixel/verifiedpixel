@@ -29,17 +29,17 @@
 
     <h4>Izitru verdict</h4>
 
-    <div class="it-scale" ng-if="item.verification.izitru">
+    <div class="it-scale" ng-if="item.verification.izitru.verdict">
         <dl>
-            <dt ng-if="item.verification.izitru.verdict == 1">1 High Trust</dt>
+            <dt ng-if="item.verification.izitru.verdict == 1">High Trust</dt>
                 <dd ng-if="item.verification.izitru.verdict == 1">This image has passed all six Izitru forensic tests and has not subsequently been edited. When you see a High rating, you can be very confident that you're looking at an unmodified original from a digital camera.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 2">2 Medium Trust</dt>
+            <dt ng-if="item.verification.izitru.verdict == 2">Medium Trust</dt>
                 <dd ng-if="item.verification.izitru.verdict == 2">Forensic tests on this image were inconclusive, so not trust rating can be assigned.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 3">3 Undetermined file history</dt>
+            <dt ng-if="item.verification.izitru.verdict == 3">Undetermined file history</dt>
                 <dd ng-if="item.verification.izitru.verdict == 3">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 4">4 Potential file modification</dt>
+            <dt ng-if="item.verification.izitru.verdict == 4">Potential file modification</dt>
                 <dd ng-if="item.verification.izitru.verdict == 4">Potential file modification: One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 5">5 No Trust</dt>
+            <dt ng-if="item.verification.izitru.verdict == 5">No Trust</dt>
                 <dd ng-if="item.verification.izitru.verdict == 5">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</dd>
         </dl>
     </div>
