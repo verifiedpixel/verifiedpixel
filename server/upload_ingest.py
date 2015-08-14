@@ -47,7 +47,7 @@ def upload_fixture_image(fixture_image_path, headline='test'):
             )
         data = [{
             'headline': headline,
-            'slugline': 'rebuild',
+            'slugline': headline,
             'renditions': renditions,
             'type': 'picture'
         }]
@@ -57,4 +57,4 @@ def upload_fixture_image(fixture_image_path, headline='test'):
 
 if __name__ == '__main__':
     for image_path in sys.argv[1:]:
-        upload_fixture_image(image_path, os.path.split(image_path))
+        upload_fixture_image(image_path, os.path.split(image_path)[-1])
