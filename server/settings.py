@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     'superdesk.macro_register',
     'superdesk.commands',
     'superdesk.data_consistency',
+    'superdesk.locators.locators',
 
     'vpp.archive',
 
@@ -158,7 +159,9 @@ INSTALLED_APPS = [
     'apps.prepopulate',
     'apps.vocabularies',
     'apps.legal_archive',
-    'apps.search',
+
+    'vpp.search',
+
     'apps.privilege',
     'apps.rules',
     'apps.highlights',
