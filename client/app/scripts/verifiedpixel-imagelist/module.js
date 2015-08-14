@@ -1351,60 +1351,6 @@
             };
         }])
 
-        .directive('vpSavedSearches', ['api', 'session', '$location', 'notify', 'gettext', 'asset',
-        function(api, session, $location, notify, gettext, asset) {
-            return {
-                templateUrl: 'scripts/verifiedpixel-imagelist/views/saved-searches.html',
-                scope: {},
-                link: function(scope) {
-
-                    var resource = api('saved_searches', session.identity);
-                    scope.selected = null;
-                    scope.editSearch = null;
-
-                    resource.query().then(function(views) {
-                        scope.views = views._items;
-                    });
-
-                    scope.select = function(view) {
-                        scope.selected = view;
-                        $location.search(view.filter.query);
-                    };
-
-                    scope.edit = function() {
-                        scope.editSearch = {};
-                    };
-
-                    scope.cancel = function() {
-                        scope.editSearch = null;
-                    };
-
-                    scope.save = function(editSearch) {
-
-                        editSearch.filter = {query: $location.search()};
-
-                        resource.save({}, editSearch)
-                        .then(function(result) {
-                            notify.success(gettext('Saved search created'));
-                            scope.cancel();
-                            scope.views.push(result);
-                        }, function() {
-                            notify.error(gettext('Error. Saved search not created.'));
-                        });
-                    };
-
-                    scope.remove = function(view) {
-                        resource.remove(view).then(function() {
-                            notify.success(gettext('Saved search removed'));
-                            _.remove(scope.views, {_id: view._id});
-                        }, function() {
-                            notify.error(gettext('Error. Saved search not deleted.'));
-                        });
-                    };
-                }
-            };
-        }])
-
         .directive('vpSearchContainer', function() {
             return {
                 controller: ['$scope', function SearchContainerController($scope) {
