@@ -129,7 +129,6 @@ API_GETTERS = {
 @celery.task(max_retries=3, bind=True, serializer='dill')
 def append_api_results_to_item(self, item, api_name, args):
     filename = item['slugline']
-    item_id = item['_id']
     api_getter = API_GETTERS[api_name]
     info(
         "{api}: searching matches for {file}... ({tries} of {max})".format(
@@ -153,6 +152,7 @@ def append_api_results_to_item(self, item, api_name, args):
             api=api_name, file=filename))
     # record result to database
     ingest_service = superdesk.get_resource_service('ingest')
+    item_id = item['_id']
     ingest_service.patch(
         item_id, {'verification.%s' % api_name: verification_result}
     )
@@ -161,7 +161,6 @@ def append_api_results_to_item(self, item, api_name, args):
         # Auto fetch items to the 'Verified Imges' desk
         desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
         desk_id = str(desk['_id'])
-        #info('=====================================DONE=================================')
         info('Fetching item {}: {} into desk: {}'.format(filename, item_id, desk_id))
         superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
         # Delete the ingest item
