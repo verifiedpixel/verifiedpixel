@@ -161,7 +161,7 @@ def append_api_results_to_item(self, item_id, api_name):
             raise self.retry(exc=e, countdown=60)
         else:
             logger.warning(
-                "VerifiedPixel: {api}: max reties exceeded API on "
+                "VerifiedPixel: {api}: max retries exceeded on "
                 "verification of {file}:\n {exception}".format(
                     api=api_name, file=filename, exception=e
                 ))

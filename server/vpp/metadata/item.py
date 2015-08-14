@@ -9,26 +9,32 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from collections import namedtuple
-
-import superdesk
 from superdesk.resource import Resource
-
-LINKED_IN_PACKAGES = 'linked_in_packages'
-PACKAGE = 'package'
-PACKAGE_TYPE = 'package_type'
-TAKES_PACKAGE = 'takes'
-ITEM_TYPE = 'type'
-ITEM_TYPE_COMPOSITE = 'composite'
-LAST_TAKE = 'last_take'
+from .packages import PACKAGE_TYPE, TAKES_PACKAGE, LINKED_IN_PACKAGES, PACKAGE
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
+GUID_TAG = 'tag'
+GUID_FIELD = 'guid'
+GUID_NEWSML = 'newsml'
+INGEST_ID = 'ingest_id'
+FAMILY_ID = 'family_id'
+PUBLISH_STATES = ['published', 'killed', 'corrected', 'scheduled']
 
 pub_status = ['usable', 'withhold', 'canceled']
 PUB_STATUS = namedtuple('PUBSTATUS', ['USABLE', 'HOLD', 'CANCELED'])(*pub_status)
+
+ITEM_TYPE = 'type'
 content_type = ['text', 'preformatted', 'audio', 'video', 'picture', 'graphic', 'composite']
 CONTENT_TYPE = namedtuple('CONTENT_TYPE',
                           ['TEXT', 'PREFORMATTED', 'AUDIO', 'VIDEO',
                            'PICTURE', 'GRAPHIC', 'COMPOSITE'])(*content_type)
+
+ITEM_STATE = 'state'
+content_state = ['draft', 'ingested', 'routed', 'fetched', 'submitted', 'in_progress', 'spiked',
+                 'published', 'killed', 'corrected', 'scheduled', 'on_hold']
+CONTENT_STATE = namedtuple('CONTENT_STATE', ['DRAFT', 'INGESTED', 'ROUTED', 'FETCHED', 'SUBMITTED', 'PROGRESS',
+                                             'SPIKED', 'PUBLISHED', 'KILLED', 'CORRECTED',
+                                             'SCHEDULED', 'HOLD'])(*content_state)
 
 metadata_schema = {
     # Identifiers
@@ -175,16 +181,15 @@ metadata_schema = {
     },
 
     # Related to state of an article
-
-    'state': {
+    ITEM_STATE: {
         'type': 'string',
-        'allowed': superdesk.allowed_workflow_states,
+        'allowed': content_state,
         'mapping': not_analyzed,
     },
     # The previous state the item was in before for example being spiked, when un-spiked it will revert to this state
     'revert_state': {
         'type': 'string',
-        'allowed': superdesk.allowed_workflow_states,
+        'allowed': content_state,
         'mapping': not_analyzed,
     },
     'pubstatus': {
@@ -230,7 +235,7 @@ metadata_schema = {
             'date': {'type': 'datetime'},
             'source': {'type': 'string'},
             'text': {'type': 'string'}
-        }
+        },
     },
     'expiry': {
         'type': 'datetime'
@@ -260,6 +265,7 @@ metadata_schema = {
         'type': 'dict'
     },
 
+    # aka Locator as per NewML Specification
     'place': {
         'type': 'list',
         'nullable': True,
