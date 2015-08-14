@@ -16,7 +16,7 @@ from apps.archive.commands import RemoveExpiredSpikeContent
 from apps.archive.archive import SOURCE as ARCHIVE
 from superdesk.errors import SuperdeskApiError
 from datetime import timedelta
-from apps.archive.common import validate_schedule
+from vpp.archive.common import validate_schedule
 
 
 class RemoveSpikedContentTestCase(TestCase):
