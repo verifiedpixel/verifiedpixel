@@ -98,7 +98,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'ingest:gc': {
         'task': 'superdesk.io.gc_ingest',
-        'schedule': timedelta(minutes=5),
+        'schedule': timedelta(minutes=15),
     },
     'session:gc': {
         'task': 'apps.auth.session_purge',
@@ -117,7 +117,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute=30)
     },
     'verify:update': {
-        'task': 'verify_ingest',
+        'task': 'vpp.verify_ingest',
         'schedule': timedelta(seconds=30)
     },
 }
@@ -308,6 +308,8 @@ IZITRU_ACTIVATION_KEY = env('IZITRU_ACTIVATION_KEY', 'activation-key')
 
 GRIS_API_KEY = env('GRIS_API_KEY', 'api-key')
 GRIS_API_CX = env('GRIS_API_CX', 'api:cx')
+
+VERIFICATION_TASK_RETRY_INTERVAL = int(env('VERIFICATION_TASK_RETRY_INTERVAL', 60))
 
 
 OrganizationName = "Sourcefabric"

@@ -10,6 +10,7 @@ from io import BytesIO
 from kombu.serialization import register
 import dill
 from elasticsearch.exceptions import ConnectionTimeout as ElasticConnectionTimeout
+from celery import chord, group
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
@@ -19,7 +20,7 @@ from apiclient.discovery import HttpError as GoogleHttpError
 import superdesk
 from superdesk.celery_app import celery
 
-from .logging import error, warning, info
+from .logging import error, warning, info, success, print_task_exception
 
 
 # @TODO: for debug purpose
@@ -130,11 +131,11 @@ API_GETTERS = {
 def handle_elastic_timeout(max_retries=3, retry_interval=30):
     retries_done = 0
 
-    def wrap(f, *fargs):
-        def wrapped(self, *args):
+    def wrap(f):
+        def wrapped(self, *args, **kwargs):
             nonlocal retries_done
             try:
-                f(self, *args)
+                return f(self, *args, **kwargs)
             except ElasticConnectionTimeout as e:
                 warning("Can't connect to elasticsearch, retrying in "
                         "{interval}s:\n {exception}".format(
@@ -142,13 +143,14 @@ def handle_elastic_timeout(max_retries=3, retry_interval=30):
                 retries_done += 1
                 if retries_done < max_retries:
                     self.max_retries += 1
-                    raise self.retry(exc=e, countdown=30)
+                    raise self.retry(exc=e, countdown=retry_interval)
+                else:
+                    raise(e)
         return wrapped
     return wrap
 
 
-@celery.task(max_retries=3, bind=True, serializer='dill', name='append_api_result')
-@handle_elastic_timeout()
+@celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_api_result', ignore_result=False)
 def append_api_results_to_item(self, item, api_name, args):
     filename = item['slugline']
     api_getter = API_GETTERS[api_name]
@@ -163,7 +165,7 @@ def append_api_results_to_item(self, item, api_name, args):
             warning("{api}: API exception raised during "
                     "verification of {file} (retrying):\n {exception}".format(
                         api=api_name, file=filename, exception=e))
-            raise self.retry(exc=e, countdown=60)
+            raise self.retry(exc=e, countdown=app.config['VERIFICATION_TASK_RETRY_INTERVAL'])
         else:
             error("{api}: max retries exceeded on "
                   "verification of {file}:\n {exception}".format(
@@ -172,24 +174,30 @@ def append_api_results_to_item(self, item, api_name, args):
     else:
         info("{api}: matchs found for {file}.".format(
             api=api_name, file=filename))
+    return (api_name, verification_result)
+
+
+@celery.task(bind=True, name='vpp.finalize_verification')
+@handle_elastic_timeout()
+def finalize_verification(self, results, item_id):
+    verification_result = dict(results)
     # record result to database
     ingest_service = superdesk.get_resource_service('ingest')
-    item_id = item['_id']
     ingest_service.patch(
-        item_id, {'verification.%s' % api_name: verification_result}
+        item_id, {'verification': verification_result}
     )
     updated_item = ingest_service.find_one(req=None, _id=item_id)
     if 'verification' in updated_item and len(updated_item['verification']) == len(API_GETTERS):
         # Auto fetch items to the 'Verified Imges' desk
         desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
         desk_id = str(desk['_id'])
-        info('Fetching item {}: {} into desk: {}'.format(filename, item_id, desk_id))
+        success('Fetching item: {} into desk: {}'.format(item_id, desk_id))
         superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
         # Delete the ingest item
         ingest_service.delete(lookup={'_id': item_id})
 
 
-@celery.task(bind=True, name='verify_ingest')
+@celery.task(bind=True, name='vpp.verify_ingest')
 @handle_elastic_timeout()
 def verify_ingest(self):
     info(
@@ -202,6 +210,7 @@ def verify_ingest(self):
             'verification': {'$exists': False}
         }
     )
+
     for item in items:
         filename = item['slugline']
         info(
@@ -211,11 +220,15 @@ def verify_ingest(self):
             href, content = get_original_image(item)
         except ImageNotFoundException:
             return
-        all_args = {
-            'izitru': (filename, content,),
-            'tineye': (content,),
-            'gris': (href,),
-        }
-        for api_name in API_GETTERS:
-            args = all_args[api_name]
-            append_api_results_to_item.delay(item, api_name, args)
+        chord(
+            group(
+                (append_api_results_to_item.subtask(
+                    args=(item, api_name, args)))
+                for api_name, args in {
+                    'izitru': (filename, content,),
+                    'tineye': (content,),
+                    'gris': (href,),
+                }.items()
+            ),
+            finalize_verification.subtask(kwargs={"item_id": item['_id']})
+        ).delay()
