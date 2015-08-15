@@ -20,7 +20,7 @@ from apiclient.discovery import HttpError as GoogleHttpError
 import superdesk
 from superdesk.celery_app import celery
 
-from .logging import error, warning, info, success, print_task_exception
+from .logging import error, warning, info, success
 
 
 # @TODO: for debug purpose
@@ -186,15 +186,13 @@ def finalize_verification(self, results, item_id):
     ingest_service.patch(
         item_id, {'verification': verification_result}
     )
-    updated_item = ingest_service.find_one(req=None, _id=item_id)
-    if 'verification' in updated_item and len(updated_item['verification']) == len(API_GETTERS):
-        # Auto fetch items to the 'Verified Imges' desk
-        desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
-        desk_id = str(desk['_id'])
-        success('Fetching item: {} into desk: {}'.format(item_id, desk_id))
-        superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
-        # Delete the ingest item
-        ingest_service.delete(lookup={'_id': item_id})
+    # Auto fetch items to the 'Verified Imges' desk
+    desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
+    desk_id = str(desk['_id'])
+    success('Fetching item: {} into desk: {}'.format(item_id, desk_id))
+    superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
+    # Delete the ingest item
+    ingest_service.delete(lookup={'_id': item_id})
 
 
 @celery.task(bind=True, name='vpp.verify_ingest')
