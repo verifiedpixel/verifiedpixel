@@ -526,6 +526,86 @@
         }, refresh, true);
     }
 
+    /**
+     * Reorient specified element.
+     * 
+     * @param {number} orientation
+     * @param {object} element
+     * @returns {undefined}
+     */
+    function reOrient(orientation, element) {
+        // reset css first
+        element.css({
+            '-moz-transform': 'none',
+            '-o-transform': 'none',
+            '-webkit-transform': 'none',
+            'transform': 'none',
+            'filter': 'none',
+            '-ms-filter': "none"
+        });
+        switch (orientation) {
+            case 1:
+                // No action needed
+                break;
+            case 2:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                break;
+            case 3:
+                element.css({
+                    'transform': 'rotate(180deg)'
+                });
+                break;
+            case 4:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1) rotate(180deg)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                break;
+            case 5:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1) rotate(90deg)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                break;
+            case 6:
+                element.css({
+                    'transform': 'rotate(90deg)'
+                });
+                break;
+            case 7:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1) rotate(-90deg)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                break;
+            case 8:
+                element.css({
+                    'transform': 'rotate(-90deg)'
+                });
+                break;
+        }
+    }// end reOrient
+
+
     angular.module('verifiedpixel.imagelist', [
         'ngMap',
         'mentio', 
@@ -557,6 +637,77 @@
 
             };
         })
+        .directive('vpExifOrient', function () { 
+            return {
+                restrict: 'A',
+                scope: {
+                    orientation: '=',
+                },
+                link: function linkLogic(scope, elem) {
+                    scope.$watch('orientation', function(orientation) {
+                        reOrient(parseInt(scope.orientation || 1, 10), elem);
+                    });
+                }
+            };
+        })
+        .directive('vpItemRendition', function () { 
+            return {
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/item-rendition.html',
+                scope: {
+                    item: '=',
+                    rendition: '@',
+                    ratio: '=?'
+                },
+                link: function linkLogic(scope, elem) {
+
+                    scope.$watch('item.renditions[rendition].href', function(href) {
+                        var figure = elem.find('figure'),
+                            oldImg = figure.find('img').css('opacity', 0.5);
+                        if (href) {
+                            var img = new Image();
+                            img.onload = function() {
+                                if (oldImg.length) {
+                                    oldImg.replaceWith(img);
+                                } else {
+                                    figure.html(img);
+                                }
+                                _calcRatio();
+                            };
+
+                            img.onerror = function() {
+                                figure.html('');
+                            };
+                            img.src = href;
+                            reOrient(parseInt(scope.item.filemeta.Orientation || 1, 10), $(img));
+                        }
+                    });
+
+                    var stopRatioWatch = scope.$watch('ratio', function(val) {
+                        if (val === undefined) {
+                            stopRatioWatch();
+                        }
+                        calcRatio();
+                    });
+
+                    var calcRatio = _.debounce(_calcRatio, 150);
+
+                    function _calcRatio() {
+                        var el = elem.find('figure');
+                        if (el && scope.ratio) {
+                            var img = el.find('img')[0];
+                            var ratio = img ? img.naturalWidth / img.naturalHeight : 1;
+                            if (scope.ratio > ratio) {
+                                el.parent().addClass('portrait');
+                            } else {
+                                el.parent().removeClass('portrait');
+                            }
+                        }
+                    }
+                } // end link
+            };
+        })
+
+
         /**
          * Item filters sidebar
          */
