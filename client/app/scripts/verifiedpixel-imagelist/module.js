@@ -253,11 +253,14 @@
                 if (params.make) {
                     query.post_filter({terms: {'filemeta.Make': JSON.parse(params.make)}});
                 }
-                if (params.location) {
-                    query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.location)}});
+                if (params.capture_location) {
+                    query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.capture_location)}});
                 }
                 if (params.izitru) {
                     query.post_filter({terms: {'verification.izitru.verdict': JSON.parse(params.izitru)}});
+                }
+                if (params.original_source) {
+                    query.post_filter({terms: {'original_source': JSON.parse(params.original_source)}});
                 }
             }
 
@@ -361,8 +364,9 @@
             'stage': 1,
             'state': 1,
             'make': 1,
-            'location': 1,
-            'izitru': 1
+            'capture_location': 1,
+            'izitru': 1,
+            'original_source': 1
         };
 
         function initSelectedParameters (parameters) {
@@ -585,8 +589,9 @@
                             'urgency': {},
                             'state':{},
                             'make':{},
-                            'location': {},
-                            'izitru': {}
+                            'capture_location': {},
+                            'izitru': {},
+                            'original_source': {}
                         };
                     };
 
@@ -625,12 +630,17 @@
                                     scope.aggregations.make[make.key] = make.doc_count;
                                 });
 
-                                _.forEach(scope.items._aggregations.location.buckets, function(location) {
-                                    scope.aggregations.location[location.key] = location.doc_count;
+                                _.forEach(scope.items._aggregations.capture_location.buckets, function(capture_location) {
+                                    scope.aggregations.capture_location[capture_location.key] = capture_location.doc_count;
                                 });
 
                                 _.forEach(scope.items._aggregations.izitru.buckets, function(izitru) {
                                     scope.aggregations.izitru[izitru.key] = izitru.doc_count;
+                                });
+
+                                _.forEach(scope.items._aggregations.original_source.buckets, function(original_source) {
+                                    scope.aggregations.original_source[original_source.key] = original_source.doc_count;
+
                                 });
 
                                 _.forEach(scope.items._aggregations.day.buckets, function(day) {

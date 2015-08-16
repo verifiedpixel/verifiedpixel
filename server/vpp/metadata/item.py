@@ -262,7 +262,8 @@ metadata_schema = {
         'type': 'list'
     },
     'verification': {
-        'type': 'dict'
+        'type': 'dict',
+        'mapping': not_analyzed
     },
 
     # aka Locator as per NewML Specification
