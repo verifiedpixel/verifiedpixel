@@ -174,7 +174,6 @@ aggregations = {
     'capture_location': {'terms': {'field': 'verification.izitru.EXIF.captureLocation'}},
     'izitru': {'terms': {'field': 'verification.izitru.verdict'}},
     'original_source': {'terms': {'field': 'original_source'}}
-    
 }
 
 
