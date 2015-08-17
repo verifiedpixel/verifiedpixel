@@ -151,6 +151,7 @@ def handle_elastic_timeout(max_retries=3, retry_interval=30):
 
 
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_api_result', ignore_result=False)
+@handle_elastic_timeout()
 def append_api_results_to_item(self, item, api_name, args):
     filename = item['slugline']
     api_getter = API_GETTERS[api_name]
@@ -183,7 +184,7 @@ def append_api_results_to_item(self, item, api_name, args):
 
 @celery.task(bind=True, name='vpp.finalize_verification')
 @handle_elastic_timeout()
-def finalize_verification(self, item_id, desk_id):
+def finalize_verification(self, *args, item_id, desk_id):
     # Auto fetch items to the 'Verified Imges' desk
     success('Fetching item: {} into desk "Verified Images".'.format(item_id))
     superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
