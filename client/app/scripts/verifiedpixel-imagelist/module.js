@@ -750,11 +750,21 @@
                     'filter': 'FlipH',
                     '-ms-filter': "FlipH"
                 });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
                 break;
             case 6:
                 element.css({
                     'transform': 'rotate(90deg)'
                 });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
                 break;
             case 7:
                 element.css({
@@ -765,11 +775,21 @@
                     'filter': 'FlipH',
                     '-ms-filter': "FlipH"
                 });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
                 break;
             case 8:
                 element.css({
                     'transform': 'rotate(-90deg)'
                 });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
                 break;
         }
     }// end reOrient
