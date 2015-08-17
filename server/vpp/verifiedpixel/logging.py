@@ -21,11 +21,11 @@ def error(msg):
 
 
 def success(msg):
-    return logger.error(LOGGING_TEMPLATE.format(msg=msg, color=2))
+    return logger.info(LOGGING_TEMPLATE.format(msg=msg, color=2))
 
 
 def debug(msg):
-    return logger.error(LOGGING_TEMPLATE.format(
+    return logger.debug(LOGGING_TEMPLATE.format(
         msg="DEBUG: {msg}".format(msg=msg), color=4
     ))
 

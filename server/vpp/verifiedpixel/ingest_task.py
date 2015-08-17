@@ -31,7 +31,7 @@ register('dill', dill.dumps, dill.loads, content_type='application/x-binary-data
 
 
 def init_tineye(app):
-    app.data.tineye_api = TinEyeAPIRequest(
+    app.data.vpp_tineye_api = TinEyeAPIRequest(
         api_url=app.config['TINEYE_API_URL'],
         public_key=app.config['TINEYE_PUBLIC_KEY'],
         private_key=app.config['TINEYE_SECRET_KEY']
@@ -62,7 +62,7 @@ class APIGracefulException(Exception):
 
 def get_tineye_results(content):
     try:
-        response = superdesk.app.data.tineye_api.search_data(content)
+        response = superdesk.app.data.vpp_tineye_api.search_data(content)
     except TinEyeAPIError as e:
         raise APIGracefulException(e)
     except KeyError as e:
@@ -174,25 +174,21 @@ def append_api_results_to_item(self, item, api_name, args):
     else:
         info("{api}: matchs found for {file}.".format(
             api=api_name, file=filename))
-    return (api_name, verification_result)
+    # record result to database
+    superdesk.get_resource_service('ingest').patch(
+        item['_id'], {'verification.{api}'.format(api=api_name): verification_result}
+    )
+    return
 
 
 @celery.task(bind=True, name='vpp.finalize_verification')
 @handle_elastic_timeout()
-def finalize_verification(self, results, item_id):
-    verification_result = dict(results)
-    # record result to database
-    ingest_service = superdesk.get_resource_service('ingest')
-    ingest_service.patch(
-        item_id, {'verification': verification_result}
-    )
+def finalize_verification(self, item_id, desk_id):
     # Auto fetch items to the 'Verified Imges' desk
-    desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
-    desk_id = str(desk['_id'])
-    success('Fetching item: {} into desk: {}'.format(item_id, desk_id))
+    success('Fetching item: {} into desk "Verified Images".'.format(item_id))
     superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
     # Delete the ingest item
-    ingest_service.delete(lookup={'_id': item_id})
+    superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
 
 
 @celery.task(bind=True, name='vpp.verify_ingest')
@@ -208,6 +204,8 @@ def verify_ingest(self):
             'verification': {'$exists': False}
         }
     )
+    desk = superdesk.get_resource_service('desks').find_one(req=ParsedRequest(), name='Verified Images')
+    desk_id = str(desk['_id'])
 
     for item in items:
         filename = item['slugline']
@@ -228,5 +226,8 @@ def verify_ingest(self):
                     'gris': (href,),
                 }.items()
             ),
-            finalize_verification.subtask(kwargs={"item_id": item['_id']})
+            finalize_verification.subtask(
+                kwargs={"item_id": item['_id'], "desk_id": desk_id},
+                immutable=True
+            )
         ).delay()
