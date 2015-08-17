@@ -25,7 +25,7 @@ def success(msg):
 
 
 def debug(msg):
-    return logger.debug(LOGGING_TEMPLATE.format(
+    return logger.info(LOGGING_TEMPLATE.format(
         msg="DEBUG: {msg}".format(msg=msg), color=4
     ))
 
