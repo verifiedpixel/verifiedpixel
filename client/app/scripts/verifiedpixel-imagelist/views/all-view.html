@@ -5,16 +5,16 @@
       <i class="icon-fullscreen"></i>
     </button>
  -->
-    <div ng-if="item.filemeta">
+    <div ng-if="item.converted_exif">
       <h4>Camera Info</h4>
       <dl>
-        <dt translate>Lens Make</dt><dd>{{ item.filemeta.LensMake }}</dd>
+        <dt translate>Lens Make</dt><dd>{{ item.converted_exif.lensmake }}</dd>
       </dl>
       <dl>
-        <dt translate>Lens Model</dt><dd>{{ item.filemeta.LensModel }}</dd>
+        <dt translate>Lens Model</dt><dd>{{ item.converted_exif.lensmodel }}</dd>
       </dl>
       <dl>
-        <dt translate>Captured</dt><dd sd-reldate-complex ng-model="item.filemeta.datecaptured"></dd>
+        <dt translate>Captured</dt><dd sd-reldate-complex ng-model="item.converted_exif.datecaptured"></dd>
       </dl>
       <!-- Map -->
       <div vp-media-map data-item="item"></div>
