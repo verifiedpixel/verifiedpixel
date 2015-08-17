@@ -253,11 +253,14 @@
                 if (params.make) {
                     query.post_filter({terms: {'filemeta.Make': JSON.parse(params.make)}});
                 }
-                if (params.location) {
-                    query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.location)}});
+                if (params.capture_location) {
+                    query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.capture_location)}});
                 }
                 if (params.izitru) {
                     query.post_filter({terms: {'verification.izitru.verdict': JSON.parse(params.izitru)}});
+                }
+                if (params.original_source) {
+                    query.post_filter({terms: {'original_source': JSON.parse(params.original_source)}});
                 }
             }
 
@@ -361,8 +364,9 @@
             'stage': 1,
             'state': 1,
             'make': 1,
-            'location': 1,
-            'izitru': 1
+            'capture_location': 1,
+            'izitru': 1,
+            'original_source': 1
         };
 
         function initSelectedParameters (parameters) {
@@ -471,6 +475,159 @@
         };
     }
 
+    /**
+     * Functions for formatting EXIF data
+     */
+    function GPSArrayToFloat(input, ref){
+        var d0 = input[0][0];
+        var d1 = input[0][1];
+        var d = (d0 / d1);
+
+        var m0 = input[1][0];
+        var m1 = input[1][1];
+        var m = (m0 / m1);
+
+        var s0 = input[2][0];
+        var s1 = input[2][1];
+        var s = (s0 / s1);
+        var value = (d + (m / 60) + (s / 3600));
+
+        if ((ref === 'S') || (ref === 'W')) {
+            value = 0 - value;
+        }
+        return value;
+    }
+
+    function convertExif(filemetaLowered, filemetaConverted) {
+        var filemeta = (filemetaLowered) ? filemetaLowered : {};
+        var converted = (filemetaConverted) ? filemetaConverted : {};
+        // check to see if the file latitude record exists before 
+        // trying to return anything // longitude is there for the sake of completeness
+        if (filemeta.gpsinfo){
+            if (filemeta.gpsinfo.gpslatitude && filemeta.gpsinfo.gpslongitude) {
+                // lat is always first
+                converted.gpslat = GPSArrayToFloat(
+                    filemeta.gpsinfo.gpslatitude,
+                    filemeta.gpsinfo.gpslatituderef 
+                );
+                converted.gpslon = GPSArrayToFloat(
+                    filemeta.gpsinfo.gpslongitude,
+                    filemeta.gpsinfo.gpslongituderef
+                );
+            }
+            if (filemeta.gpsinfo.gpsimgdirection) {
+                converted.gpsdirection = (
+                    filemeta.gpsinfo.gpsimgdirection[0] /
+                    filemeta.gpsinfo.gpsimgdirection[1]
+                ).toFixed(3);
+                converted.markerdirection = Math.ceil(converted.gpsdirection / 10) * 10; 
+                converted.gpsicon = {
+                    url: '/images/gpsdirection/view-' + converted.markerdirection + '.png',
+                    size: new google.maps.Size(100, 100),
+                    origin: new google.maps.Point(0,0),
+                    anchor: new google.maps.Point(50, 50)
+                };
+            }
+            if (filemeta.gpsinfo.gpsaltitude) {
+                converted.gpsaltitude = filemeta.gpsinfo.gpsaltitude[0] /
+                    filemeta.gpsinfo.gpsaltitude[1];
+            }
+            if (filemeta.gpsinfo.gpsspeed) {
+                converted.gpsspeed = filemeta.gpsinfo.gpsspeed[0] /
+                    filemeta.gpsinfo.gpsspeed[1];
+            }
+            if (filemeta.gpsinfo.gpstrack) {
+                converted.gpstrack = filemeta.gpsinfo.gpstrack[0] /
+                    filemeta.gpsinfo.gpstrack[1];
+            }
+        }
+
+        if (filemeta.aperturevalue) {
+            converted.aperture = (
+                filemeta.aperturevalue[0] /
+                filemeta.aperturevalue[1]
+            ).toFixed(1);
+        }
+        if (filemeta.exposuretime) {
+            converted.exposuretime = (
+                filemeta.exposuretime[0] /
+                filemeta.exposuretime[1]
+            ).toFixed(5);
+        }
+        if (filemeta.focallength) {
+            converted.focallength = (
+                filemeta.focallength[0] /
+                filemeta.focallength[1]
+            ).toFixed(2);
+        }
+        if (filemeta.exposuremode > -1) {
+            switch(filemeta.exposuremode) {
+                case 0:
+                    converted.exposuremode = 'Not defined';
+                    break;
+                case 1:
+                    converted.exposuremode = 'Manual';
+                    break;
+                case 2:
+                    converted.exposuremode = 'Normal program';
+                    break;
+                case 3:
+                    converted.exposuremode = 'Aperture priority';
+                    break;
+                case 4:
+                    converted.exposuremode = 'Shutter priority';
+                    break;
+                case 5:
+                    converted.exposuremode = 'Creative program';
+                    break;
+                case 6:
+                    converted.exposuremode = 'Action program';
+                    break;
+                case 7:
+                    converted.exposuremode = 'Portrait mode';
+                    break;
+                case 8:
+                    converted.exposuremode = 'Landscape mode';
+                    break;
+            }
+        }
+        
+        if (filemeta.datetimeoriginal) {
+            var dateTimeParts = filemeta.datetimeoriginal.split(' ');
+            var dateParts = dateTimeParts[0].split(':');
+            var year = dateParts[0];
+            var month = dateParts[1];
+            var day = dateParts[2];
+            var timeParts = dateTimeParts[1].split(':');
+            var hour = timeParts[0];
+            var min = timeParts[1];
+            var sec = timeParts[2];
+            var dateString = year+'-'+month+'-'+day+' '+hour+':'+min+':'+ sec; 
+            converted.datecaptured = new Date(dateString);
+        } else {
+            converted.datecaptured = 'unknown';
+        }
+        
+        return converted;
+    }
+
+    function keysToLowerCase(obj) {
+        if (!typeof(obj) === "object" || typeof(obj) === "string" || typeof(obj) === "number" || typeof(obj) === "boolean") {
+            return obj;
+        }
+        var keys = Object.keys(obj);
+        var n = keys.length;
+        var lowKey;
+        while (n--) {
+            var key = keys[n];
+            if (key === (lowKey = key.toLowerCase()))
+                continue;
+            obj[lowKey] = keysToLowerCase(obj[key]);
+            delete obj[key];
+        }
+        return (obj);
+    }
+
     ImageListController.$inject = ['$scope', '$location', 'api', 'search', 'notify', 'session'];
     function ImageListController($scope, $location, api, search, notify, session) {
         $scope.context = 'search';
@@ -509,8 +666,24 @@
                 }
             }
 
-            api.query(provider, criteria).then(function(result) {
-                $scope.items = result;
+            api.query(provider, criteria).then(function(results) {
+                // normaize exif filemata fields because
+                // sometimes we get lowercase field names, and somtimes camel case
+                // this function just makes them all lower case
+                // also makes sure that a filemeta object always exists
+                var processedItems = [];
+                angular.forEach(results._items, function(item) {
+                    var filemeta = (item.filemeta) ? item.filemeta : {};
+                    var filemetaLowered = keysToLowerCase(filemeta);
+                    // convert enum and rational values to readable values
+                    item.converted_exif = convertExif(filemetaLowered, filemetaLowered); 
+                    processedItems.push(item);
+                    if (processedItems.length === results._items.length) {
+                        results._items = processedItems;
+                        $scope.items = results;
+                    }
+                });
+                
             });
 
             oldQuery =  query;
@@ -521,6 +694,106 @@
             return _.omit($location.search(), '_id');
         }, refresh, true);
     }
+
+    /**
+     * Reorient specified element.
+     * 
+     * @param {number} orientation
+     * @param {object} element
+     * @returns {undefined}
+     */
+    function reOrient(orientation, element) {
+        // reset css first
+        element.css({
+            '-moz-transform': 'none',
+            '-o-transform': 'none',
+            '-webkit-transform': 'none',
+            'transform': 'none',
+            'filter': 'none',
+            '-ms-filter': "none"
+        });
+        switch (orientation) {
+            case 1:
+                // No action needed
+                break;
+            case 2:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                break;
+            case 3:
+                element.css({
+                    'transform': 'rotate(180deg)'
+                });
+                break;
+            case 4:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1) rotate(180deg)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                break;
+            case 5:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1) rotate(90deg)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
+                break;
+            case 6:
+                element.css({
+                    'transform': 'rotate(90deg)'
+                });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
+                break;
+            case 7:
+                element.css({
+                    '-moz-transform': 'scaleX(-1)',
+                    '-o-transform': 'scaleX(-1)',
+                    '-webkit-transform': 'scaleX(-1)',
+                    'transform': 'scaleX(-1) rotate(-90deg)',
+                    'filter': 'FlipH',
+                    '-ms-filter': "FlipH"
+                });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
+                break;
+            case 8:
+                element.css({
+                    'transform': 'rotate(-90deg)'
+                });
+                if (element.hasClass('vpp-selected-preview')) {
+                    element.css({
+                        'margin-top': '115px'
+                    });
+                }
+                break;
+        }
+    }// end reOrient
+
 
     angular.module('verifiedpixel.imagelist', [
         'ngMap',
@@ -553,6 +826,79 @@
 
             };
         })
+        .directive('vpExifOrient', function () { 
+            return {
+                restrict: 'A',
+                scope: {
+                    orientation: '=',
+                },
+                link: function linkLogic(scope, elem) {
+                    scope.$watch('orientation', function(orientation) {
+                        reOrient(parseInt(scope.orientation || 1, 10), elem);
+                    });
+                }
+            };
+        })
+        .directive('vpItemRendition', function () { 
+            return {
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/item-rendition.html',
+                scope: {
+                    item: '=',
+                    rendition: '@',
+                    ratio: '=?'
+                },
+                link: function linkLogic(scope, elem) {
+
+                    scope.$watch('item.renditions[rendition].href', function(href) {
+                        var figure = elem.find('figure'),
+                            oldImg = figure.find('img').css('opacity', 0.5);
+                        if (href) {
+                            var img = new Image();
+                            img.onload = function() {
+                                if (oldImg.length) {
+                                    oldImg.replaceWith(img);
+                                } else {
+                                    figure.html(img);
+                                }
+                                _calcRatio();
+                            };
+
+                            img.onerror = function() {
+                                figure.html('');
+                            };
+                            img.src = href;
+                            if (scope.item.converted_exif.orientation) {
+                                reOrient(parseInt(scope.item.converted_exif.orientation || 1, 10), $(img));
+                            }
+                        }
+                    });
+
+                    var stopRatioWatch = scope.$watch('ratio', function(val) {
+                        if (val === undefined) {
+                            stopRatioWatch();
+                        }
+                        calcRatio();
+                    });
+
+                    var calcRatio = _.debounce(_calcRatio, 150);
+
+                    function _calcRatio() {
+                        var el = elem.find('figure');
+                        if (el && scope.ratio) {
+                            var img = el.find('img')[0];
+                            var ratio = img ? img.naturalWidth / img.naturalHeight : 1;
+                            if (scope.ratio > ratio) {
+                                el.parent().addClass('portrait');
+                            } else {
+                                el.parent().removeClass('portrait');
+                            }
+                        }
+                    }
+                } // end link
+            };
+        })
+
+
         /**
          * Item filters sidebar
          */
@@ -585,8 +931,9 @@
                             'urgency': {},
                             'state':{},
                             'make':{},
-                            'location': {},
-                            'izitru': {}
+                            'capture_location': {},
+                            'izitru': {},
+                            'original_source': {}
                         };
                     };
 
@@ -625,12 +972,17 @@
                                     scope.aggregations.make[make.key] = make.doc_count;
                                 });
 
-                                _.forEach(scope.items._aggregations.location.buckets, function(location) {
-                                    scope.aggregations.location[location.key] = location.doc_count;
+                                _.forEach(scope.items._aggregations.capture_location.buckets, function(capture_location) {
+                                    scope.aggregations.capture_location[capture_location.key] = capture_location.doc_count;
                                 });
 
                                 _.forEach(scope.items._aggregations.izitru.buckets, function(izitru) {
                                     scope.aggregations.izitru[izitru.key] = izitru.doc_count;
+                                });
+
+                                _.forEach(scope.items._aggregations.original_source.buckets, function(original_source) {
+                                    scope.aggregations.original_source[original_source.key] = original_source.doc_count;
+
                                 });
 
                                 _.forEach(scope.items._aggregations.day.buckets, function(day) {
@@ -1134,61 +1486,7 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
-                        getGPS();
                     }
-
-                    function getGPS(){
-                        function GPSToFloat(input, ref){
-                            var d0 = input[0][0];
-                            var d1 = input[0][1];
-                            var d = (d0 / d1);
-
-                            var m0 = input[1][0];
-                            var m1 = input[1][1];
-                            var m = (m0 / m1);
-
-                            var s0 = input[2][0];
-                            var s1 = input[2][1];
-                            var s = (s0 / s1);
-                            var value = (d + (m / 60) + (s / 3600));
-
-                            if ((ref === 'S') || (ref === 'W')) {
-                                value = 0 - value;
-                            }
-                            return value;
-                        }
-                        // check to see if the file latitude record exists before trying to return anything // longitude is there for the sake of completeness
-                        if (scope.item.filemeta && scope.item.filemeta.GPSInfo){
-                            if (scope.item.filemeta.GPSInfo.GPSLatitude && scope.item.filemeta.GPSInfo.GPSLongitude) {
-                                // lat is always first
-                                scope.item.gpslat = GPSToFloat(
-                                    scope.item.filemeta.GPSInfo.GPSLatitude,
-                                    scope.item.filemeta.GPSInfo.GPSLatitudeRef 
-                                );
-                                scope.item.gpslon = GPSToFloat(
-                                    scope.item.filemeta.GPSInfo.GPSLongitude,
-                                    scope.item.filemeta.GPSInfo.GPSLongitudeRef
-                                );
-                            }
-                        
-                            if (scope.item.filemeta.GPSInfo.GPSImgDirection) {
-                                var actualDirection = (
-                                    scope.item.filemeta.GPSInfo.GPSImgDirection[0] /
-                                    scope.item.filemeta.GPSInfo.GPSImgDirection[1]
-                                ).toFixed(3);
-                                scope.item.gpsdirection = actualDirection;
-                                scope.item.markerdirection = Math.ceil(actualDirection / 10) * 10; 
-
-                                scope.item.gpsicon = {
-                                    url: '/images/gpsdirection/view-' + scope.item.markerdirection + '.png',
-                                    size: new google.maps.Size(100, 100),
-                                    origin: new google.maps.Point(0,0),
-                                    anchor: new google.maps.Point(50, 50)
-                                };
-                            }
-                        }
-                    }
-                    getGPS();
                 }
             };
         }])
@@ -1202,113 +1500,6 @@
                 link: function(scope, elem) {
 
                     scope.$watch('item', reloadData);
-
-                    function getGPS(){
-                        function GPSToFloat(input, ref){
-                            var d0 = input[0][0];
-                            var d1 = input[0][1];
-                            var d = (d0 / d1);
-
-                            var m0 = input[1][0];
-                            var m1 = input[1][1];
-                            var m = (m0 / m1);
-
-                            var s0 = input[2][0];
-                            var s1 = input[2][1];
-                            var s = (s0 / s1);
-                            var value = (d + (m / 60) + (s / 3600));
-
-                            if ((ref === 'S') || (ref === 'W')) {
-                                value = 0 - value;
-                            }
-                            return value;
-                        }
-                        scope.item.exif = {};
-                        // check to see if the file latitude record exists before 
-                        // trying to return anything // longitude is there for the sake of completeness
-                        if (scope.item.filemeta && scope.item.filemeta.GPSInfo){
-                            if (scope.item.filemeta.GPSInfo.GPSLatitude && scope.item.filemeta.GPSInfo.GPSLongitude) {
-                                // lat is always first
-                                scope.item.gpslat = GPSToFloat(
-                                    scope.item.filemeta.GPSInfo.GPSLatitude,
-                                    scope.item.filemeta.GPSInfo.GPSLatitudeRef 
-                                );
-                                scope.item.gpslon = GPSToFloat(
-                                    scope.item.filemeta.GPSInfo.GPSLongitude,
-                                    scope.item.filemeta.GPSInfo.GPSLongitudeRef
-                                );
-                            }
-                            if (scope.item.filemeta.GPSInfo.GPSImgDirection) {
-                                scope.item.gpsdirection = (
-                                    scope.item.filemeta.GPSInfo.GPSImgDirection[0] /
-                                    scope.item.filemeta.GPSInfo.GPSImgDirection[1]
-                                ).toFixed(3);
-                            }
-                            if (scope.item.filemeta.GPSInfo.GPSAltitude) {
-                                scope.item.gpsaltitude = scope.item.filemeta.GPSInfo.GPSAltitude[0] /
-                                    scope.item.filemeta.GPSInfo.GPSAltitude[1];
-                            }
-                            if (scope.item.filemeta.GPSInfo.GPSSpeed) {
-                                scope.item.gpsspeed = scope.item.filemeta.GPSInfo.GPSSpeed[0] /
-                                    scope.item.filemeta.GPSInfo.GPSSpeed[1];
-                            }
-                            if (scope.item.filemeta.GPSInfo.GPSTrack) {
-                                scope.item.gpstrack = scope.item.filemeta.GPSInfo.GPSTrack[0] /
-                                    scope.item.filemeta.GPSInfo.GPSTrack[1];
-                            }
-                            scope.item.exif = {};
-                            if (scope.item.filemeta.ApertureValue) {
-                                scope.item.exif.aperture = (
-                                    scope.item.filemeta.ApertureValue[0] /
-                                    scope.item.filemeta.ApertureValue[1]
-                                ).toFixed(1);
-                            }
-                            if (scope.item.filemeta.ExposureTime) {
-                                scope.item.exif.exposuretime = (
-                                    scope.item.filemeta.ExposureTime[0] /
-                                    scope.item.filemeta.ExposureTime[1]
-                                ).toFixed(5);
-                            }
-                            if (scope.item.filemeta.FocalLength) {
-                                scope.item.exif.focallength = (
-                                    scope.item.filemeta.FocalLength[0] /
-                                    scope.item.filemeta.FocalLength[1]
-                                ).toFixed(2);
-                            }
-                            if (scope.item.filemeta.ExposureMode > -1) {
-                                switch(scope.item.filemeta.ExposureMode) {
-                                    case 0:
-                                        scope.item.exif.exposuremode = 'Not defined';
-                                        break;
-                                    case 1:
-                                        scope.item.exif.exposuremode = 'Manual';
-                                        break;
-                                    case 2:
-                                        scope.item.exif.exposuremode = 'Normal program';
-                                        break;
-                                    case 3:
-                                        scope.item.exif.exposuremode = 'Aperture priority';
-                                        break;
-                                    case 4:
-                                        scope.item.exif.exposuremode = 'Shutter priority';
-                                        break;
-                                    case 5:
-                                        scope.item.exif.exposuremode = 'Creative program';
-                                        break;
-                                    case 6:
-                                        scope.item.exif.exposuremode = 'Action program';
-                                        break;
-                                    case 7:
-                                        scope.item.exif.exposuremode = 'Portrait mode';
-                                        break;
-                                    case 8:
-                                        scope.item.exif.exposuremode = 'Landscape mode';
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                    getGPS();
 
                     function reloadData() {
                         scope.originalCreator = null;
@@ -1326,7 +1517,6 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
-                        getGPS();
                     }
                 }
             };
@@ -1517,19 +1707,6 @@
                         }
                     });
 
-                    if (scope.item.filemeta.DateTimeOriginal) {
-                        var dateTimeParts = scope.item.filemeta.DateTimeOriginal.split(' ');
-                        var dateParts =dateTimeParts[0].split(':');
-                        var year = dateParts[0];
-                        var month = dateParts[1];
-                        var day = dateParts[2];
-                        var timeParts = dateTimeParts[1].split(':');
-                        var hour = timeParts[0];
-                        var min = timeParts[1];
-                        var sec = timeParts[2];
-                        var dateString = year+'-'+month+'-'+day+' '+hour+':'+min+':'+ sec; 
-                        scope.item.filemeta.datecaptured = new Date(dateString);
-                    }
                     scope.$watch('item', function(item) {
                         scope.lock.isLocked = item && (lock.isLocked(item) || lock.isLockedByMe(item));
                     });

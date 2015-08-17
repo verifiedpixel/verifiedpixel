@@ -9,7 +9,6 @@ from PIL import Image
 from io import BytesIO
 from kombu.serialization import register
 import dill
-from elasticsearch.exceptions import ConnectionTimeout as ElasticConnectionTimeout
 from celery import chord, group
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
@@ -21,17 +20,21 @@ import superdesk
 from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
+from .elastic import (
+    handle_elastic_timeout_decorator, handle_elastic_write_problems_wrapper
+)
 
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
+from .logging import debug  # noqa
 
 
 register('dill', dill.dumps, dill.loads, content_type='application/x-binary-data', content_encoding='binary')
 
 
 def init_tineye(app):
-    app.data.tineye_api = TinEyeAPIRequest(
+    app.data.vpp_tineye_api = TinEyeAPIRequest(
         api_url=app.config['TINEYE_API_URL'],
         public_key=app.config['TINEYE_PUBLIC_KEY'],
         private_key=app.config['TINEYE_SECRET_KEY']
@@ -62,7 +65,7 @@ class APIGracefulException(Exception):
 
 def get_tineye_results(content):
     try:
-        response = superdesk.app.data.tineye_api.search_data(content)
+        response = superdesk.app.data.vpp_tineye_api.search_data(content)
     except TinEyeAPIError as e:
         raise APIGracefulException(e)
     except KeyError as e:
@@ -122,38 +125,29 @@ def get_izitru_results(filename, content):
 
 
 API_GETTERS = {
-    'izitru': get_izitru_results,
-    'tineye': get_tineye_results,
-    'gris': get_gris_results,
+    'izitru': {"function": get_izitru_results, "args": ("filename", "content",)},
+    'tineye': {"function": get_tineye_results, "args": ("content",)},
+    'gris': {"function": get_gris_results, "args": ("href",)},
 }
 
 
-def handle_elastic_timeout(max_retries=3, retry_interval=30):
-    retries_done = 0
-
-    def wrap(f):
-        def wrapped(self, *args, **kwargs):
-            nonlocal retries_done
-            try:
-                return f(self, *args, **kwargs)
-            except ElasticConnectionTimeout as e:
-                warning("Can't connect to elasticsearch, retrying in "
-                        "{interval}s:\n {exception}".format(
-                            interval=retry_interval, exception=list(e.args)))
-                retries_done += 1
-                if retries_done < max_retries:
-                    self.max_retries += 1
-                    raise self.retry(exc=e, countdown=retry_interval)
-                else:
-                    raise(e)
-        return wrapped
-    return wrap
+# @TODO: replace it to a settings' option to use mocks
+USE_MOCKS = False
+if USE_MOCKS:
+    def get_placeholder_results(*args, **kwargs):
+        return {"status": "ok", "message": "this is mock"}
+    API_GETTERS = {
+        'izitru': {"function": get_placeholder_results, "args": ("filename", "content",)},
+        'tineye': {"function": get_placeholder_results, "args": ("content",)},
+        'gris': {"function": get_placeholder_results, "args": ("href",)},
+    }
 
 
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_api_result', ignore_result=False)
+@handle_elastic_timeout_decorator()
 def append_api_results_to_item(self, item, api_name, args):
     filename = item['slugline']
-    api_getter = API_GETTERS[api_name]
+    api_getter = API_GETTERS[api_name]['function']
     info(
         "{api}: searching matches for {file}... ({tries} of {max})".format(
             api=api_name, file=filename, tries=self.request.retries, max=self.max_retries
@@ -174,29 +168,27 @@ def append_api_results_to_item(self, item, api_name, args):
     else:
         info("{api}: matchs found for {file}.".format(
             api=api_name, file=filename))
-    return (api_name, verification_result)
+    # record result to database
+    handle_elastic_write_problems_wrapper(
+        lambda: superdesk.get_resource_service('ingest').patch(
+            item['_id'],
+            {'verification.{api}'.format(api=api_name): verification_result}
+        )
+    )
 
 
 @celery.task(bind=True, name='vpp.finalize_verification')
-@handle_elastic_timeout()
-def finalize_verification(self, results, item_id):
-    verification_result = dict(results)
-    # record result to database
-    ingest_service = superdesk.get_resource_service('ingest')
-    ingest_service.patch(
-        item_id, {'verification': verification_result}
-    )
+@handle_elastic_timeout_decorator()
+def finalize_verification(self, *args, item_id, desk_id):
     # Auto fetch items to the 'Verified Imges' desk
-    desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
-    desk_id = str(desk['_id'])
-    success('Fetching item: {} into desk: {}'.format(item_id, desk_id))
+    success('Fetching item: {} into desk "Verified Images".'.format(item_id))
     superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
     # Delete the ingest item
-    ingest_service.delete(lookup={'_id': item_id})
+    superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
 
 
 @celery.task(bind=True, name='vpp.verify_ingest')
-@handle_elastic_timeout()
+@handle_elastic_timeout_decorator()
 def verify_ingest(self):
     info(
         'Checking for new ingested images for verification...'
@@ -208,6 +200,8 @@ def verify_ingest(self):
             'verification': {'$exists': False}
         }
     )
+    desk = superdesk.get_resource_service('desks').find_one(req=ParsedRequest(), name='Verified Images')
+    desk_id = str(desk['_id'])
 
     for item in items:
         filename = item['slugline']
@@ -218,15 +212,23 @@ def verify_ingest(self):
             href, content = get_original_image(item)
         except ImageNotFoundException:
             return
+        all_args = {
+            "filename": filename,
+            "content": content,
+            "href": href
+        }
         chord(
             group(
                 (append_api_results_to_item.subtask(
-                    args=(item, api_name, args)))
-                for api_name, args in {
-                    'izitru': (filename, content,),
-                    'tineye': (content,),
-                    'gris': (href,),
-                }.items()
+                    args=(
+                        item, api_name,
+                        [all_args[arg_name] for arg_name in data['args']]
+                    )
+                ))
+                for api_name, data in API_GETTERS.items()
             ),
-            finalize_verification.subtask(kwargs={"item_id": item['_id']})
+            finalize_verification.subtask(
+                kwargs={"item_id": item['_id'], "desk_id": desk_id},
+                immutable=True
+            )
         ).delay()
