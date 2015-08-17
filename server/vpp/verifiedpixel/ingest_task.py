@@ -10,6 +10,7 @@ from io import BytesIO
 from kombu.serialization import register
 import dill
 from elasticsearch.exceptions import ConnectionTimeout as ElasticConnectionTimeout
+from elasticsearch.exceptions import SerializationError as ElasticSerializationError
 from celery import chord, group
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
@@ -136,7 +137,7 @@ def handle_elastic_timeout(max_retries=3, retry_interval=30):
             nonlocal retries_done
             try:
                 return f(self, *args, **kwargs)
-            except ElasticConnectionTimeout as e:
+            except (ElasticConnectionTimeout, ElasticSerializationError) as e:
                 warning("Can't connect to elasticsearch, retrying in "
                         "{interval}s:\n {exception}".format(
                             interval=retry_interval, exception=list(e.args)))
