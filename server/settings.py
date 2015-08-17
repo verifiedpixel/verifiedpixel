@@ -106,7 +106,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'spike:gc': {
         'task': 'vpp.archive.content_purge',
-        'schedule': crontab(minute=60)
+        'schedule': crontab(minute=30)
     },
     'publish:transmit': {
         'task': 'superdesk.publish.transmit',
@@ -114,7 +114,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'publish:remove_expired': {
         'task': 'apps.publish.content_purge',
-        'schedule': crontab(minute=60)
+        'schedule': crontab(minute=30)
     },
     'verify:update': {
         'task': 'vpp.verify_ingest',
