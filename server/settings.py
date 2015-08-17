@@ -98,7 +98,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'ingest:gc': {
         'task': 'superdesk.io.gc_ingest',
-        'schedule': timedelta(minutes=15),
+        'schedule': timedelta(minutes=30),
     },
     'session:gc': {
         'task': 'apps.auth.session_purge',
@@ -106,7 +106,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'spike:gc': {
         'task': 'vpp.archive.content_purge',
-        'schedule': crontab(minute=30)
+        'schedule': crontab(minute=60)
     },
     'publish:transmit': {
         'task': 'superdesk.publish.transmit',
@@ -114,7 +114,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'publish:remove_expired': {
         'task': 'apps.publish.content_purge',
-        'schedule': crontab(minute=30)
+        'schedule': crontab(minute=60)
     },
     'verify:update': {
         'task': 'vpp.verify_ingest',
