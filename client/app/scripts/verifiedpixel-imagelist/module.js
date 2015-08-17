@@ -604,6 +604,8 @@
             var sec = timeParts[2];
             var dateString = year+'-'+month+'-'+day+' '+hour+':'+min+':'+ sec; 
             converted.datecaptured = new Date(dateString);
+        } else {
+            converted.datecaptured = 'unknown';
         }
         
         return converted;
@@ -845,11 +847,8 @@
                                 figure.html('');
                             };
                             img.src = href;
-                            if (scope.item.filemeta && scope.item.filemeta.orientation) {
-                                scope.item.filemeta.Orientation = scope.item.filemeta.orientation;
-                            }
-                            if (scope.item.filemeta && scope.item.filemeta.Orientation) {
-                                reOrient(parseInt(scope.item.filemeta.Orientation || 1, 10), $(img));
+                            if (scope.item.converted_exif.orientation) {
+                                reOrient(parseInt(scope.item.converted_exif.orientation || 1, 10), $(img));
                             }
                         }
                     });
@@ -1688,19 +1687,6 @@
                         }
                     });
 
-                    if (scope.item.filemeta && scope.item.filemeta.DateTimeDigitized) {
-                        var dateTimeParts = scope.item.filemeta.DateTimeDigitized.split(' ');
-                        var dateParts =dateTimeParts[0].split(':');
-                        var year = dateParts[0];
-                        var month = dateParts[1];
-                        var day = dateParts[2];
-                        var timeParts = dateTimeParts[1].split(':');
-                        var hour = timeParts[0];
-                        var min = timeParts[1];
-                        var sec = timeParts[2];
-                        var dateString = year+'-'+month+'-'+day+' '+hour+':'+min+':'+ sec; 
-                        scope.item.filemeta.datecaptured = new Date(dateString);
-                    }
                     scope.$watch('item', function(item) {
                         scope.lock.isLocked = item && (lock.isLocked(item) || lock.isLockedByMe(item));
                     });

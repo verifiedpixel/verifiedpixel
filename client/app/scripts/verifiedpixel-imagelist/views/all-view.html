@@ -14,8 +14,15 @@
         <dt translate>Lens Model</dt><dd>{{ item.converted_exif.lensmodel }}</dd>
       </dl>
       <dl>
-        <dt translate>Captured</dt><dd sd-reldate-complex ng-model="item.converted_exif.datecaptured"></dd>
-      </dl>
+        <dt translate>Captured</dt>
+        <dd ng-switch on="item.converted_exif.datecaptured">
+            <span ng-switch-when="unknown">Unknown</span>
+            <time
+                ng-switch-default
+                datetime="{{ item.converted_exif.datecaptured }}"
+                title="{{ item.converted_exif.datecaptured|date:'medium' }}">{{ item.converted_exif.datecaptured| date:'medium' }}</time>
+        </dd>
+    </dl>
       <!-- Map -->
       <div vp-media-map data-item="item"></div>
       <!-- END MAP -->

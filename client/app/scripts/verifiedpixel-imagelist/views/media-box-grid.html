@@ -29,7 +29,13 @@
 
         <dl ng-if="!selected.preview">
             <dt translate>Taken</dt>
-                <dd><time datetime="{{ item.converted_exif.datecaptured }}" title="{{ item.converted_exif.datecaptured|date:'medium' }}">{{ item.converted_exif.datecaptured|reldate }}</time></dd>
+                <dd ng-switch on="item.converted_exif.datecaptured">
+                    <span ng-switch-when="unknown">Unknown</span>
+                    <time
+                        ng-switch-default
+                        datetime="{{ item.converted_exif.datecaptured }}"
+                        title="{{ item.converted_exif.datecaptured|date:'medium' }}">{{ item.converted_exif.datecaptured|reldate }}</time>
+                </dd>
         </dl>
 
         <dl class="verification-results">
