@@ -525,12 +525,14 @@
                     var cameraface = filemeta.lensmodel;
                     let camfacearr = [];
                         camfacearr = cameraface.split(" ");
-                    for (let i of camfacearr) {
+                    var i = 0;
+                    while (i < camfacearr.length) {
                         if ( i.length == 4 || i.length == 5 ) { // check to see if the string length is correct
                             if (i == "front" || i == "back") { // check to see if the string matches what we want 
                                 converted.cameraface = i;
                             }
                         }
+                        i++;
                     }
                     if (converted.cameraface == "front") {
                         var tempVal = converted.markerdirection;
