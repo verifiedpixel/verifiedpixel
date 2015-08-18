@@ -310,6 +310,7 @@ GRIS_API_KEY = env('GRIS_API_KEY', 'api-key')
 GRIS_API_CX = env('GRIS_API_CX', 'api:cx')
 
 VERIFICATION_TASK_RETRY_INTERVAL = int(env('VERIFICATION_TASK_RETRY_INTERVAL', 60))
+USE_VERIFICATION_MOCK = bool(env('USE_VERIFICATION_MOCK', False))
 
 
 OrganizationName = "Sourcefabric"

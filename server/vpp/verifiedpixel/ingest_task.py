@@ -10,6 +10,7 @@ from io import BytesIO
 from kombu.serialization import register
 import dill
 from celery import chord, group
+import json
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
@@ -21,7 +22,7 @@ from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
 from .elastic import (
-    handle_elastic_timeout_decorator, handle_elastic_write_problems_wrapper
+    handle_elastic_read_problems_wrapper, handle_elastic_write_problems_wrapper
 )
 
 
@@ -131,23 +132,34 @@ API_GETTERS = {
 }
 
 
-# @TODO: replace it to a settings' option to use mocks
-USE_MOCKS = False
-if USE_MOCKS:
-    def get_placeholder_results(*args, **kwargs):
-        return {"status": "ok", "message": "this is mock"}
-    API_GETTERS = {
-        'izitru': {"function": get_placeholder_results, "args": ("filename", "content",)},
-        'tineye': {"function": get_placeholder_results, "args": ("content",)},
-        'gris': {"function": get_placeholder_results, "args": ("href",)},
-    }
+def get_placeholder_api_getter(api_name):
+    with open('./test/vpp/test1_verification_result.json') as f:
+        mock_response = json.load(f)[api_name]
+
+        def api_getter(*args, **kwargs):
+            return mock_response
+
+        return api_getter
+
+
+MOCK_API_GETTERS = {
+    'izitru': {"function": get_placeholder_api_getter('izitru'), "args": ("filename", "content",)},
+    'tineye': {"function": get_placeholder_api_getter('tineye'), "args": ("content",)},
+    'gris': {"function": get_placeholder_api_getter('gris'), "args": ("href",)},
+}
+
+
+def get_api_getters():
+    if app.config['USE_VERIFICATION_MOCK']:
+        return MOCK_API_GETTERS
+    else:
+        return API_GETTERS
 
 
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_api_result', ignore_result=False)
-@handle_elastic_timeout_decorator()
 def append_api_results_to_item(self, item, api_name, args):
     filename = item['slugline']
-    api_getter = API_GETTERS[api_name]['function']
+    api_getter = get_api_getters()[api_name]['function']
     info(
         "{api}: searching matches for {file}... ({tries} of {max})".format(
             api=api_name, file=filename, tries=self.request.retries, max=self.max_retries
@@ -178,31 +190,41 @@ def append_api_results_to_item(self, item, api_name, args):
 
 
 @celery.task(bind=True, name='vpp.finalize_verification')
-@handle_elastic_timeout_decorator()
 def finalize_verification(self, *args, item_id, desk_id):
-    # Auto fetch items to the 'Verified Imges' desk
     success('Fetching item: {} into desk "Verified Images".'.format(item_id))
-    superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
-    # Delete the ingest item
-    superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
+    handle_elastic_write_problems_wrapper(
+        # Auto fetch items to the 'Verified Images' desk
+        lambda: superdesk.get_resource_service('fetch').fetch(
+            [{'_id': item_id, 'desk': desk_id}]
+        )
+    )
+    handle_elastic_write_problems_wrapper(
+        # Delete the ingest item
+        lambda: superdesk.get_resource_service('ingest').delete(
+            lookup={'_id': item_id}
+        )
+    )
 
 
 @celery.task(bind=True, name='vpp.verify_ingest')
-@handle_elastic_timeout_decorator()
 def verify_ingest(self):
     info(
         'Checking for new ingested images for verification...'
     )
-    items = superdesk.get_resource_service('ingest').get_from_mongo(
-        req=ParsedRequest(),
-        lookup={
-            'type': 'picture',
-            'verification': {'$exists': False}
-        }
-    )
-    desk = superdesk.get_resource_service('desks').find_one(req=ParsedRequest(), name='Verified Images')
-    desk_id = str(desk['_id'])
-
+    try:
+        items = superdesk.get_resource_service('ingest').get_from_mongo(
+            req=ParsedRequest(),
+            lookup={
+                'type': 'picture',
+                'verification': {'$exists': False}
+            }
+        )
+        desk = superdesk.get_resource_service('desks').find_one(req=ParsedRequest(), name='Verified Images')
+        desk_id = str(desk['_id'])
+    except Exception as e:
+        error("Raised from verify_ingest task, aborting:")
+        error(e)
+        raise(e)
     for item in items:
         filename = item['slugline']
         info(
@@ -225,7 +247,7 @@ def verify_ingest(self):
                         [all_args[arg_name] for arg_name in data['args']]
                     )
                 ))
-                for api_name, data in API_GETTERS.items()
+                for api_name, data in get_api_getters().items()
             ),
             finalize_verification.subtask(
                 kwargs={"item_id": item['_id'], "desk_id": desk_id},
