@@ -520,7 +520,26 @@
                     filemeta.gpsinfo.gpsimgdirection[0] /
                     filemeta.gpsinfo.gpsimgdirection[1]
                 ).toFixed(3);
-                converted.markerdirection = Math.ceil(converted.gpsdirection / 10) * 10; 
+                converted.markerdirection = Math.ceil(converted.gpsdirection / 10) * 10;
+                if (filemeta.lensmodel) {
+                    var cameraface = filemeta.lensmodel;
+                    let camfacearr = [];
+                        camfacearr = cameraface.split(" ");
+                    var i = 0;
+                    while (i < camfacearr.length) {
+                        if ( i.length == 4 || i.length == 5 ) { // check to see if the string length is correct
+                            if (i == "front" || i == "back") { // check to see if the string matches what we want 
+                                converted.cameraface = i;
+                            }
+                        }
+                        i++;
+                    }
+                    if (converted.cameraface == "front") {
+                        var tempVal = converted.markerdirection;
+                        var retVal = (tempVal + 180) % 360;
+                        converted.markerdirection = retVal;
+                    }
+                }
                 converted.gpsicon = {
                     url: '/images/gpsdirection/view-' + converted.markerdirection + '.png',
                     size: new google.maps.Size(100, 100),
@@ -667,7 +686,7 @@
             }
 
             api.query(provider, criteria).then(function(results) {
-                // normaize exif filemata fields because
+                // normalize exif filemata fields because
                 // sometimes we get lowercase field names, and somtimes camel case
                 // this function just makes them all lower case
                 // also makes sure that a filemeta object always exists
@@ -1469,6 +1488,7 @@
                 link: function(scope, elem) {
 
                     scope.$watch('item', reloadData);
+
 
                     function reloadData() {
                         scope.originalCreator = null;
