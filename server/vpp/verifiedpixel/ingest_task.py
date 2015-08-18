@@ -68,6 +68,9 @@ def get_tineye_results(content):
     try:
         response = superdesk.app.data.vpp_tineye_api.search_data(content)
     except TinEyeAPIError as e:
+        # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
+        if e.code == 400:
+            return {"status": "error", "message": e.message}
         raise APIGracefulException(e)
     except KeyError as e:
         if e.args[0] == 'code':
