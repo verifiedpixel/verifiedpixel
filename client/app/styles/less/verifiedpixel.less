@@ -150,10 +150,12 @@
         }
         dd {
             display: inline-block;
-            overflow: hidden;
+            text-overflow: hidden;
             width: 25px!important;
             height: 25px!important;
+            margin: 0 5px 0 0;
             color: transparent!important;
+            position: relative;
             // gps icon styles
             &.gps {
                 background: #03ff03;
@@ -165,46 +167,92 @@
                 }
             }
             // gris
-            &.gris-good {
-                background: url(../../images/verification/gris-good.png) no-repeat center center transparent;
-            }
-            &.gris-bad {
-                background: url(../../images/verification/gris-bad.png) no-repeat center center transparent;
-            }
-            &.gris-ugly {
-                background: url(../../images/verification/gris-ugly.png) no-repeat center center transparent;
+            &.gris {
+                background: url(../../images/verification/gris-grey.png) no-repeat center center transparent;
+                background-size: 100%;
+                &.good {
+                    background: url(../../images/verification/gris-green.png) no-repeat center center transparent;
+                    background-size: 100%;
+                }
+                &.bad {
+                }
+                &.ugly {
+                }
             }
             // tineye
-            &.tineye-good {
-                background: url(../../images/verification/tineye-green.svg) no-repeat center center transparent;
+            &.tineye {
+                background: url(../../images/verification/tineye.svg) no-repeat center center transparent;
                 background-size: 100%;
-            }
-            &.tineye-bad {
-                background: url(../../images/verification/tineye-red.svg) no-repeat center center transparent;
-                background-size: 100%;
-            }
-            &.tineye-ugly {
-                background: url(../../images/verification/tineye-grey.svg) no-repeat center center transparent;
-                background-size: 100%;
+                &.good {
+                    background-size: 100%;
+                    span {
+                        background-color: #21a537;
+                    }
+                }
+                &.bad {
+                }
+                &.ugly {
+                }
+                span {
+                    position: absolute;
+                    top: -4px;
+                    right: -4px;
+                    background: #971914;
+                    color: #fff;
+                    width: 16px;
+                    height: 16px;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    text-align: center;
+                    border-radius: 3px;
+                    line-height: 16px;
+                    box-shadow: 0 0 2px #000;
+                }
             }
             // iztru icon styles
-            &.iztru {
-                background: url(../../images/verification/izitru.png) no-repeat center center transparent;
-            }
-            &.iztru-1 {
-                background: url(../../images/verification/izitru-1.png) no-repeat center center transparent;
-            }
-            &.iztru-2 {
-                background: url(../../images/verification/izitru-2.png) no-repeat center center transparent;
-            }
-            &.iztru-3 {
-                background: url(../../images/verification/izitru-3.png) no-repeat center center transparent;
-            }
-            &.iztru-4 {
-                background: url(../../images/verification/izitru-4.png) no-repeat center center transparent;
-            }
-            &.iztru-5 {
-                background: url(../../images/verification/izitru-5.png) no-repeat center center transparent;
+            &.izitru {
+                background: url(../../images/verification/izitru.svg) no-repeat center center transparent;
+                background-size: 100%;
+                span {
+                    position: absolute;
+                    top: -4px;
+                    right: -4px;
+                    background: #999;
+                    color: #fff;
+                    width: 16px;
+                    height: 16px;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    text-align: center;
+                    border-radius: 3px;
+                    line-height: 16px;
+                    box-shadow: 0 0 2px #000;
+                }
+                &-1 {
+                    span {
+                        background-color: #21a537!important;
+                    }
+                }
+                &-2 {
+                    span {
+                        background-color: #85a02d!important;
+                    }
+                }
+                &-3 {
+                    span {
+                        background-color: #ff9d00!important;
+                    }
+                }
+                &-4 {
+                    span {
+                        background-color: #ff5400!important;
+                    }
+                }
+                &-5 {
+                    span {
+                        background-color: #971914!important;
+                    }
+                }
             }
         }
     }
