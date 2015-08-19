@@ -521,24 +521,8 @@
                     filemeta.gpsinfo.gpsimgdirection[1]
                 ).toFixed(3);
                 converted.markerdirection = Math.ceil(converted.gpsdirection / 10) * 10;
-                if (filemeta.lensmodel) {
-                    var cameraface = filemeta.lensmodel;
-                    let camfacearr = [];
-                        camfacearr = cameraface.split(" ");
-                    var i = 0;
-                    while (i < camfacearr.length) {
-                        if ( i.length == 4 || i.length == 5 ) { // check to see if the string length is correct
-                            if (i == "front" || i == "back") { // check to see if the string matches what we want 
-                                converted.cameraface = i;
-                            }
-                        }
-                        i++;
-                    }
-                    if (converted.cameraface == "front") {
-                        var tempVal = converted.markerdirection;
-                        var retVal = (tempVal + 180) % 360;
-                        converted.markerdirection = retVal;
-                    }
+                if (filemeta.lensmodel && filemeta.lensmodel.match(/front/i)) {
+                    converted.markerdirection = (converted.markerdirection + 180) % 360;
                 }
                 converted.gpsicon = {
                     url: '/images/gpsdirection/view-' + converted.markerdirection + '.png',
