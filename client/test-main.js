@@ -50,6 +50,8 @@ superdesk_push('superdesk-authoring/comments/comments');
 superdesk_push('superdesk-authoring/workqueue/workqueue');
 superdesk_push('superdesk-authoring/metadata/metadata');
 superdesk_push('superdesk-authoring/versioning/versioning');
+superdesk_push('superdesk-authoring/versioning/versions/versions');
+superdesk_push('superdesk-authoring/versioning/history/history');
 superdesk_push('superdesk-authoring/packages/packages');
 superdesk_push('superdesk-authoring/editor/find-replace');
 superdesk_push('superdesk-authoring/multiedit/multiedit');
@@ -81,7 +83,9 @@ superdesk_push('superdesk-publish/publish');
 superdesk_push('superdesk-publish/filters/publish-filters');
 superdesk_push('superdesk/editor/spellcheck/spellcheck');
 superdesk_push('superdesk-templates/templates');
+superdesk_push('superdesk-highlights/highlights');
 superdesk_push('superdesk-monitoring/monitoring');
+superdesk_push('superdesk-workspace/workspace');
 
 ////////////////////////////////////////////////////////////////////////////////
 // VerifiedPixel app
