@@ -21,9 +21,7 @@ import superdesk
 from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
-from .elastic import (
-    handle_elastic_read_problems_wrapper, handle_elastic_write_problems_wrapper
-)
+from .elastic import handle_elastic_write_problems_wrapper
 
 
 # @TODO: for debug purpose
