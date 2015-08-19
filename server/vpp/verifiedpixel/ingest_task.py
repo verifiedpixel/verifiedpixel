@@ -21,9 +21,7 @@ import superdesk
 from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
-from .elastic import (
-    handle_elastic_read_problems_wrapper, handle_elastic_write_problems_wrapper
-)
+from .elastic import handle_elastic_write_problems_wrapper
 
 
 # @TODO: for debug purpose
@@ -70,7 +68,7 @@ def get_tineye_results(content):
     except TinEyeAPIError as e:
         # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
         if e.code == 400:
-            return {"status": "error", "message": e.message}
+            return {"status": "error", "message": repr(e.message)}
         raise APIGracefulException(e)
     except KeyError as e:
         if e.args[0] == 'code':
@@ -135,7 +133,7 @@ API_GETTERS = {
 }
 
 
-def get_placeholder_api_getter(api_name):
+def get_placeholder_api_getter(api_name):  # pragma: no cover
     with open('./test/vpp/test1_verification_result.json') as f:
         mock_response = json.load(f)[api_name]
 
@@ -143,7 +141,6 @@ def get_placeholder_api_getter(api_name):
             return mock_response
 
         return api_getter
-
 
 MOCK_API_GETTERS = {
     'izitru': {"function": get_placeholder_api_getter('izitru'), "args": ("filename", "content",)},
@@ -154,7 +151,7 @@ MOCK_API_GETTERS = {
 
 def get_api_getters():
     if app.config['USE_VERIFICATION_MOCK']:
-        return MOCK_API_GETTERS
+        return MOCK_API_GETTERS  # pragma: no cover
     else:
         return API_GETTERS
 
