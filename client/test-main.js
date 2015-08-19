@@ -75,7 +75,6 @@ superdesk_push('superdesk-dashboard/workspace-tasks/tasks');
 
 superdesk_push('superdesk-archive/module');
 superdesk_push('superdesk-archive/directives');
-superdesk_push('superdesk-archive/controllers/baseList');
 
 superdesk_push('superdesk-dictionaries/dictionaries');
 superdesk_push('superdesk-publish/publish');
@@ -122,7 +121,8 @@ requirejs.config({
         'angular-mocks': 'bower_components/angular-mocks/angular-mocks',
         'angular-ui': 'bower_components/angular-bootstrap/ui-bootstrap-tpls',
         'angular-file-upload': 'bower_components/ng-file-upload/angular-file-upload',
-        'moment-timezone': 'bower_components/moment-timezone/moment-timezone'
+        'moment-timezone': 'bower_components/moment-timezone/moment-timezone',
+        'superdesk-archive': 'bower_components/superdesk/client/app/scripts/superdesk-archive'
     },
 
     shim: {
