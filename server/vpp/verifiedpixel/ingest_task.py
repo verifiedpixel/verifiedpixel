@@ -23,6 +23,7 @@ from superdesk.celery_app import celery
 from .logging import error, warning, info, success
 from .elastic import handle_elastic_write_problems_wrapper
 from .exceptions import APIGracefulException, ImageNotFoundException
+from .incandescent import get_incandescent_results
 
 
 # @TODO: for debug purpose
@@ -122,7 +123,8 @@ def get_izitru_results(filename, content):
 API_GETTERS = {
     'izitru': {"function": get_izitru_results, "args": ("filename", "content",)},
     'tineye': {"function": get_tineye_results, "args": ("content",)},
-    'gris': {"function": get_gris_results, "args": ("href",)},
+    #'gris': {"function": get_gris_results, "args": ("href",)},
+    'incandescent': {"function": get_incandescent_results, "args": ("href",)},
 }
 
 
@@ -157,6 +159,9 @@ MOCK_API_GETTERS = {
     ]), "args": ("content",)},
     'gris': {"function": get_placeholder_api_getter([
         {"response": {'status': 'error', 'message': 'something gone wrong'}}
+    ]), "args": ("href",)},
+    'incandescent': {"function": get_placeholder_api_getter([
+        {"response": {'status': 'error', 'message': 'mock not implemented yet'}}
     ]), "args": ("href",)},
 }
 

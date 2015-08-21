@@ -61,6 +61,28 @@ def activate_izitru_mock(*fixtures):
     return wrap
 
 
+def activate_incandescent_mock(*fixtures):
+    fixture_generator = get_fixture_generator(fixtures)
+
+    @urlmatch(
+        scheme='https', netloc='incandescent.xyz'
+    )
+    def incandescent_request(url, request):
+        logger.debug("served requests mock for INCANDESCENT")
+        fixture = next(fixture_generator)
+        return {
+            'status_code': fixture[METADATA]['status'],
+            'content': json.loads(fixture[CONTENT]),
+        }
+
+    def wrap(f):
+        def test_new(*args):
+            with HTTMock(incandescent_request):
+                f(*args)
+        return test_new
+    return wrap
+
+
 def activate_tineye_mock(*fixtures):
     responses = Responses('urllib3')
     fixture_generator = get_fixture_generator(fixtures)

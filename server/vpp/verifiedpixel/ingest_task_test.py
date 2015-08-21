@@ -13,7 +13,8 @@ from .ingest_task import (
 from .exceptions import APIGracefulException
 
 from .vpp_mock import (
-    activate_tineye_mock, activate_izitru_mock, activate_gris_mock
+    activate_tineye_mock, activate_izitru_mock, activate_gris_mock,
+    activate_incandescent_mock
 )
 from .vpp_test import VPPTestCase
 
@@ -58,6 +59,10 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
         {"response_file": './test/vpp/gris_discovery_response.json'},
         {"response_file": './test/vpp/test1_gris_search_response.json'}
     )
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
+    )
     def test_happy_day_png(self):
         self.upload_fixture_image(
             './test/vpp/test.png',
@@ -69,9 +74,15 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
+            verification_result = list(items)[0]['verification']
+
+            for result in self.expected_verification_results[0]['incandescent']:
+                self.assertIn(result, verification_result['incandescent'])
+            self.expected_verification_results[0]['incandescent'] = None
+            verification_result['incandescent'] = None
             self.assertEqual(
                 self.expected_verification_results[0],
-                list(items)[0]['verification']
+                verification_result
             )
 
     @activate_izitru_mock(
@@ -84,6 +95,10 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
         {"response_file": './test/vpp/gris_discovery_response.json'},
         {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
+    )
     def test_happy_day_jpg(self):
         self.upload_fixture_image(
             './test/vpp/test2.jpg',
@@ -95,9 +110,15 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
+            verification_result = list(items)[0]['verification']
+
+            for result in self.expected_verification_results[0]['incandescent']:
+                self.assertIn(result, verification_result['incandescent'])
+            self.expected_verification_results[0]['incandescent'] = None
+            verification_result['incandescent'] = None
             self.assertEqual(
                 self.expected_verification_results[0],
-                list(items)[0]['verification']
+                verification_result
             )
 
     # Izitru

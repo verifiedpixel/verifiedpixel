@@ -8,6 +8,7 @@ import urllib.parse
 from requests import request
 from hashlib import sha1 as sha
 from flask import current_app as app
+from time import sleep
 
 from .exceptions import APIGracefulException
 
@@ -25,6 +26,7 @@ def get_incandescent_results(href):
     signature = urllib.parse.quote_plus(
         base64.b64encode(binary_signature.digest()))
     images = [href]
+
     add_data = {
         'uid': uid,
         'expires': utc_expires,
@@ -38,7 +40,7 @@ def get_incandescent_results(href):
         raise APIGracefulException(add_response)
 
     add_result = add_response.json()
-    if not add_result['project_id']:
+    if 'project_id' not in add_result:
         raise APIGracefulException(add_result)
 
     get_data = {
@@ -49,17 +51,19 @@ def get_incandescent_results(href):
     }
     get_headers = {'Content-type': 'application/json'}
     results = None
+    sleep_interval = 1
+    sleep_timeout = 120
     while not results:
         get_response = request(
             'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers)
         get_result = get_response.json()
         if get_result.get('status') == 710:
             results = None
+            sleep(sleep_interval)
+            sleep_interval += 1
+            if sleep_interval > sleep_timeout:
+                raise APIGracefulException("Timeout then waiting result from incandescent")
         else:
             results = get_result
 
-    return results
-
-results = get_incandescent_results(
-    'http://vppmaster.dev.superdesk.org/api/upload/55c9fdfb6cdb31004e08aa5f/raw?_schema=http')
-print(results)
+    return [{"url": url, "result": result} for url, result in results.items()]
