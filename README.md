@@ -12,7 +12,7 @@ Documentation (Coming soon) •
 For the sake of simplification we're going to say that you're in your download location.
 ```bash
 $cd server
-$virtualenv env
+$virtualenv -p python3 env
 $source env/bin/activate
 (env)$pip install -r requirements.txt
 ```
