@@ -1,23 +1,13 @@
-import logging
-import hashlib
+import logging  # noqa @TODO:
 import hmac
 import base64
-import time
 import datetime
 import calendar
 import json
-import urllib.request
 import urllib.parse
-import urllib.error
-from gridfs import GridFS
-from eve.utils import ParsedRequest
 from requests import request
-from PIL import Image
-from io import BytesIO
 from hashlib import sha1 as sha
 from flask import current_app as app
-
-import superdesk
 
 from .exceptions import APIGracefulException
 
