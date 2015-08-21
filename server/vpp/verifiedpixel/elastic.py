@@ -12,6 +12,7 @@ from .logging import debug  # noqa
 
 def handle_elastic_timeout_wrapper(f):
     retry_interval = 0.5  # s
+    max_retry = 60
 
     def retry(e):
         nonlocal retry_interval
@@ -20,6 +21,8 @@ def handle_elastic_timeout_wrapper(f):
                     interval=retry_interval, exception=str(e.__class__).split("'")[1]))
         sleep(retry_interval)
         retry_interval *= 2
+        if retry_interval > max_retry:
+            raise(e)
 
     while True:
         try:
