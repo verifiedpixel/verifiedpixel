@@ -41,6 +41,7 @@ superdesk_push('superdesk/upload/upload');
 superdesk_push('superdesk/list/list');
 superdesk_push('superdesk/keyboard/keyboard');
 superdesk_push('superdesk/services/storage');
+superdesk_push('superdesk/services/workflowService');
 superdesk_push('superdesk/beta/beta');
 
 // superdesk apps
@@ -126,7 +127,6 @@ requirejs.config({
         'angular-ui': 'bower_components/angular-bootstrap/ui-bootstrap-tpls',
         'angular-file-upload': 'bower_components/ng-file-upload/angular-file-upload',
         'moment-timezone': 'bower_components/moment-timezone/moment-timezone',
-        'superdesk-archive': 'bower_components/superdesk/client/app/scripts/superdesk-archive'
     },
 
     shim: {
