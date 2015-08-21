@@ -156,13 +156,15 @@ MOCK_API_GETTERS = {
         {"response_file": "test/vpp/mock_izitru_1.json"},
         {"response_file": "test/vpp/mock_izitru_3.json"},
         {"response_file": "test/vpp/mock_izitru_5.json"},
+        {"response": {'status': 'error', 'message': 'something gone wrong'}}
     ]), "args": ("filename", "content",)},
     'tineye': {"function": get_placeholder_api_getter([
         {"response_file": "test/vpp/mock_tineye_many.json"},
         {"response_file": "test/vpp/mock_tineye_zero.json"},
+        {"response": {'status': 'error', 'message': 'something gone wrong'}}
     ]), "args": ("content",)},
     'gris': {"function": get_placeholder_api_getter([
-        {"response": {'status': 'error'}}
+        {"response": {'status': 'error', 'message': 'something gone wrong'}}
     ]), "args": ("href",)},
 }
 
