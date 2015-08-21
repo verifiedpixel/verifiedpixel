@@ -233,13 +233,24 @@
                     background: url(../../images/verification/izitru-grey.svg) no-repeat center center transparent;
                     background-size: 100%;
                 }
-                &-1,
+                &-1 {
+                    // green
+                    span {
+                        background-color: #21a537!important;
+                    }
+                }
                 &-2,
                 &-3,
-                &-4,
+                &-4 {
+                    span {
+                        // amber
+                        background-color: #ff6700!important;
+                    }
+                }
                 &-5 {
                     span {
-                        background-color: #ff9d00!important;
+                        // red
+                        background-color: #ce1417!important;
                     }
                 }
             }
@@ -318,12 +329,6 @@
                 position: relative;
                 top: 10px;
             }
-            // &.active {
-            //     &::before {
-            //         background: url("../../images/preview-icons/tineye-icon-full.svg") no-repeat center center transparent;
-            //         background-size: 100%;
-            //     }
-            // }
         }
         &.izitru {
             &::before {
@@ -337,12 +342,6 @@
                 position: relative;
                 top: 10px;
             }
-            // &.active {
-            //     &::before {
-            //         background: url("../../images/preview-icons/izitru-icon-full.svg") no-repeat center center transparent;
-            //         background-size: 100%;
-            //     }
-            // }
         }
     }
     // preview container
