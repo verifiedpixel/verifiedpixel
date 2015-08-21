@@ -20,6 +20,7 @@ from .ingest import IngestResource, IngestService
 from .item_comments import ItemCommentsResource, ItemCommentsSubResource, ItemCommentsService, ItemCommentsSubService
 from .user_content import UserContentResource, UserContentService
 from .archive_lock import ArchiveLockResource, ArchiveUnlockResource, ArchiveLockService, ArchiveUnlockService
+from .archive_crop import ArchiveCropService, ArchiveCropResource
 from .archive_spike import ArchiveUnspikeResource, ArchiveSpikeService, ArchiveSpikeResource, ArchiveUnspikeService
 import superdesk
 from apps.common.components.utils import register_component
@@ -32,6 +33,7 @@ from superdesk.celery_app import celery
 from .saved_searches import SavedSearchesService, SavedSearchesResource, \
     SavedSearchItemsResource, SavedSearchItemsService
 from .archive_link import ArchiveLinkResource, ArchiveLinkService
+from .archive_rewrite import ArchiveRewriteResource, ArchiveRewriteService
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +65,10 @@ def init_app(app):
     service = ArchiveLockService(endpoint_name, backend=superdesk.get_backend())
     ArchiveLockResource(endpoint_name, app=app, service=service)
 
+    endpoint_name = 'archive_crop'
+    service = ArchiveCropService(endpoint_name, backend=superdesk.get_backend())
+    ArchiveCropResource(endpoint_name, app=app, service=service)
+
     endpoint_name = 'archive_unlock'
     service = ArchiveUnlockService(endpoint_name, backend=superdesk.get_backend())
     ArchiveUnlockResource(endpoint_name, app=app, service=service)
@@ -82,6 +88,10 @@ def init_app(app):
     endpoint_name = 'archive_link'
     service = ArchiveLinkService(endpoint_name, backend=superdesk.get_backend())
     ArchiveLinkResource(endpoint_name, app=app, service=service)
+
+    endpoint_name = 'archive_rewrite'
+    service = ArchiveRewriteService(endpoint_name, backend=superdesk.get_backend())
+    ArchiveRewriteResource(endpoint_name, app=app, service=service)
 
     endpoint_name = 'saved_searches'
     service = SavedSearchesService(endpoint_name, backend=superdesk.get_backend())
@@ -112,10 +122,9 @@ def init_app(app):
     superdesk.privilege(name='saved_searches', label='Manage Saved Searches',
                         description='User can manage Saved Searches')
 
-    superdesk.privilege(name='kill', label='Kill', description='Kill a published content')
-    superdesk.privilege(name='correct', label='Correction', description='Correction to a published content')
     superdesk.privilege(name='hold', label='Hold', description='Hold a content')
     superdesk.privilege(name='restore', label='Restore', description='Restore a hold a content')
+    superdesk.privilege(name='rewrite', label='Rewrite', description='Rewrite a published content')
 
     superdesk.intrinsic_privilege(ArchiveUnlockResource.endpoint_name, method=['POST'])
     superdesk.intrinsic_privilege(ArchiveLinkResource.endpoint_name, method=['POST'])

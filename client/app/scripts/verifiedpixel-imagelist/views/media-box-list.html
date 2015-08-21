@@ -29,8 +29,8 @@
             <dd ng-if="!item.verification.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
 
             <dt translate>GPS Info Status</dt>
-            <dd class="gps" ng-if="item.filemeta.GPSInfo" title="Item has GPS metadata">Item has GPS metadata</dd>
-            <dd class="gps no" ng-if="!item.filemeta.GPSInfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
+            <dd class="gps" ng-if="item.converted_exif.gpsinfo" title="Item has GPS metadata">Item has GPS metadata</dd>
+            <dd class="gps no" ng-if="!item.converted_exif.gpsinfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
         </dl>
         <div class="line">
             <!-- <div class="state-label state-{{item.state}}">{{item.state}}</div> -->

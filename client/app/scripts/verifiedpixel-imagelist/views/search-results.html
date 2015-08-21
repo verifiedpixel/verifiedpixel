@@ -3,9 +3,9 @@
         <header class="search-page-header">
             <div class="fitler-trigger" ng-click="flags.facets = true" ng-class="{hidden: flags.facets}"><i class="icon-filter-large"></i></div>
 
-            <div vp-item-sortbar></div>
+            <div sd-item-sortbar></div>
 
-            <div vp-item-searchbar data-repo="repo" data-context="context" class="searchbar-flex-handler"></div>
+            <div sd-item-searchbar data-repo="repo" data-context="context" class="searchbar-flex-handler"></div>
         
             <div sd-pagination data-items="items"></div>
 
@@ -21,16 +21,12 @@
         <div class="content" sd-updown data-items="items._items" data-select="preview(item)">
             <div class="loading-indicator" ng-show="loading" translate>loading</div>
 
-            <div vp-search-tags></div>
+            <div sd-search-tags></div>
 
             <div ng-if="selected.preview">
               <div sd-shadow>
 
                 <div class="thumbs">
-                    <nav ng-if="view !== 'compact'">
-                        <span class="prev">Previous</span>
-                        <span class="next">Next</span>
-                    </nav>
                     <div ng-if="view !== 'compact'" class="filmstrip">
                         <ul class="slides">
                             <li ng-repeat="item in items._items" class="list-item-view" ng-class="{active: item === selected.preview || item._id === selected.fetch}">
@@ -46,7 +42,11 @@
                 </div>
               </div>
               <div class="preview-container" ng-if="view !== 'compact'">
-                  <img ng-src="{{ selected.preview.renditions.viewImage.href }}" />
+                  <img
+                      class="vpp-selected-preview"
+                      vp-exif-orient
+                      data-orientation="selected.preview.converted_exif.orientation"
+                      ng-src="{{ selected.preview.renditions.viewImage.href }}" />
               </div>
             </div>
 

@@ -1,4 +1,3 @@
-import logging
 import hashlib
 import time
 from bson.objectid import ObjectId
@@ -8,6 +7,10 @@ from eve.utils import ParsedRequest
 from requests import request
 from PIL import Image
 from io import BytesIO
+from kombu.serialization import register
+import dill
+from celery import chord, group
+import json
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
@@ -17,17 +20,20 @@ from apiclient.discovery import HttpError as GoogleHttpError
 import superdesk
 from superdesk.celery_app import celery
 
+from .logging import error, warning, info, success
+from .elastic import handle_elastic_write_problems_wrapper
+
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
+from .logging import debug  # noqa
 
 
-logger = logging.getLogger('superdesk')
-logger.setLevel(logging.INFO)
+register('dill', dill.dumps, dill.loads, content_type='application/x-binary-data', content_encoding='binary')
 
 
 def init_tineye(app):
-    app.data.tineye_api = TinEyeAPIRequest(
+    app.data.vpp_tineye_api = TinEyeAPIRequest(
         api_url=app.config['TINEYE_API_URL'],
         public_key=app.config['TINEYE_PUBLIC_KEY'],
         private_key=app.config['TINEYE_SECRET_KEY']
@@ -53,16 +59,16 @@ def get_original_image(item):
 
 
 class APIGracefulException(Exception):
-
-    def __init__(self, message):
-        super(Exception, self).__init__(message)
-        logger.warning(message)
+    pass
 
 
 def get_tineye_results(content):
     try:
-        response = superdesk.app.data.tineye_api.search_data(content)
+        response = superdesk.app.data.vpp_tineye_api.search_data(content)
     except TinEyeAPIError as e:
+        # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
+        if e.code == 400:
+            return {"status": "error", "message": repr(e.message)}
         raise APIGracefulException(e)
     except KeyError as e:
         if e.args[0] == 'code':
@@ -121,79 +127,130 @@ def get_izitru_results(filename, content):
 
 
 API_GETTERS = {
-    'izitru': get_izitru_results,
-    'tineye': get_tineye_results,
-    'gris': get_gris_results,
+    'izitru': {"function": get_izitru_results, "args": ("filename", "content",)},
+    'tineye': {"function": get_tineye_results, "args": ("content",)},
+    'gris': {"function": get_gris_results, "args": ("href",)},
 }
 
 
-@celery.task(max_retries=3, bind=True)
-def append_api_results_to_item(self, item_id, api_name):
-    item = superdesk.get_resource_service('ingest').find_one(
-        req=None,
-        _id=item_id
-    )
+def get_placeholder_api_getter(api_name):  # pragma: no cover
+    with open('./test/vpp/test1_verification_result.json') as f:
+        mock_response = json.load(f)[api_name]
+
+        def api_getter(*args, **kwargs):
+            return mock_response
+
+        return api_getter
+
+MOCK_API_GETTERS = {
+    'izitru': {"function": get_placeholder_api_getter('izitru'), "args": ("filename", "content",)},
+    'tineye': {"function": get_placeholder_api_getter('tineye'), "args": ("content",)},
+    'gris': {"function": get_placeholder_api_getter('gris'), "args": ("href",)},
+}
+
+
+def get_api_getters():
+    if app.config['USE_VERIFICATION_MOCK']:
+        return MOCK_API_GETTERS  # pragma: no cover
+    else:
+        return API_GETTERS
+
+
+@celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_api_result', ignore_result=False)
+def append_api_results_to_item(self, item, api_name, args):
     filename = item['slugline']
-    try:
-        href, content = get_original_image(item)
-    except ImageNotFoundException:
-        return
-    all_args = {
-        'izitru': (filename, content,),
-        'tineye': (content,),
-        'gris': (href,),
-    }
-    args = all_args[api_name]
-    api_getter = API_GETTERS[api_name]
-    logger.info(
-        "VerifiedPixel: {api}: searching matches for {file}...".format(
-            api=api_name, file=filename
+    api_getter = get_api_getters()[api_name]['function']
+    info(
+        "{api}: searching matches for {file}... ({tries} of {max})".format(
+            api=api_name, file=filename, tries=self.request.retries, max=self.max_retries
         ))
     try:
         verification_result = api_getter(*args)
     except APIGracefulException as e:
-        logger.warning(
-            "VerifiedPixel: {api}: API exception raised during "
-            "verification of {file}:\n {exception}".format(
-                api=api_name, file=filename, exception=e
-            ))
-        self.retry(exc=e, countdown=60)
+        if self.request.retries < self.max_retries:
+            warning("{api}: API exception raised during "
+                    "verification of {file} (retrying):\n {exception}".format(
+                        api=api_name, file=filename, exception=e))
+            raise self.retry(exc=e, countdown=app.config['VERIFICATION_TASK_RETRY_INTERVAL'])
+        else:
+            error("{api}: max retries exceeded on "
+                  "verification of {file}:\n {exception}".format(
+                      api=api_name, file=filename, exception=e))
+            verification_result = {"status": "error", "message": repr(e)}
     else:
-        logger.info(
-            "VerifiedPixel: {api}: matchs found for {file}.".format(
-                api=api_name, file=filename
-            ))
-        superdesk.get_resource_service('ingest').patch(
-            item_id,
-            {'verification.%s' % api_name: verification_result},
+        info("{api}: matchs found for {file}.".format(
+            api=api_name, file=filename))
+    # record result to database
+    handle_elastic_write_problems_wrapper(
+        lambda: superdesk.get_resource_service('ingest').patch(
+            item['_id'],
+            {'verification.{api}'.format(api=api_name): verification_result}
         )
-        if 'verification' in item and len(item['verification']) == len(API_GETTERS) - 1:
-            # Auto fetch items to the 'Verified Imges' desk
-            desk = superdesk.get_resource_service('desks').find_one(req=None, name='Verified Images')
-            desk_id = str(desk['_id'])
-            item_id = str(item['_id'])
-            logger.info('VerifiedPixel: Fetching item: {} into desk: {}'.format(item_id, desk_id))
-            superdesk.get_resource_service('fetch').fetch([{'_id': item_id, 'desk': desk_id}])
-
-            # Delete the ingest item
-            superdesk.get_resource_service('ingest').delete(lookup={'_id': item_id})
-
-
-def verify_ingest_task():
-    logger.info(
-        'VerifiedPixel: Checking for new ingested images for verification...'
     )
-    items = superdesk.get_resource_service('ingest').get_from_mongo(
-        req=ParsedRequest(),
-        lookup={
-            'type': 'picture',
-            'verification': {'$exists': False}
-        }
+
+
+@celery.task(bind=True, name='vpp.finalize_verification')
+def finalize_verification(self, *args, item_id, desk_id):
+    success('Fetching item: {} into desk "Verified Images".'.format(item_id))
+    handle_elastic_write_problems_wrapper(
+        # Auto fetch items to the 'Verified Images' desk
+        lambda: superdesk.get_resource_service('fetch').fetch(
+            [{'_id': item_id, 'desk': desk_id}]
+        )
     )
+    handle_elastic_write_problems_wrapper(
+        # Delete the ingest item
+        lambda: superdesk.get_resource_service('ingest').delete(
+            lookup={'_id': item_id}
+        )
+    )
+
+
+@celery.task(bind=True, name='vpp.verify_ingest')
+def verify_ingest(self):
+    info(
+        'Checking for new ingested images for verification...'
+    )
+    try:
+        items = superdesk.get_resource_service('ingest').get_from_mongo(
+            req=ParsedRequest(),
+            lookup={
+                'type': 'picture',
+                'verification': {'$exists': False}
+            }
+        )
+        desk = superdesk.get_resource_service('desks').find_one(req=ParsedRequest(), name='Verified Images')
+        desk_id = str(desk['_id'])
+    except Exception as e:
+        error("Raised from verify_ingest task, aborting:")
+        error(e)
+        raise(e)
     for item in items:
         filename = item['slugline']
-        logger.info(
-            'VerifiedPixel: found new ingested item: "{}"'.format(filename)
+        info(
+            'found new ingested item: "{}"'.format(filename)
         )
-        for api_name in API_GETTERS:
-            append_api_results_to_item.delay(item['_id'], api_name)
+        try:
+            href, content = get_original_image(item)
+        except ImageNotFoundException:
+            return
+        all_args = {
+            "filename": filename,
+            "content": content,
+            "href": href
+        }
+        chord(
+            group(
+                (append_api_results_to_item.subtask(
+                    args=(
+                        item, api_name,
+                        [all_args[arg_name] for arg_name in data['args']]
+                    )
+                ))
+                for api_name, data in get_api_getters().items()
+            ),
+            finalize_verification.subtask(
+                kwargs={"item_id": item['_id'], "desk_id": desk_id},
+                immutable=True
+            )
+        ).delay()

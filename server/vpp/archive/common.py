@@ -10,37 +10,34 @@
 
 
 from datetime import datetime
-from uuid import uuid4
 
 from eve.utils import config
 import flask
 from flask import current_app as app
 from eve.versioning import insert_versioning_documents
+from pytz import timezone
 
 from superdesk.celery_app import update_key
 from superdesk.utc import utcnow, get_expiry_date
-from settings import SERVER_DOMAIN
+from settings import OrganizationNameAbbreviation
 from superdesk import get_resource_service
-from vpp.content import metadata_schema
+from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE
 from superdesk.workflow import set_default_state, is_workflow_state_transition_valid
 import superdesk
 from apps.archive.archive import SOURCE as ARCHIVE
-from vpp.content import PACKAGE_TYPE, TAKES_PACKAGE
+from vpp.metadata.item import GUID_NEWSML, GUID_FIELD, GUID_TAG, not_analyzed
+from vpp.metadata.packages import PACKAGE_TYPE, TAKES_PACKAGE, SEQUENCE
+from vpp.metadata.utils import generate_guid
 from superdesk.errors import SuperdeskApiError, IdentifierGenerationError
 
-GUID_TAG = 'tag'
-GUID_FIELD = 'guid'
-GUID_NEWSML = 'newsml'
-FAMILY_ID = 'family_id'
-INGEST_ID = 'ingest_id'
-ASSOCIATIONS = 'refs'
-ITEM_REF = 'residRef'
-ID_REF = 'idRef'
-MAIN_GROUP = 'main'
-ROOT_GROUP = 'root'
-SEQUENCE = 'sequence'
-PUBLISH_STATES = ['published', 'killed', 'corrected', 'scheduled']
 CUSTOM_HATEOAS = {'self': {'title': 'Archive', 'href': '/archive/{_id}'}}
+ITEM_OPERATION = 'operation'
+ITEM_CREATE = 'create'
+ITEM_UPDATE = 'update'
+ITEM_RESTORE = 'restore'
+ITEM_DUPLICATE = 'duplicate'
+ITEM_DESCHEDULE = 'deschedule'
+item_operations = [ITEM_CREATE, ITEM_UPDATE, ITEM_RESTORE, ITEM_DUPLICATE, ITEM_DESCHEDULE]
 
 
 def update_version(updates, original):
@@ -64,8 +61,51 @@ def on_create_item(docs, repo_type=ARCHIVE):
         if 'family_id' not in doc:
             doc['family_id'] = doc[GUID_FIELD]
 
+        if 'event_id' not in doc:
+            doc['event_id'] = generate_guid(type=GUID_TAG)
+
         set_default_state(doc, 'draft')
         doc.setdefault('_id', doc[GUID_FIELD])
+        set_dateline(doc, repo_type)
+
+        if not doc.get(ITEM_OPERATION):
+            doc[ITEM_OPERATION] = ITEM_CREATE
+
+
+def set_dateline(doc, repo_type):
+    """
+    If repo_type is ARCHIVE then sets dateline property for the article represented by doc. Dateline has 3 parts:
+    Located, Date (Format: Month Day) and Source. Dateline can either be simple: Sydney, July 30 AAP - or can be
+    complex: Surat,Gujarat,IN, July 30 AAP -. Date in the dateline should be timezone sensitive to the Located.
+
+    Located is set on the article based on user preferences if available. If located is not available in
+    user preferences then dateline in full will not be set.
+
+    :param doc: article
+    :param repo_type: collection name where the doc will be persisted
+    """
+
+    if repo_type == ARCHIVE:
+        current_date_time = dateline_ts = utcnow()
+        doc['dateline'] = {'date': current_date_time, 'source': OrganizationNameAbbreviation}
+
+        user = get_user()
+        if user and user.get('user_preferences', {}).get('dateline:located'):
+            located = user.get('user_preferences', {}).get('dateline:located', {}).get('located')
+            if located:
+                if located['tz'] != 'UTC':
+                    dateline_ts = datetime.fromtimestamp(dateline_ts.timestamp(), tz=timezone(located['tz']))
+
+                if dateline_ts.month == 9:
+                    formatted_date = 'Sept {}'.format(dateline_ts.strftime('%d'))
+                elif 3 <= dateline_ts.month <= 7:
+                    formatted_date = dateline_ts.strftime('%B %d')
+                else:
+                    formatted_date = dateline_ts.strftime('%b %d')
+
+                doc['dateline']['located'] = located
+                doc['dateline']['text'] = '{}, {} {} -'.format(located['city'], formatted_date,
+                                                               OrganizationNameAbbreviation)
 
 
 def on_duplicate_item(doc):
@@ -79,23 +119,6 @@ def on_duplicate_item(doc):
 def update_dates_for(doc):
     for item in ['firstcreated', 'versioncreated']:
         doc.setdefault(item, utcnow())
-
-
-def generate_guid(**hints):
-    """Generate a GUID based on given hints"""
-    newsml_guid_format = 'urn:newsml:%(domain)s:%(timestamp)s:%(identifier)s'
-    tag_guid_format = 'tag:%(domain)s:%(year)d:%(identifier)s'
-
-    if not hints.get('id'):
-        hints['id'] = str(uuid4())
-
-    t = datetime.today()
-
-    if hints['type'].lower() == GUID_TAG:
-        return tag_guid_format % {'domain': SERVER_DOMAIN, 'year': t.year, 'identifier': hints['id']}
-    elif hints['type'].lower() == GUID_NEWSML:
-        return newsml_guid_format % {'domain': SERVER_DOMAIN, 'timestamp': t.isoformat(), 'identifier': hints['id']}
-    return None
 
 
 def get_user(required=False):
@@ -148,8 +171,9 @@ aggregations = {
     'week': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1w'}]}},
     'month': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1M'}]}},
     'make': {'terms': {'field': 'filemeta.Make'}},
-    'location': {'terms': {'field': 'verification.izitru.EXIF.captureLocation'}},
-    'izitru': {'terms': {'field': 'verification.izitru.verdict'}}
+    'capture_location': {'terms': {'field': 'verification.izitru.EXIF.captureLocation'}},
+    'izitru': {'terms': {'field': 'verification.izitru.verdict'}},
+    'original_source': {'terms': {'field': 'original_source'}}
 }
 
 
@@ -283,8 +307,8 @@ def update_state(original, updates):
     is changed to 'in-progress'.
     """
 
-    original_state = original.get(config.CONTENT_STATE)
-    if original_state not in ['ingested', 'in_progress', 'scheduled']:
+    original_state = original.get(ITEM_STATE)
+    if original_state not in {CONTENT_STATE.INGESTED, CONTENT_STATE.PROGRESS, CONTENT_STATE.SCHEDULED}:
         if original.get(PACKAGE_TYPE) == TAKES_PACKAGE:
             # skip any state transition validation for takes packages
             # also don't change the stage of the package
@@ -292,9 +316,9 @@ def update_state(original, updates):
         if not is_workflow_state_transition_valid('save', original_state):
             raise superdesk.InvalidStateTransitionError()
         elif is_assigned_to_a_desk(original):
-            updates[config.CONTENT_STATE] = 'in_progress'
+            updates[ITEM_STATE] = CONTENT_STATE.PROGRESS
         elif not is_assigned_to_a_desk(original):
-            updates[config.CONTENT_STATE] = 'draft'
+            updates[ITEM_STATE] = CONTENT_STATE.DRAFT
 
 
 def is_update_allowed(archive_doc):
@@ -303,8 +327,7 @@ def is_update_allowed(archive_doc):
     For instance, a published item shouldn't be allowed to update.
     """
 
-    state = archive_doc.get(config.CONTENT_STATE)
-    if state in ['killed']:
+    if archive_doc.get(ITEM_STATE) == CONTENT_STATE.KILLED:
         raise SuperdeskApiError.forbiddenError("Item isn't in a valid state to be updated.")
 
 
@@ -321,6 +344,25 @@ def handle_existing_data(doc, pub_status_value='usable', doc_type='archive'):
 
         if doc_type == 'archive' and 'marked_for_not_publication' not in doc:
             doc['marked_for_not_publication'] = False
+
+
+def validate_schedule(schedule, package_sequence=1):
+    """
+    Validates the publish schedule.
+    :param datetime schedule: schedule datetime
+    :param int package_sequence: takes package sequence.
+    :raises: SuperdeskApiError.badRequestError if following cases
+        - Not a valid datetime
+        - Less than current utc time
+        - if more than 1 takes exist in the package.
+    """
+    if schedule:
+        if not isinstance(schedule, datetime):
+            raise SuperdeskApiError.badRequestError("Schedule date is not recognized")
+        if schedule < utcnow():
+            raise SuperdeskApiError.badRequestError("Schedule cannot be earlier than now")
+        if package_sequence > 1:
+            raise SuperdeskApiError.badRequestError("Takes cannot be scheduled.")
 
 
 def item_schema(extra=None):
@@ -344,6 +386,11 @@ def item_schema(extra=None):
             'type': 'boolean',
             'default': False
         },
+        ITEM_OPERATION: {
+            'type': 'string',
+            'allowed': item_operations,
+            'index': 'not_analyzed'
+        },
         'targeted_for': {
             'type': 'list',
             'nullable': True,
@@ -354,6 +401,18 @@ def item_schema(extra=None):
                     'allow': {'type': 'boolean'}
                 }
             }
+        },
+        'event_id': {
+            'type': 'string',
+            'mapping': not_analyzed
+        },
+        'rewrite_of': {
+            'type': 'string',
+            'mapping': not_analyzed,
+            'nullable': True
+        },
+        SEQUENCE: {
+            'type': 'integer'
         }
     }
     schema.update(metadata_schema)

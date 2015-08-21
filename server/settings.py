@@ -80,7 +80,7 @@ BROKER_URL = env('CELERY_BROKER_URL', REDIS_URL)
 CELERY_RESULT_BACKEND = BROKER_URL
 CELERY_ALWAYS_EAGER = (env('CELERY_ALWAYS_EAGER', False) == 'True')
 CELERY_TASK_SERIALIZER = 'json'
-CELERY_ACCEPT_CONTENT = ['pickle', 'json']  # it's using pickle when in eager mode
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'dill']  # it's using pickle when in eager mode
 CELERY_IGNORE_RESULT = True
 CELERY_DISABLE_RATE_LIMITS = True
 CELERYD_TASK_SOFT_TIME_LIMIT = 300
@@ -98,7 +98,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'ingest:gc': {
         'task': 'superdesk.io.gc_ingest',
-        'schedule': timedelta(minutes=5),
+        'schedule': timedelta(minutes=30),
     },
     'session:gc': {
         'task': 'apps.auth.session_purge',
@@ -117,7 +117,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute=30)
     },
     'verify:update': {
-        'task': 'vpp.verifiedpixel.verify_ingest',
+        'task': 'vpp.verify_ingest',
         'schedule': timedelta(seconds=30)
     },
 }
@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     'superdesk.macro_register',
     'superdesk.commands',
     'superdesk.data_consistency',
+    'superdesk.locators.locators',
 
     'vpp.archive',
 
@@ -158,7 +159,9 @@ INSTALLED_APPS = [
     'apps.prepopulate',
     'apps.vocabularies',
     'apps.legal_archive',
-    'apps.search',
+
+    'vpp.search',
+
     'apps.privilege',
     'apps.rules',
     'apps.highlights',
@@ -305,6 +308,9 @@ IZITRU_ACTIVATION_KEY = env('IZITRU_ACTIVATION_KEY', 'activation-key')
 
 GRIS_API_KEY = env('GRIS_API_KEY', 'api-key')
 GRIS_API_CX = env('GRIS_API_CX', 'api:cx')
+
+VERIFICATION_TASK_RETRY_INTERVAL = int(env('VERIFICATION_TASK_RETRY_INTERVAL', 60))
+USE_VERIFICATION_MOCK = bool(env('USE_VERIFICATION_MOCK', False))
 
 
 OrganizationName = "Sourcefabric"

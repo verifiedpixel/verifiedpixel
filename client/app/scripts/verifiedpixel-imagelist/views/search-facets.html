@@ -11,7 +11,7 @@
     </div>
     <div class="content" ng-if="sTab">
 
-        <div vp-search-within></div>
+        <div sd-search-within></div>
 
         <div sd-toggle-box data-title="{{ 'Parameters' | translate }}" data-open="false" data-mode="pane">
             <div vp-item-search data-repo="repo" data-context="context" class="pull-left"></div>
@@ -28,10 +28,10 @@
                 </ul>
             </div>
 
-            <div sd-toggle-box data-title="{{ 'Capture Location' | translate }}" ng-hide="isEmpty('location')" data-open="true">
+            <div sd-toggle-box data-title="{{ 'Capture Location' | translate }}" ng-hide="isEmpty('capture_location')" data-open="true">
                 <ul class="filter-box">
-                    <li ng-repeat="(key,value) in aggregations.location" ng-click="toggleFilter('location', key)" ng-class="{checked: hasFilter('location',key)}">
-                        <span class="sd-checkbox" ng-checked="hasFilter('location',key)"></span>
+                    <li ng-repeat="(key,value) in aggregations.capture_location" ng-click="toggleFilter('capture_location', key)" ng-class="{checked: hasFilter('capture_location',key)}">
+                        <span class="sd-checkbox" ng-checked="hasFilter('capture_location',key)"></span>
                         <span>{{ key | translate}} <i>{{ value }}</i></span>
                     </li>
                 </ul>
@@ -41,6 +41,15 @@
                 <ul class="filter-box">
                     <li ng-repeat="(key,value) in aggregations.izitru" ng-click="toggleFilter('izitru', key)" ng-class="{checked: hasFilter('izitru',key)}">
                         <span class="sd-checkbox" ng-checked="hasFilter('izitru',key)"></span>
+                        <span>{{ key | translate}} <i>{{ value }}</i></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div sd-toggle-box data-title="{{ 'Original Source' | translate }}" ng-hide="isEmpty('original_source')" data-open="true">
+                <ul class="filter-box">
+                    <li ng-repeat="(key,value) in aggregations.original_source" ng-click="toggleFilter('original_source', key)" ng-class="{checked: hasFilter('original_source',key)}">
+                        <span class="sd-checkbox" ng-checked="hasFilter('original_source',key)"></span>
                         <span>{{ key | translate}} <i>{{ value }}</i></span>
                     </li>
                 </ul>
@@ -152,6 +161,6 @@
         </div>
     </div>
     <div class="content views" ng-if="!sTab">
-        <div vp-saved-searches></div>
+        <div sd-saved-searches></div>
     </div>
 </div>
