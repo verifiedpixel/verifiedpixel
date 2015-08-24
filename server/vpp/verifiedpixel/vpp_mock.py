@@ -3,7 +3,6 @@ import json
 import logging
 import re
 from unittest import mock
-from apiclient.http import HttpMockSequence as GoogleAPIMockSequence
 
 from pprint import pprint  # noqa
 
@@ -117,19 +116,5 @@ def activate_tineye_mock(*fixtures):
         @responses.activate
         def test_new(*args):
             f(*args)
-        return test_new
-    return wrap
-
-
-def activate_gris_mock(*fixtures):
-    sequence = prepare_sequence_from_args(fixtures)
-    patcher = mock.patch('httplib2.Http',
-                         lambda: GoogleAPIMockSequence(sequence))
-
-    def wrap(f):
-        def test_new(*args):
-            patcher.start()
-            f(*args)
-            patcher.stop()
         return test_new
     return wrap

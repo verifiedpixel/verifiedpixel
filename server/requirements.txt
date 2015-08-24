@@ -9,7 +9,6 @@ pip==7.1.0
 
 -e git+git://github.com/verifiedpixel/superdesk@vp20150828-5#egg=Superdesk-Server
 -e git+git://github.com/verifiedpixel/pytineye@vp20150721#egg=pytineye
-google-api-python-client==1.4.1
 Pillow==2.9.0
 requests==2.7.0
 httmock==1.2.3

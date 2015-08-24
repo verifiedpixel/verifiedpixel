@@ -8,19 +8,18 @@ from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
 from .ingest_task import (
     verify_ingest,
-    get_tineye_results, get_izitru_results, get_gris_results,
+    get_tineye_results, get_izitru_results,
     get_incandescent_results
 )
 from .exceptions import APIGracefulException
 
 from .vpp_mock import (
-    activate_tineye_mock, activate_izitru_mock, activate_gris_mock,
+    activate_tineye_mock, activate_izitru_mock,
     activate_incandescent_mock
 )
 from .vpp_test import VPPTestCase
 
 from pprint import pprint  # noqa @TODO: debug
-import json
 
 
 class VerifiedPixelAppTest(TestCase, VPPTestCase):
@@ -57,10 +56,6 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     @activate_tineye_mock(
         {"response_file": './test/vpp/test1_tineye_response.json'}
     )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
-    )
     @activate_incandescent_mock(
         {"response_file": './test/vpp/incandescent_add_response.json'},
         {"response_file": './test/vpp/incandescent_result_response.json'}
@@ -87,10 +82,6 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     )
     @activate_tineye_mock(
         {"response_file": './test/vpp/test2_tineye_response.json'}
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
     @activate_incandescent_mock(
         {"response_file": './test/vpp/incandescent_add_response.json'},
@@ -161,13 +152,6 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     def test_retry_failed_incandescent200(self):
         with self.assertRaises(APIGracefulException):
             get_incandescent_results('image.jpg.to')
-
-    # GRIS
-
-    @activate_gris_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_gris(self):
-        with self.assertRaises(APIGracefulException):
-            get_gris_results('image.jpg.to')
 
     # misc
 

@@ -305,9 +305,6 @@ IZITRU_API_URL = env('IZITRU_API_URL', 'https://www.izitru.com/scripts/uploadAPI
 IZITRU_PRIVATE_KEY = env('IZITRU_PRIVATE_KEY', 'private-key')
 IZITRU_ACTIVATION_KEY = env('IZITRU_ACTIVATION_KEY', 'activation-key')
 
-GRIS_API_KEY = env('GRIS_API_KEY', 'api-key')
-GRIS_API_CX = env('GRIS_API_CX', 'api:cx')
-
 INCANDESCENT_UID = int(env('INCANDESCENT_UID', 1234))
 INCANDESCENT_APIKEY = env('INCANDESCENT_APIKEY', 'secret')
 

@@ -14,16 +14,15 @@ import json
 
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
-from apiclient.discovery import build as google_build
-from apiclient.discovery import HttpError as GoogleHttpError
-
 import superdesk
 from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
 from .elastic import handle_elastic_write_problems_wrapper
 from .exceptions import APIGracefulException, ImageNotFoundException
-from .incandescent import get_incandescent_results
+from .incandescent import (
+    get_incandescent_results, get_incandescent_results_callback
+)
 
 
 # @TODO: for debug purpose
@@ -71,20 +70,6 @@ def get_tineye_results(content):
         return response.json_results
 
 
-def get_gris_results(href):
-    try:
-        service = google_build('customsearch', 'v1',
-                               developerKey=superdesk.app.config['GRIS_API_KEY'])
-        res = service.cse().list(
-            q=href,
-            searchType='image',
-            cx=superdesk.app.config['GRIS_API_CX'],
-        ).execute()
-    except GoogleHttpError as e:
-        raise APIGracefulException(e)
-    return res
-
-
 def get_izitru_results(filename, content):
     izitru_security_data = int(time.time())
     m = hashlib.md5()
@@ -123,8 +108,7 @@ def get_izitru_results(filename, content):
 API_GETTERS = {
     'izitru': {"function": get_izitru_results, "args": ("filename", "content",)},
     'tineye': {"function": get_tineye_results, "args": ("content",)},
-    #'gris': {"function": get_gris_results, "args": ("href",)},
-    'incandescent': {"function": get_incandescent_results, "args": ("href",)},
+    #'incandescent': {"function": get_incandescent_results, "args": ("href",)},
 }
 
 
@@ -157,9 +141,6 @@ MOCK_API_GETTERS = {
         {"response_file": "test/vpp/mock_tineye_zero.json"},
         {"response": {'status': 'error', 'message': 'something gone wrong'}}
     ]), "args": ("content",)},
-    'gris': {"function": get_placeholder_api_getter([
-        {"response": {'status': 'error', 'message': 'something gone wrong'}}
-    ]), "args": ("href",)},
     'incandescent': {"function": get_placeholder_api_getter([
         {"response": {'status': 'error', 'message': 'mock not implemented yet'}}
     ]), "args": ("href",)},
@@ -201,6 +182,65 @@ def append_api_results_to_item(self, item, api_name, args):
     handle_elastic_write_problems_wrapper(
         lambda: superdesk.get_resource_service('ingest').patch(
             item['_id'],
+            {'verification.{api}'.format(api=api_name): verification_result}
+        )
+    )
+
+
+@celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_incandescent_result', ignore_result=False)
+def append_incandescent_results_to_item(self, item, href):
+    api_name = 'incandescent'
+
+    filename = item['slugline']
+    info(
+        "{api}: searching matches for {file}... ({tries} of {max})".format(
+            api=api_name, file=filename, tries=self.request.retries, max=self.max_retries
+        ))
+    try:
+        get_data = get_incandescent_results(href)
+    except APIGracefulException as e:
+        if self.request.retries < self.max_retries:
+            warning("{api}: API exception raised during "
+                    "verification of {file} (retrying):\n {exception}".format(
+                        api=api_name, file=filename, exception=e))
+            raise self.retry(exc=e, countdown=app.config['VERIFICATION_TASK_RETRY_INTERVAL'])
+        else:
+            error("{api}: max retries exceeded on "
+                  "verification of {file}:\n {exception}".format(
+                      api=api_name, file=filename, exception=e))
+            verification_result = {"status": "error", "message": repr(e)}
+            return verification_result
+    else:
+        info("{api}: waiting for matches for {file}.".format(
+            api=api_name, file=filename))
+        return get_data
+
+
+@celery.task(
+    max_retries=20, countdown=5, bind=True, serializer='dill',
+    name='vpp.append_incandescent_result_callback', ignore_result=False
+)
+def append_incandescent_results_to_item_callback(self, get_data, item_id, filename):
+
+    api_name = 'incandescent'
+
+    try:
+        verification_result = get_incandescent_results_callback(get_data)
+    except APIGracefulException as e:
+        if self.request.retries < self.max_retries:
+            raise self.retry(exc=e)
+        else:
+            error("{api}: timeout exceeded on "
+                  "verification of {file}:\n {exception}".format(
+                      api=api_name, file=filename, exception=e))
+            verification_result = {"status": "error", "message": repr(e)}
+    else:
+        info("{api}: matchs found for {file}.".format(
+            api=api_name, file=filename))
+    # record result to database
+    handle_elastic_write_problems_wrapper(
+        lambda: superdesk.get_resource_service('ingest').patch(
+            item_id,
             {'verification.{api}'.format(api=api_name): verification_result}
         )
     )
@@ -258,13 +298,29 @@ def verify_ingest(self):
         }
         chord(
             group(
-                (append_api_results_to_item.subtask(
-                    args=(
-                        item, api_name,
-                        [all_args[arg_name] for arg_name in data['args']]
+                group(
+                    (append_api_results_to_item.subtask(
+                        args=(
+                            item, api_name,
+                            [all_args[arg_name] for arg_name in data['args']]
+                        )
+                    ))
+                    for api_name, data in get_api_getters().items()
+                ),
+                chord(
+                    append_incandescent_results_to_item.subtask(
+                        kwargs={
+                            "item": item,
+                            "href": href,
+                        }
+                    ),
+                    append_incandescent_results_to_item_callback.subtask(
+                        kwargs={
+                            "filename": all_args['filename'],
+                            "item_id": item['_id'],
+                        }
                     )
-                ))
-                for api_name, data in get_api_getters().items()
+                )
             ),
             finalize_verification.subtask(
                 kwargs={"item_id": item['_id'], "desk_id": desk_id},

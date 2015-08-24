@@ -13,7 +13,7 @@ from superdesk.tests import setup
 from vpp.verifiedpixel.ingest_task import verify_ingest
 
 from .vpp_mock import (
-    activate_tineye_mock, activate_izitru_mock, activate_gris_mock,
+    activate_tineye_mock, activate_izitru_mock,
     activate_incandescent_mock
 )
 from .vpp_test import VPPTestCase
@@ -51,12 +51,6 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
     @activate_tineye_mock(
         {"response_file": './test/vpp/test1_tineye_response.json'},
         {"response_file": './test/vpp/test2_tineye_response.json'}
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'},
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
     @activate_incandescent_mock(
         {"response_file": './test/vpp/incandescent_add_response.json'},
@@ -126,12 +120,6 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
     @activate_tineye_mock(
         {"response_file": './test/vpp/test1_tineye_response.json'},
         {"response_file": './test/vpp/test2_tineye_response.json'}
-    )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'},
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test2_gris_search_response.json'}
     )
     @activate_incandescent_mock(
         {"response_file": './test/vpp/incandescent_add_response.json'},

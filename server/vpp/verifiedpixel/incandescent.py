@@ -8,7 +8,6 @@ import urllib.parse
 from requests import request
 from hashlib import sha1 as sha
 import superdesk
-from time import sleep
 
 from .exceptions import APIGracefulException
 
@@ -42,28 +41,22 @@ def get_incandescent_results(href):
     add_result = add_response.json()
     if 'project_id' not in add_result:
         raise APIGracefulException(add_result)
-
     get_data = {
         'uid': uid,
         'expires': utc_expires,
         'signature': signature,
         'project_id': add_result['project_id']
     }
-    get_headers = {'Content-type': 'application/json'}
-    results = None
-    sleep_interval = 1
-    sleep_timeout = 120
-    while not results:
-        get_response = request(
-            'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers)
-        get_result = get_response.json()
-        if get_result.get('status') == 710:  # pragma: no cover
-            results = None
-            sleep(sleep_interval)
-            sleep_interval += 1
-            if sleep_interval > sleep_timeout:
-                raise APIGracefulException("Timeout then waiting result from incandescent")
-        else:
-            results = get_result
+    return get_data
 
-    return [{"url": url, "result": result} for url, result in results.items()]
+
+def get_incandescent_results_callback(get_data):
+    get_headers = {'Content-type': 'application/json'}
+    get_response = request(
+        'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers
+    )
+    get_result = get_response.json()
+    if get_result.get('status') == 710:
+        raise(APIGracefulException(get_result))
+
+    return [{"url": url, "result": result} for url, result in get_result.items()]
