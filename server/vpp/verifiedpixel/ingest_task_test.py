@@ -75,14 +75,9 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
                 req=ParsedRequest(), lookup=lookup
             )
             verification_result = list(items)[0]['verification']
-
-            for result in self.expected_verification_results[0]['incandescent']:
-                self.assertIn(result, verification_result['incandescent'])
-            self.expected_verification_results[0]['incandescent'] = None
-            verification_result['incandescent'] = None
-            self.assertEqual(
-                self.expected_verification_results[0],
-                verification_result
+            self.assertVerificationResult(
+                verification_result,
+                self.expected_verification_results[0]
             )
 
     @activate_izitru_mock(
@@ -111,14 +106,9 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
                 req=ParsedRequest(), lookup=lookup
             )
             verification_result = list(items)[0]['verification']
-
-            for result in self.expected_verification_results[0]['incandescent']:
-                self.assertIn(result, verification_result['incandescent'])
-            self.expected_verification_results[0]['incandescent'] = None
-            verification_result['incandescent'] = None
-            self.assertEqual(
-                self.expected_verification_results[0],
-                verification_result
+            self.assertVerificationResult(
+                verification_result,
+                self.expected_verification_results[0]
             )
 
     # Izitru

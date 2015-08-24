@@ -13,7 +13,8 @@ from superdesk.tests import setup
 from vpp.verifiedpixel.ingest_task import verify_ingest
 
 from .vpp_mock import (
-    activate_tineye_mock, activate_izitru_mock, activate_gris_mock
+    activate_tineye_mock, activate_izitru_mock, activate_gris_mock,
+    activate_incandescent_mock
 )
 from .vpp_test import VPPTestCase
 
@@ -56,6 +57,12 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         {"response_file": './test/vpp/test1_gris_search_response.json'},
         {"response_file": './test/vpp/gris_discovery_response.json'},
         {"response_file": './test/vpp/test2_gris_search_response.json'}
+    )
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'},
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
     )
     def test_zip_output(self):
         image_paths = [
@@ -101,10 +108,9 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
                 zip_file.read('verification.json').decode()
             )
             for img_id, item_id in verified_items_ids.items():
-                self.assertEqual(
+                self.assertVerificationResult(
                     verification_dict[item_id],
-                    self.expected_verification_results[img_id],
-                    "Verification json in zip not match"
+                    self.expected_verification_results[img_id]
                 )
                 with open(image_paths[img_id], 'rb') as f:
                     self.assertEqual(
@@ -126,6 +132,12 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         {"response_file": './test/vpp/test1_gris_search_response.json'},
         {"response_file": './test/vpp/gris_discovery_response.json'},
         {"response_file": './test/vpp/test2_gris_search_response.json'}
+    )
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'},
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
     )
     def test_zip_output_delete(self):
         image_paths = [

@@ -54,3 +54,10 @@ class VPPTestCase:
             connection._purge_index(
                 cls.app.config['MONGO_DBNAME']
             )
+
+    def assertVerificationResult(self, results, references):
+        for result in references['incandescent']:
+            self.assertIn(result, results['incandescent'])
+        references['incandescent'] = None
+        results['incandescent'] = None
+        self.assertEqual(references, results)
