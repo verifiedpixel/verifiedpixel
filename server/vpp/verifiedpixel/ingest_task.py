@@ -22,6 +22,7 @@ from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
 from .elastic import handle_elastic_write_problems_wrapper
+from .vpp_mock import prepare_sequence_from_args
 
 
 # @TODO: for debug purpose
@@ -133,19 +134,38 @@ API_GETTERS = {
 }
 
 
-def get_placeholder_api_getter(api_name):  # pragma: no cover
-    with open('./test/vpp/test1_verification_result.json') as f:
-        mock_response = json.load(f)[api_name]
+def get_placeholder_api_getter(fixtures_list):  # pragma: no cover
 
-        def api_getter(*args, **kwargs):
-            return mock_response
+    def create_eternal_fixture_generator():
+        i = 0
+        fixtures = [json.loads(x[1]) for x in prepare_sequence_from_args(fixtures_list)]
+        max = len(fixtures)
+        while True:
+            yield fixtures[i]
+            i = (i + 1) % max
 
-        return api_getter
+    fixture_generator = create_eternal_fixture_generator()
+
+    def api_getter(*args, **kwargs):
+        return next(fixture_generator)
+
+    return api_getter
 
 MOCK_API_GETTERS = {
-    'izitru': {"function": get_placeholder_api_getter('izitru'), "args": ("filename", "content",)},
-    'tineye': {"function": get_placeholder_api_getter('tineye'), "args": ("content",)},
-    'gris': {"function": get_placeholder_api_getter('gris'), "args": ("href",)},
+    'izitru': {"function": get_placeholder_api_getter([
+        {"response_file": "test/vpp/mock_izitru_1.json"},
+        {"response_file": "test/vpp/mock_izitru_3.json"},
+        {"response_file": "test/vpp/mock_izitru_5.json"},
+        {"response": {'status': 'error', 'message': 'something gone wrong'}}
+    ]), "args": ("filename", "content",)},
+    'tineye': {"function": get_placeholder_api_getter([
+        {"response_file": "test/vpp/mock_tineye_many.json"},
+        {"response_file": "test/vpp/mock_tineye_zero.json"},
+        {"response": {'status': 'error', 'message': 'something gone wrong'}}
+    ]), "args": ("content",)},
+    'gris': {"function": get_placeholder_api_getter([
+        {"response": {'status': 'error', 'message': 'something gone wrong'}}
+    ]), "args": ("href",)},
 }
 
 
