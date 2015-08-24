@@ -8,7 +8,8 @@ from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
 from .ingest_task import (
     verify_ingest,
-    get_tineye_results, get_izitru_results, get_gris_results
+    get_tineye_results, get_izitru_results, get_gris_results,
+    get_incandescent_results
 )
 from .exceptions import APIGracefulException
 
@@ -147,6 +148,18 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             get_tineye_results(self.mock_image),
             {"status": "error", "message": "['foobar']"}
         )
+
+    # Incandescent
+
+    @activate_incandescent_mock({"status": 500, "response": {"foo": "bar"}, })
+    def test_retry_failed_incandescent500(self):
+        with self.assertRaises(APIGracefulException):
+            get_incandescent_results('image.jpg.to')
+
+    @activate_incandescent_mock({"status": 200, "response": {"foo": "bar"}, })
+    def test_retry_failed_incandescent200(self):
+        with self.assertRaises(APIGracefulException):
+            get_incandescent_results('image.jpg.to')
 
     # GRIS
 

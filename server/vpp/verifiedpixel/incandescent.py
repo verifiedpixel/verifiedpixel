@@ -7,7 +7,7 @@ import json
 import urllib.parse
 from requests import request
 from hashlib import sha1 as sha
-from flask import current_app as app
+import superdesk
 from time import sleep
 
 from .exceptions import APIGracefulException
@@ -17,8 +17,8 @@ from pprint import pprint  # noqa
 
 
 def get_incandescent_results(href):
-    uid = app.config['INCANDESCENT_UID']
-    apiKey = app.config['INCANDESCENT_APIKEY']
+    uid = superdesk.app.config['INCANDESCENT_UID']
+    apiKey = superdesk.app.config['INCANDESCENT_APIKEY']
     expires = datetime.datetime.now() - datetime.timedelta(minutes=110)
     utc_expires = calendar.timegm(expires.timetuple())
     to_string = str(uid) + "\n" + str(utc_expires)
@@ -57,7 +57,7 @@ def get_incandescent_results(href):
         get_response = request(
             'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers)
         get_result = get_response.json()
-        if get_result.get('status') == 710:
+        if get_result.get('status') == 710:  # pragma: no cover
             results = None
             sleep(sleep_interval)
             sleep_interval += 1
