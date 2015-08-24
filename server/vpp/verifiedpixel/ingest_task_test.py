@@ -20,6 +20,7 @@ from .vpp_mock import (
 from .vpp_test import VPPTestCase
 
 from pprint import pprint  # noqa @TODO: debug
+import json
 
 
 class VerifiedPixelAppTest(TestCase, VPPTestCase):
