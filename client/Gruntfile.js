@@ -41,11 +41,27 @@ module.exports = function (grunt) {
         'template:docs',
         'connect:test',
         'open:docs',
+        'ngtempaltes',
         'watch'
     ]);
 
-    grunt.registerTask('server', ['clean', 'style', 'template:test', 'connect:test', 'open:test', 'watch']);
-    grunt.registerTask('server:e2e', ['clean', 'style', 'template:mock', 'connect:mock', 'watch']);
+    grunt.registerTask('server', [
+        'clean',
+        'style',
+        'template:test',
+        'connect:test',
+        'open:test',
+        'ngtempaltes',
+        'watch'
+    ]);
+    grunt.registerTask('server:e2e', [
+        'clean',
+        'style',
+        'template:mock',
+        'connect:mock',
+        'ngtempaltes',
+        'watch'
+    ]);
     grunt.registerTask('server:travis', ['clean', 'style', 'template:travis', 'connect:travis']);
 
     grunt.registerTask('bower', [
@@ -65,6 +81,7 @@ module.exports = function (grunt) {
         'copy:fonts',
         'copy:docs',
         'template:test',
+        'ngtemplates',
         'nggettext_compile',
         'filerev',
         'usemin'

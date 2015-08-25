@@ -1,5 +1,6 @@
 var tests = [];
 var APP_SPEC_REG_EXP = /^\/base\/app\/scripts\/(.*)\.js$/;
+var paths = {superdesk: 'bower_components/superdesk/client/app/scripts/'};
 
 for (var file in window.__karma__.files) {
     if (window.__karma__.files.hasOwnProperty(file)) {
@@ -41,7 +42,6 @@ superdesk_push('superdesk/upload/upload');
 superdesk_push('superdesk/list/list');
 superdesk_push('superdesk/keyboard/keyboard');
 superdesk_push('superdesk/services/storage');
-superdesk_push('superdesk/services/workflowService');
 superdesk_push('superdesk/beta/beta');
 
 // superdesk apps

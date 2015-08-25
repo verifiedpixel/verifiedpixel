@@ -1,88 +1,6 @@
 (function() {
     'use strict';
 
-    var ENTER = 13;
-
-    CommentsService.$inject = ['api'];
-    function CommentsService(api) {
-
-        this.comments = null;
-
-        this.fetch = function(item) {
-            var criteria = {
-                where: {
-                    item: item
-                },
-                embedded: {user: 1}
-            };
-
-            return api.item_comments.query(criteria)
-                .then(angular.bind(this, function(result) {
-                    this.comments = result._items;
-                }));
-        };
-
-        this.save = function(comment) {
-            return api.item_comments.save(comment);
-        };
-    }
-
-    CommentsCtrl.$inject = ['$scope', '$routeParams', 'commentsService', 'api', '$q'];
-    function CommentsCtrl($scope, $routeParams, commentsService, api, $q) {
-
-        $scope.text = null;
-        $scope.saveEnterFlag = false;
-        $scope.$watch('item._id', reload);
-        $scope.users = [];
-
-        $scope.saveOnEnter = function($event) {
-            if (!$scope.saveEnterFlag || $event.keyCode !== ENTER || $event.shiftKey) {
-                return;
-            }
-            $scope.save();
-        };
-
-        $scope.save = function() {
-            var text = $scope.text || '';
-            if (!text.length) {
-                return;
-            }
-
-            $scope.text = '';
-            $scope.flags = {saving: true};
-
-            commentsService.save({
-                text: text,
-                item: $scope.item._id
-            }).then(reload);
-        };
-
-        $scope.cancel = function() {
-            $scope.text = '';
-        };
-
-        function reload() {
-            if ($scope.item) {
-                commentsService.fetch($scope.item._id).then(function() {
-                    $scope.comments = commentsService.comments;
-                });
-            }
-        }
-
-        $scope.$on('item:comment', function(e, data) {
-            if (data.item === $scope.item.guid) {
-                reload();
-            }
-        });
-
-        function setActiveComment() {
-            $scope.active = $routeParams.comments || null;
-        }
-
-        $scope.$on('$locationChangeSuccess', setActiveComment);
-        setActiveComment();
-    }
-
     ImageListService.$inject = ['$location', 'gettext'];
     function ImageListService($location, gettext) {
         var sortOptions = [
@@ -631,8 +549,8 @@
         return (obj);
     }
 
-    ImageListController.$inject = ['$scope', '$location', 'api', 'search', 'notify', 'session'];
-    function ImageListController($scope, $location, api, search, notify, session) {
+    ImageListController.$inject = ['$scope', '$location', 'api', 'imagelist', 'notify', 'session'];
+    function ImageListController($scope, $location, api, imagelist, notify, session) {
         $scope.context = 'search';
         $scope.$on('item:deleted:archive:text', itemDelete);
 
@@ -655,7 +573,7 @@
                 $location.search('page', null);
             }
 
-            var criteria = search.query($location.search()).getCriteria(true);
+            var criteria = imagelist.query($location.search()).getCriteria(true);
             var provider = 'search';
             if (criteria.repo) {
                 provider = criteria.repo;
@@ -800,7 +718,7 @@
 
     angular.module('verifiedpixel.imagelist', [
         'ngMap',
-        'mentio', 
+        'mentio',
         'superdesk.api',
         'superdesk.users',
         'superdesk.desks',
@@ -814,11 +732,9 @@
                 backend: {rel: 'item_comments'}
             });
         }])
-        .service('search', ImageListService)
+        .service('imagelist', ImageListService)
         .service('tags', TagService)
-        .service('commentsService', CommentsService)
         .controller('MultiActionBar', MultiActionBarController)
-        .controller('CommentsWidgetCtrl', CommentsCtrl)
         .filter('FacetLabels', function() {
             return function(input) {
                 if (input.toUpperCase() === 'URGENCY') {
@@ -1217,8 +1133,8 @@
         /**
          * Item search component
          */
-        .directive('vpItemSearch', ['$location', '$timeout', 'asset', 'api', 'tags', 'search', 'metadata',
-            function($location, $timeout, asset, api, tags, search, metadata) {
+        .directive('vpItemSearch', ['$location', '$timeout', 'asset', 'api', 'tags', 'imagelist', 'metadata',
+            function($location, $timeout, asset, api, tags, imagelist, metadata) {
             return {
                 scope: {
                     repo: '=',
@@ -1367,7 +1283,7 @@
                         })
                         .then(function (currentTags) {
                             scope.subjectitems = {
-                                subject: search.getSubjectCodes(currentTags, scope.subjectcodes)
+                                subject: imagelist.getSubjectCodes(currentTags, scope.subjectcodes)
                             };
                         });
 
@@ -1376,7 +1292,7 @@
                      */
                     scope.subjectSearch = function (item) {
                         tags.initSelectedFacets().then(function (currentTags) {
-                            var subjectCodes = search.getSubjectCodes(currentTags, scope.subjectcodes);
+                            var subjectCodes = imagelist.getSubjectCodes(currentTags, scope.subjectcodes);
                             if (item.subject.length > subjectCodes.length) {
                                 /* Adding subject codes to filter */
                                 var addItemSubjectName = 'subject.name:(' + item.subject[item.subject.length - 1].name + ')',
@@ -1659,36 +1575,6 @@
                             });
                         }
                     }
-                }
-            };
-        }])
-
-        .directive('vpCommentText', ['$compile', function($compile) {
-            return {
-                scope: {
-                    comment: '='
-                },
-                link: function(scope, element, attrs) {
-
-                    var html;
-
-                    //replace new lines with paragraphs
-                    html  = attrs.text.replace(/(?:\r\n|\r|\n)/g, '</p><p>');
-
-                    //map user mentions
-                    var mentioned = html.match(/\@([a-zA-Z0-9-_.]\w+)/g);
-                    _.each(mentioned, function(token) {
-                        var username = token.substring(1, token.length);
-                        if (scope.comment.mentioned_users && scope.comment.mentioned_users[username]) {
-                            html = html.replace(token,
-                            '<i sd-user-info data-user="' + scope.comment.mentioned_users[username] + '">' + token + '</i>');
-                        }
-                    });
-
-                    //build element
-                    element.html('<p><b>' + attrs.name + '</b> : ' + html + '</p>');
-
-                    $compile(element.contents())(scope);
                 }
             };
         }])

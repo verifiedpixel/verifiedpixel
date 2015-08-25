@@ -66,6 +66,7 @@ backend:
    - IZITRU_ACTIVATION_KEY
    - GRIS_API_KEY
    - GRIS_API_CX
+   - USE_VERIFICATION_MOCK
   volumes:
    - ../results/server/unit:/opt/superdesk/results-unit/
    - ../results/server/behave:/opt/superdesk/results-behave/
