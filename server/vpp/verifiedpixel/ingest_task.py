@@ -108,7 +108,7 @@ def get_izitru_results(filename, content):
 API_GETTERS = {
     'izitru': {"function": get_izitru_results, "args": ("filename", "content",)},
     'tineye': {"function": get_tineye_results, "args": ("content",)},
-    #'incandescent': {"function": get_incandescent_results, "args": ("href",)},
+    # 'incandescent': {"function": get_incandescent_results, "args": ("href",)},
 }
 
 
@@ -141,9 +141,11 @@ MOCK_API_GETTERS = {
         {"response_file": "test/vpp/mock_tineye_zero.json"},
         {"response": {'status': 'error', 'message': 'something gone wrong'}}
     ]), "args": ("content",)},
-    'incandescent': {"function": get_placeholder_api_getter([
-        {"response": {'status': 'error', 'message': 'mock not implemented yet'}}
-    ]), "args": ("href",)},
+    #
+    # 'incandescent': {"function": get_placeholder_api_getter([
+    #     {"response": {'status': 'error', 'message': 'mock not implemented yet'}}
+    # ]), "args": ("href",)},
+    #
 }
 
 
@@ -190,7 +192,6 @@ def append_api_results_to_item(self, item, api_name, args):
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_incandescent_result', ignore_result=False)
 def append_incandescent_results_to_item(self, item, href):
     api_name = 'incandescent'
-
     filename = item['slugline']
     info(
         "{api}: searching matches for {file}... ({tries} of {max})".format(
@@ -217,26 +218,28 @@ def append_incandescent_results_to_item(self, item, href):
 
 
 @celery.task(
-    max_retries=20, countdown=5, bind=True, serializer='dill',
+    max_retries=20, countdown=5, bind=True,
     name='vpp.append_incandescent_result_callback', ignore_result=False
 )
 def append_incandescent_results_to_item_callback(self, get_data, item_id, filename):
-
     api_name = 'incandescent'
 
-    try:
-        verification_result = get_incandescent_results_callback(get_data)
-    except APIGracefulException as e:
-        if self.request.retries < self.max_retries:
-            raise self.retry(exc=e)
-        else:
-            error("{api}: timeout exceeded on "
-                  "verification of {file}:\n {exception}".format(
-                      api=api_name, file=filename, exception=e))
-            verification_result = {"status": "error", "message": repr(e)}
+    if 'status' in get_data:
+        verification_result = get_data
     else:
-        info("{api}: matchs found for {file}.".format(
-            api=api_name, file=filename))
+        try:
+            verification_result = get_incandescent_results_callback(get_data)
+        except APIGracefulException as e:
+            if self.request.retries < self.max_retries:
+                raise self.retry(exc=e)
+            else:
+                error("{api}: timeout exceeded on "
+                      "verification of {file}:\n {exception}".format(
+                          api=api_name, file=filename, exception=e))
+                verification_result = {"status": "error", "message": repr(e)}
+        else:
+            info("{api}: matchs found for {file}.".format(
+                api=api_name, file=filename))
     # record result to database
     handle_elastic_write_problems_wrapper(
         lambda: superdesk.get_resource_service('ingest').patch(
@@ -244,9 +247,10 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
             {'verification.{api}'.format(api=api_name): verification_result}
         )
     )
+    return
 
 
-@celery.task(bind=True, name='vpp.finalize_verification')
+@celery.task(bind=True, name='vpp.finalize_verification', ignore_result=False)
 def finalize_verification(self, *args, item_id, desk_id):
     success('Fetching item: {} into desk "Verified Images".'.format(item_id))
     handle_elastic_write_problems_wrapper(
@@ -261,6 +265,12 @@ def finalize_verification(self, *args, item_id, desk_id):
             lookup={'_id': item_id}
         )
     )
+
+
+@celery.task(ignore_result=False, name='vpp.wait_for_results')
+def wait_for_results(*args, **kwargs):
+    debug((args, kwargs, ))
+    return
 
 
 @celery.task(bind=True, name='vpp.verify_ingest')
@@ -296,32 +306,36 @@ def verify_ingest(self):
             "content": content,
             "href": href
         }
-        chord(
-            group(
-                group(
-                    (append_api_results_to_item.subtask(
+        verification_tasks = group(
+            (
+                chord([
+                    append_api_results_to_item.subtask(
                         args=(
                             item, api_name,
                             [all_args[arg_name] for arg_name in data['args']]
                         )
-                    ))
-                    for api_name, data in get_api_getters().items()
-                ),
-                chord(
-                    append_incandescent_results_to_item.subtask(
-                        kwargs={
-                            "item": item,
-                            "href": href,
-                        }
-                    ),
-                    append_incandescent_results_to_item_callback.subtask(
-                        kwargs={
-                            "filename": all_args['filename'],
-                            "item_id": item['_id'],
-                        }
                     )
+                    for api_name, data in get_api_getters().items()
+                ],
+                    wait_for_results.subtask()
                 )
             ),
+            (
+                append_incandescent_results_to_item.subtask(
+                    kwargs={
+                        "item": item,
+                        "href": all_args['href'],
+                    }
+                ) | append_incandescent_results_to_item_callback.subtask(
+                    kwargs={
+                        "filename": all_args['filename'],
+                        "item_id": item['_id'],
+                    }
+                )
+            )
+        )
+        chord(
+            verification_tasks,
             finalize_verification.subtask(
                 kwargs={"item_id": item['_id'], "desk_id": desk_id},
                 immutable=True
