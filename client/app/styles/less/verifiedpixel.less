@@ -168,15 +168,34 @@
             }
             // gris
             &.gris {
-                background: url(../../images/verification/gris-grey.png) no-repeat center center transparent;
+                background: url(../../images/verification/gris.svg) no-repeat center center transparent;
                 background-size: 100%;
                 &.good {
-                    background: url(../../images/verification/gris-green.png) no-repeat center center transparent;
+                    background: url(../../images/verification/gris-green.svg) no-repeat center center transparent;
                     background-size: 100%;
                 }
                 &.bad {
+                    background: url(../../images/verification/gris-red.svg) no-repeat center center transparent;
+                    background-size: 100%;
                 }
                 &.ugly {
+                    background: url(../../images/verification/gris-grey.svg) no-repeat center center transparent;
+                    background-size: 100%;
+                }
+                span {
+                    position: absolute;
+                    top: -4px;
+                    right: -4px;
+                    background-color: #448bbf;
+                    color: #fff;
+                    width: 16px;
+                    height: 16px;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    text-align: center;
+                    border-radius: 3px;
+                    line-height: 16px;
+                    box-shadow: 0 0 2px #000;
                 }
             }
             // tineye
