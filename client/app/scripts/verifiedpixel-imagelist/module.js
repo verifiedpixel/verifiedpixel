@@ -631,8 +631,8 @@
         return (obj);
     }
 
-    ImageListController.$inject = ['$scope', '$location', 'api', 'search', 'notify', 'session'];
-    function ImageListController($scope, $location, api, search, notify, session) {
+    ImageListController.$inject = ['$scope', '$location', 'api', 'imagelist', 'notify', 'session'];
+    function ImageListController($scope, $location, api, imagelist, notify, session) {
         $scope.context = 'search';
         $scope.$on('item:deleted:archive:text', itemDelete);
 
@@ -655,7 +655,7 @@
                 $location.search('page', null);
             }
 
-            var criteria = search.query($location.search()).getCriteria(true);
+            var criteria = imagelist.query($location.search()).getCriteria(true);
             var provider = 'search';
             if (criteria.repo) {
                 provider = criteria.repo;
@@ -800,7 +800,7 @@
 
     angular.module('verifiedpixel.imagelist', [
         'ngMap',
-        'mentio', 
+        'mentio',
         'superdesk.api',
         'superdesk.users',
         'superdesk.desks',
@@ -808,13 +808,7 @@
         'superdesk.list',
         'superdesk.keyboard'
     ])
-        .config(['apiProvider', function(apiProvider) {
-            apiProvider.api('item_comments', {
-                type: 'http',
-                backend: {rel: 'item_comments'}
-            });
-        }])
-        .service('search', ImageListService)
+        .service('imagelist', ImageListService)
         .service('tags', TagService)
         .service('commentsService', CommentsService)
         .controller('MultiActionBar', MultiActionBarController)
