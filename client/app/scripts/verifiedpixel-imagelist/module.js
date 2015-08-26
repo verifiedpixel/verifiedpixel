@@ -726,12 +726,6 @@
         'superdesk.list',
         'superdesk.keyboard'
     ])
-        .config(['apiProvider', function(apiProvider) {
-            apiProvider.api('item_comments', {
-                type: 'http',
-                backend: {rel: 'item_comments'}
-            });
-        }])
         .service('imagelist', ImageListService)
         .service('tags', TagService)
         .controller('MultiActionBar', MultiActionBarController)
