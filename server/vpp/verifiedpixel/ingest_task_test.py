@@ -48,6 +48,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
         with self.app.app_context():
             AppInitializeWithDataCommand().run()
         self.expected_verification_results = []
+        self.expected_verification_stats = []
         self.mock_item = {"slugline": "test"}
 
     @activate_izitru_mock(
@@ -63,6 +64,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     def test_happy_day_png(self):
         self.upload_fixture_image(
             './test/vpp/test.png',
+            './test/vpp/test1_verification_stats.json',
             './test/vpp/test1_verification_result.json'
         )
         with self.app.app_context():
@@ -74,6 +76,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             verification_result = list(items)[0]['verification']
             self.assertVerificationResult(
                 verification_result,
+                self.expected_verification_stats[0],
                 self.expected_verification_results[0]
             )
 
@@ -90,6 +93,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     def test_happy_day_jpg(self):
         self.upload_fixture_image(
             './test/vpp/test2.jpg',
+            './test/vpp/test2_verification_stats.json',
             './test/vpp/test2_verification_result.json'
         )
         with self.app.app_context():
@@ -101,6 +105,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             verification_result = list(items)[0]['verification']
             self.assertVerificationResult(
                 verification_result,
+                self.expected_verification_stats[0],
                 self.expected_verification_results[0]
             )
 
@@ -138,7 +143,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     def test_retry_futile_tineye400(self):
         self.assertEqual(
             get_tineye_results(self.mock_image),
-            {"status": "error", "message": "['foobar']"}
+            {'results': {'message': "['foobar']", 'status': 'error'}, 'total': None}
         )
 
     # Incandescent

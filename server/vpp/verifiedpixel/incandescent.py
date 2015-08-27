@@ -58,5 +58,4 @@ def get_incandescent_results_callback(get_data):
     get_result = get_response.json()
     if get_result.get('status') == 710:
         raise(APIGracefulException(get_result))
-
-    return [{"url": url, "result": result} for url, result in get_result.items()]
+    return get_result

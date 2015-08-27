@@ -1,7 +1,6 @@
-import logging
+import json
 import zipfile
 from flask import current_app as app
-from flask import json
 from eve.utils import ParsedRequest
 from io import BytesIO, StringIO
 
@@ -15,48 +14,41 @@ from .ingest_task import get_original_image
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
+from .logging import debug
 
 
-logger = logging.getLogger('superdesk')
-logger.setLevel(logging.INFO)
-
-
-class VerifiedPixelZipService(BaseService):
+class VerificationResultsService(BaseService):
     def on_created(self, docs):
         for doc in docs:
             self_id = doc['_id']
-            items_ids = doc['items']
-            zip_items(self_id, items_ids)
+            debug(self_id)
+            debug(doc)
+            # items_ids = doc['items']
+            # zip_items(self_id, items_ids)
 
     def on_delete(self, doc):
-        app.media.delete(doc['result_id'])
+        pass
+        # app.media.delete(doc['result_id'])
 
 
-class VerifiedPixelZipResource(Resource):
+class VerificationResultsResource(Resource):
     '''
     VerifiedPixelZip schema
     '''
     schema = {
-        'items': {
-            'type': 'list',
-            'schema': Resource.rel('fetch', False)
-        },
-        'result_id': {
-            'type': 'string',
-        },
-        'result': {
-            'type': 'string',
-        },
-        'status': {
-            'type': 'string',
-            'default': 'pending',
-            'allowed': ['pending', 'processing', 'done', 'error'],
-        },
+        'izitru': {'type': 'dict'},
+        'tineye': {'type': 'dict'},
+        'incandescent_google': {'type': 'list'},
+        'incandescent_bing': {'type': 'list'},
+        'incandescent_baidu': {'type': 'list'},
+        'incandescent_yandex': {'type': 'list'},
+        'incandescent_other': {'type': 'list'},
     }
     privileges = {
-        'GET': 'verifiedpixel_zip',
-        'POST': 'verifiedpixel_zip',
-        'DELETE': 'verifiedpixel_zip'
+        'GET': 'verification_results',
+        'POST': 'verification_results',
+        'PATCH': 'verification_results',
+        'DELETE': 'verification_results'
     }
 
 
@@ -64,22 +56,14 @@ class VerifiedPixelZipResource(Resource):
 def zip_items(result_id, items_ids):
     archive_service = get_resource_service('archive')
     vppzip_service = get_resource_service('verifiedpixel_zip')
-    results_service = get_resource_service('verification_results')
 
     vppzip_service.patch(
         result_id,
         {'status': "processing"},
     )
 
-    items = list(archive_service.get_from_mongo(
-        req=ParsedRequest(), lookup={'_id': {'$in': items_ids}}))
-    verification_ids = [item['verification']['results'] for item in items]
-    verification_results = {
-        result['_id']: result for result in
-        list(results_service.get_from_mongo(
-            req=ParsedRequest(), lookup={'_id': {'$in': verification_ids}})
-        )
-    }
+    items = archive_service.get_from_mongo(req=ParsedRequest(),
+                                           lookup={'_id': {'$in': items_ids}})
     verification_data_object = StringIO()
     verification_data = {}
     zip_file_object = BytesIO()
@@ -88,11 +72,6 @@ def zip_items(result_id, items_ids):
         item_id = item['_id']
         image = get_original_image(item)[1]
         zip_file.writestr(item_id, image)
-        item['verification']['results'] = verification_results[
-            item['verification']['results']
-        ]
-        for field in ['_id', '_etag', '_created', '_updated']:
-            del item['verification']['results'][field]
         verification_data[item_id] = item['verification']
     json.dump(verification_data, verification_data_object)
     zip_file.writestr('verification.json', verification_data_object.getvalue())

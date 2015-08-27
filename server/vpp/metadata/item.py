@@ -262,7 +262,18 @@ metadata_schema = {
         'type': 'list'
     },
     'verification': {
-        'type': 'dict'
+        'type': 'dict',
+        'nullable': True,
+        'schema': {
+            'izitru': {'type': 'integer'},
+            'tineye': {'type': 'integer'},
+            'incandescent_google': {'type': 'integer'},
+            'incandescent_bing': {'type': 'integer'},
+            'incandescent_baidu': {'type': 'integer'},
+            'incandescent_yandex': {'type': 'integer'},
+            'incandescent_other': {'type': 'integer'},
+            'results': Resource.rel('verification_results')
+        }
     },
 
     # aka Locator as per NewML Specification

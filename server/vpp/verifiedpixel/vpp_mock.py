@@ -55,7 +55,7 @@ def activate_izitru_mock(*fixtures):
     def wrap(f):
         def test_new(*args):
             with HTTMock(izitru_request):
-                f(*args)
+                return f(*args)
         return test_new
     return wrap
 
@@ -77,7 +77,7 @@ def activate_incandescent_mock(*fixtures):
     def wrap(f):
         def test_new(*args):
             with HTTMock(incandescent_request):
-                f(*args)
+                return f(*args)
         return test_new
     return wrap
 
@@ -115,6 +115,6 @@ def activate_tineye_mock(*fixtures):
     def wrap(f):
         @responses.activate
         def test_new(*args):
-            f(*args)
+            return f(*args)
         return test_new
     return wrap

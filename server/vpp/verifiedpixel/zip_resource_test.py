@@ -43,6 +43,7 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         with self.app.app_context():
             AppInitializeWithDataCommand().run()
         self.expected_verification_results = []
+        self.expected_verification_stats = []
 
     @activate_izitru_mock(
         {"response_file": './test/vpp/test1_izitru_response.json'},
@@ -65,11 +66,13 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         ]
         self.upload_fixture_image(
             image_paths[0],
+            './test/vpp/test1_verification_stats.json',
             './test/vpp/test1_verification_result.json',
             '0',
         )
         self.upload_fixture_image(
             image_paths[1],
+            './test/vpp/test2_verification_stats.json',
             './test/vpp/test2_verification_result.json',
             '1',
         )
@@ -104,6 +107,7 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
             for img_id, item_id in verified_items_ids.items():
                 self.assertVerificationResult(
                     verification_dict[item_id],
+                    self.expected_verification_stats[img_id],
                     self.expected_verification_results[img_id]
                 )
                 with open(image_paths[img_id], 'rb') as f:
@@ -134,11 +138,13 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         ]
         self.upload_fixture_image(
             image_paths[0],
+            './test/vpp/test1_verification_stats.json',
             './test/vpp/test1_verification_result.json',
             '0',
         )
         self.upload_fixture_image(
             image_paths[1],
+            './test/vpp/test2_verification_stats.json',
             './test/vpp/test2_verification_result.json',
             '1',
         )

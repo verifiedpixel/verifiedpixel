@@ -1,5 +1,5 @@
 from flask import current_app as app
-from eve.utils import config
+from eve.utils import config, ParsedRequest
 import json
 import ntpath
 import imghdr
@@ -12,7 +12,8 @@ from superdesk.upload import url_for_media
 class VPPTestCase:
 
     def upload_fixture_image(
-        self, fixture_image_path, verification_result_path, headline='test'
+        self, fixture_image_path,
+        verification_stats_path, verification_result_path, headline='test'
     ):
         with self.app.app_context():
             with open(fixture_image_path, mode='rb') as f:
@@ -40,6 +41,8 @@ class VPPTestCase:
             image_id = get_resource_service('ingest').post(data)
         with open(verification_result_path, 'r') as f:
             self.expected_verification_results.append(json.load(f))
+        with open(verification_stats_path, 'r') as f:
+            self.expected_verification_stats.append(json.load(f))
         return image_id
 
     @classmethod
@@ -55,9 +58,18 @@ class VPPTestCase:
                 cls.app.config['MONGO_DBNAME']
             )
 
-    def assertVerificationResult(self, results, references):
-        for result in references['incandescent']:
-            self.assertIn(result, results['incandescent'])
-        references['incandescent'] = None
-        results['incandescent'] = None
+    def assertVerificationResult(self, results, references, verification_references):
+        self.assertIn('results', results)
+        verification_id = results['results']
+        if not isinstance(verification_id, dict):
+            verification_result = list(get_resource_service('verification_results').get(
+                req=ParsedRequest(), lookup={'_id': verification_id}
+            ))[0]
+            for field in ['_id', '_etag', '_created', '_updated']:
+                del verification_result[field]
+        else:
+            verification_result = verification_id
+        references['results'] = None
+        results['results'] = None
         self.assertEqual(references, results)
+        self.assertEqual(verification_result, verification_references)
