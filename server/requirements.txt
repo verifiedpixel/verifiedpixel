@@ -7,7 +7,7 @@ git+git://github.com/superdesk/eve@sync-develop-24-june#egg=Eve==0.6.0-dev
 # workaround conflict with requests library:
 pip==7.1.0
 
--e git+git://github.com/verifiedpixel/superdesk@vp20150828-1#egg=Superdesk-Server
+-e git+git://github.com/verifiedpixel/superdesk@vp20150828-2#egg=Superdesk-Server
 -e git+git://github.com/verifiedpixel/pytineye@vp20150721#egg=pytineye
 google-api-python-client==1.4.1
 Pillow==2.9.0
