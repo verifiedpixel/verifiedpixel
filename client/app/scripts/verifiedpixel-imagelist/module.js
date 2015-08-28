@@ -1693,6 +1693,12 @@
             };
         }])
 
+        .directive('vpGlossary', ['userList', function(userList) {
+            return {
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/glossary.html'
+            };
+        }])
+
         .directive('vpMediaBox', ['$location', 'lock', 'multi', function($location, lock, multi) {
             return {
                 restrict: 'A',

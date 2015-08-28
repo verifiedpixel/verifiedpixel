@@ -31,6 +31,11 @@
                     <i class="fa fa-2x fa-comments"></i> ({{item.comments.length}})
                 </button>
             </li>
+            <li ng-class="{active: tab === 'glossary'}">
+                <button ng-click="tab = 'glossary'" tooltips="Glossary" tooltip-placement="bottom">
+                    <i class="fa fa-2x fa-book"></i>
+                </button>
+            </li>
         </ul>
         <button ng-click="close()" class="close-preview">
             <i class="icon-close-small"></i>
@@ -43,5 +48,6 @@
         <div ng-if="tab === 'tineye'" vp-media-tineye data-item="item"></div>
         <div ng-if="tab === 'izitru'" vp-media-izitru data-item="item"></div>
         <div ng-if="tab === 'comments'" vp-media-comments data-item="item"></div>
+        <div ng-if="tab === 'glossary'" vp-glossary data-item="item"></div>
     </div>
 </div>
