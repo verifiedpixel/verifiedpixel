@@ -15,10 +15,6 @@ class VerificationResultsService(BaseService):
             # items_ids = doc['items']
             # zip_items(self_id, items_ids)
 
-    def on_delete(self, doc):
-        pass
-        # app.media.delete(doc['result_id'])
-
 
 class VerificationResultsResource(Resource):
     '''

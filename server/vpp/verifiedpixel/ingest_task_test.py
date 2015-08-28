@@ -109,6 +109,54 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
                 self.expected_verification_results[0]
             )
 
+    @activate_izitru_mock(
+        {"response_file": './test/vpp/test2_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test2_tineye_response.json'}
+    )
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
+    )
+    def test_happy_day_jpg_remove(self):
+        self.upload_fixture_image(
+            './test/vpp/test2.jpg',
+            './test/vpp/test2_verification_stats.json',
+            './test/vpp/test2_verification_result.json'
+        )
+        with self.app.app_context():
+            verify_ingest()
+            item = list(superdesk.get_resource_service('archive').get(
+                req=ParsedRequest(), lookup={'type': 'picture'}
+            ))[0]
+            verification_result = item['verification']
+            results_id = verification_result['results']
+            self.assertVerificationResult(
+                verification_result,
+                self.expected_verification_stats[0],
+                self.expected_verification_results[0]
+            )
+
+            results = list(superdesk.get_resource_service('verification_results').get(
+                req=ParsedRequest(), lookup={'_id': results_id}
+            ))
+            self.assertEqual(len(results), 1)
+
+            superdesk.get_resource_service('archive').delete_action(
+                {'_id': item['_id']}
+            )
+
+            verification_result = list(superdesk.get_resource_service('archive').get(
+                req=ParsedRequest(), lookup={'_id': item['_id']}
+            ))
+            self.assertEqual(len(verification_result), 0)
+
+            results = list(superdesk.get_resource_service('verification_results').get(
+                req=ParsedRequest(), lookup={'_id': results_id}
+            ))
+            self.assertEqual(len(results), 0)
+
     # Izitru
 
     @activate_izitru_mock({"status": 500, "response": {"foo": "bar"}, })
