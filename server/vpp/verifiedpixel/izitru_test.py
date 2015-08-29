@@ -1,9 +1,7 @@
 from unittest import TestCase
 from superdesk.tests import setup
 
-from .ingest_task import (
-    get_izitru_results,
-)
+from .izitru import get_izitru_results
 from .exceptions import APIGracefulException
 
 from .vpp_mock import activate_izitru_mock

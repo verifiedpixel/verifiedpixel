@@ -1,7 +1,7 @@
 from unittest import TestCase
 from superdesk.tests import setup
 
-from .ingest_task import get_tineye_results
+from .tineye import get_tineye_results
 from .exceptions import APIGracefulException
 
 from .vpp_mock import activate_tineye_mock

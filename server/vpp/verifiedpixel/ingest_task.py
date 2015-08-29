@@ -1,17 +1,10 @@
-import hashlib
-import time
 from bson.objectid import ObjectId
 from gridfs import GridFS
 from flask import current_app as app
 from eve.utils import ParsedRequest
-from requests import request
-from PIL import Image
-from io import BytesIO
 from kombu.serialization import register
 import dill
 from celery import chord, group
-
-from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
 import superdesk
 from superdesk.celery_app import celery
@@ -25,6 +18,8 @@ from .vpp_mock import (
 from .incandescent import (
     get_incandescent_results, get_incandescent_results_callback
 )
+from .tineye import get_tineye_results
+from .izitru import get_izitru_results
 
 
 # @TODO: for debug purpose
@@ -33,14 +28,6 @@ from .logging import debug  # noqa
 
 
 register('dill', dill.dumps, dill.loads, content_type='application/x-binary-data', content_encoding='binary')
-
-
-def init_tineye(app):
-    app.data.vpp_tineye_api = TinEyeAPIRequest(
-        api_url=app.config['TINEYE_API_URL'],
-        public_key=app.config['TINEYE_PUBLIC_KEY'],
-        private_key=app.config['TINEYE_SECRET_KEY']
-    )
 
 
 def get_original_image(item):
@@ -55,58 +42,6 @@ def get_original_image(item):
                 href = v['href']
                 return (href, content)
     raise ImageNotFoundException()
-
-
-def get_tineye_results(content):
-    try:
-        response = superdesk.app.data.vpp_tineye_api.search_data(content)
-    except TinEyeAPIError as e:
-        # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
-        if e.code == 400:
-            return {'total': None, 'results': {"status": "error", "message": repr(e.message)}}
-        raise APIGracefulException(e)
-    except KeyError as e:
-        if e.args[0] == 'code':
-            raise APIGracefulException(e)
-    result = response.json_results
-    if 'results' not in result or 'total_results' not in result['results']:
-        raise APIGracefulException(result)
-    return {'total': result['results']['total_results'], 'results': result}
-
-
-def get_izitru_results(filename, content):
-    izitru_security_data = int(time.time())
-    m = hashlib.md5()
-    m.update(str(izitru_security_data).encode())
-    m.update(superdesk.app.config['IZITRU_PRIVATE_KEY'].encode())
-    izitru_security_hash = m.hexdigest()
-
-    upfile = content
-    img = Image.open(BytesIO(content))
-    if img.format != 'JPEG':
-        exif = img.info.get('exif', b"")
-        converted_image = BytesIO()
-        img.save(converted_image, 'JPEG', exif=exif)
-        upfile = converted_image.getvalue()
-        converted_image.close()
-    img.close()
-
-    data = {
-        'activationKey': superdesk.app.config['IZITRU_ACTIVATION_KEY'],
-        'securityData': izitru_security_data,
-        'securityHash': izitru_security_hash,
-        'exactMatch': 'true',
-        'nearMatch': 'false',
-        'storeImage': 'true',
-    }
-    files = {'upFile': (filename, upfile, 'image/jpeg', {'Expires': '0'})}
-    response = request('POST', superdesk.app.config['IZITRU_API_URL'], data=data, files=files)
-    if response.status_code != 200:
-        raise APIGracefulException(response)
-    result = response.json()
-    if 'verdict' not in result:
-        raise APIGracefulException(result)
-    return {'total': result['verdict'], 'results': result}
 
 
 API_GETTERS = {

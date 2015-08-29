@@ -1,6 +1,6 @@
 from superdesk import get_backend
 
-from .ingest_task import init_tineye
+from .tineye import init_tineye
 from .zip_resource import (
     VerifiedPixelZipService, VerifiedPixelZipResource
 )
