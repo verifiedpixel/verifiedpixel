@@ -6,12 +6,7 @@ from superdesk import get_resource_service
 from superdesk.tests import setup
 from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
-from .ingest_task import (
-    verify_ingest,
-    get_tineye_results, get_izitru_results,
-    get_incandescent_results
-)
-from .exceptions import APIGracefulException
+from .ingest_task import verify_ingest
 
 from .vpp_mock import (
     activate_tineye_mock, activate_izitru_mock,
@@ -156,55 +151,6 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
                 req=ParsedRequest(), lookup={'_id': results_id}
             ))
             self.assertEqual(len(results), 0)
-
-    # Izitru
-
-    @activate_izitru_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_izitru500(self):
-        with self.assertRaises(APIGracefulException):
-            get_izitru_results(self.mock_item['slugline'], self.mock_image)
-
-    @activate_izitru_mock({"status": 200, "response": {"foo": "bar"}, })
-    def test_retry_failed_izitru200(self):
-        with self.assertRaises(APIGracefulException):
-            get_izitru_results(self.mock_item['slugline'], self.mock_image)
-
-    # TinEye
-
-    @activate_tineye_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye500(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
-    @activate_tineye_mock({"status": 404, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye404(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
-    @activate_tineye_mock({"status": 200, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye200(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
-    @activate_tineye_mock({"status": 400,
-                           "response": {"code": 400, "messages": ['foobar']}, })
-    def test_retry_futile_tineye400(self):
-        self.assertEqual(
-            get_tineye_results(self.mock_image),
-            {'results': {'message': "['foobar']", 'status': 'error'}, 'total': None}
-        )
-
-    # Incandescent
-
-    @activate_incandescent_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_incandescent500(self):
-        with self.assertRaises(APIGracefulException):
-            get_incandescent_results('image.jpg.to')
-
-    @activate_incandescent_mock({"status": 200, "response": {"foo": "bar"}, })
-    def test_retry_failed_incandescent200(self):
-        with self.assertRaises(APIGracefulException):
-            get_incandescent_results('image.jpg.to')
 
     # misc
 
