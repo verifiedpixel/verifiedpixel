@@ -18,16 +18,6 @@ class TinEyeTest(TestCase, VPPTestCase):
         with open('./test/vpp/test2.jpg', 'rb') as f:
             cls.mock_image = f.read()
 
-    @activate_tineye_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye500(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
-    @activate_tineye_mock({"status": 404, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye404(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
     @activate_tineye_mock({"status": 200, "response": {"foo": "bar"}, })
     def test_retry_failed_tineye200(self):
         with self.assertRaises(APIGracefulException):
@@ -40,3 +30,19 @@ class TinEyeTest(TestCase, VPPTestCase):
             get_tineye_results(self.mock_image),
             {'results': {'message': "['foobar']", 'status': 'error'}, 'total': None}
         )
+
+    @activate_tineye_mock({"status": 401,
+                           "response": {"code": 401, "messages": ['foobar']}, })
+    def test_retry_futile_tineye401(self):
+        with self.assertRaises(APIGracefulException):
+            get_tineye_results(self.mock_image)
+
+    @activate_tineye_mock({"status": 404, "response": {"foo": "bar"}, })
+    def test_retry_failed_tineye404(self):
+        with self.assertRaises(APIGracefulException):
+            get_tineye_results(self.mock_image)
+
+    @activate_tineye_mock({"status": 500, "response": {"foo": "bar"}, })
+    def test_retry_failed_tineye500(self):
+        with self.assertRaises(APIGracefulException):
+            get_tineye_results(self.mock_image)
