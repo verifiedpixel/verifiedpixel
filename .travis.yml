@@ -16,6 +16,8 @@ python:
 matrix:
     allow_failures:
         - env: TARGET=e2e_firefox
+        - env: TARGET=client_unit
+    fast_finish: true
 
 services:
     - mongodb
