@@ -51,6 +51,6 @@ module.exports = {
     ng_templates: {
         options: {livereload: true},
         tasks: ['ngtemplates:app'],
-        files: ['<%= appDir %>/scripts/**/*.html']
+        files: ['<%= appDir %>/scripts/verifiedpixel*/**/*.html']
     }
 };

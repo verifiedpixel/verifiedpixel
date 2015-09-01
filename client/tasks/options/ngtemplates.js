@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
     app: {
         cwd: 'app',
@@ -19,4 +21,4 @@ module.exports = {
             }
         }
     }
-}
+};

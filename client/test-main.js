@@ -1,6 +1,7 @@
+'use strict';
+
 var tests = [];
 var APP_SPEC_REG_EXP = /^\/base\/app\/scripts\/(.*)\.js$/;
-var paths = {superdesk: 'bower_components/superdesk/client/app/scripts/'};
 
 for (var file in window.__karma__.files) {
     if (window.__karma__.files.hasOwnProperty(file)) {
@@ -16,7 +17,7 @@ for (var file in window.__karma__.files) {
 }
 
 function superdesk_push(path) {
-    return tests.push('bower_components/superdesk/client/app/scripts/' + path)
+    return tests.push('bower_components/superdesk/client/app/scripts/' + path);
 }
 
 // superdesk core
@@ -109,7 +110,6 @@ requirejs.config({
     deps: ['angular-mocks', 'angular-gettext', 'gettext', 'angular'],
 
     callback: function() {
-        'use strict';
         require(tests, window.__karma__.start);
     },
 
