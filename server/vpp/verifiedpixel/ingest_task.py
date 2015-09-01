@@ -88,9 +88,11 @@ def get_api_getter(api_name, api_getter=None):
     if not api_getter:
         api_getter = API_GETTERS[api_name]['function']
     if app.config['USE_VERIFICATION_MOCK']:
-        mock = MOCKS[api_name]
-        api_wrapper = mock['function'](*mock['fixtures'])
-        api_getter = api_wrapper(api_getter)
+        if 'api_getter' not in MOCKS[api_name]:
+            mock = MOCKS[api_name]
+            api_wrapper = mock['function'](*mock['fixtures'], eternal=True)
+            MOCKS[api_name]['api_getter'] = api_wrapper(api_getter)
+        api_getter = MOCKS[api_name]['api_getter']
     return api_getter
 
 
@@ -171,7 +173,6 @@ def append_incandescent_results_to_item(self, item, href):
     max_retries=20, countdown=5, bind=True,
     name='vpp.append_incandescent_result_callback', ignore_result=False
 )
-@print_task_exception
 def append_incandescent_results_to_item_callback(self, get_data, item_id, filename, verification_id):
     api_name = 'incandescent'
 
