@@ -81,6 +81,7 @@ module.exports = function (grunt) {
         'copy:fonts',
         'copy:docs',
         'template:test',
+        'ngtemplates',
         'nggettext_compile',
         'filerev',
         'usemin'
