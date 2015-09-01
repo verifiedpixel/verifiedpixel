@@ -173,7 +173,6 @@ INSTALLED_APPS = [
     'apps.aap_mm',
     'apps.spellcheck',
     'apps.templates',
-    'apps.archived',
     'apps.validators',
     'apps.validate',
     'apps.publicapi_publish',
