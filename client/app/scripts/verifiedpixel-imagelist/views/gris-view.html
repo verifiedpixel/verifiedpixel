@@ -10,22 +10,16 @@
     </dl>
 
     <ul ng-if="item.verification.results.incandescent_google" class="gris-matches">
-      <!--<li ng-repeat="pages in item.verification.results.incandescent_google | limitTo:10">-->
-      <li ng-repeat="(url_id, pages) in item.verification.results.incandescent_google track by url_id">
-
-        <pre>{{$index}}</pre>
-        <pre>{{item.verification.results.incandescent_google[url_id]}}</pre>
-        <pre>{{item.verification.results.incandescent_google[url_id]["456"]}}</pre>
-
-        <li ng-repeat="(page_id, match) in item.verification.results.incandescent_google[url_id]">
-          <span>{{ page_id }}</span>
-          <dl>
-            <dt><img ng-src="{{ match.usage-image }}" width="75" /></dt>
+      <li ng-repeat="pages in item.verification.results.incandescent_google | limitTo:10">
+        <div ng-repeat="match in pages">
+          <div>
+            <dt><img ng-src="{{ match['usage-image'] }}" width="75" /></dt>
             <dd>
+              Page: <a href="{{ match.page }}">{{match.page}}</a>
             </dd>
-          </dl>
-        </li>
-      </li>
+          </div>
+        </div>
+      </div>
     </ul>
     <!-- END VERIFICATION METADATA -->
 </div>
