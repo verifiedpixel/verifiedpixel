@@ -88,9 +88,9 @@
         var sortOptions = [
             {field: 'versioncreated', label: gettext('Updated')},
             {field: 'firstcreated', label: gettext('Created')},
-            {field: 'verification.izitru.verdict', label: gettext('Izitru Verdict')},
-            {field: 'verification.gris.searchinformation.totalResults', label: gettext('GRIS Results')},
-            {field: 'verification.tineye.results.total_results', label: gettext('Tineye Results')},
+            {field: 'verification.izitru', label: gettext('Izitru Verdict')},
+            {field: 'verification.incandescent_google', label: gettext('GRIS Results')},
+            {field: 'verification.tineye', label: gettext('Tineye Results')},
             {field: 'urgency', label: gettext('News Value')},
             {field: 'anpa_category.name', label: gettext('Category')},
             {field: 'slugline', label: gettext('Keyword')},
@@ -253,11 +253,11 @@
                 if (params.make) {
                     query.post_filter({terms: {'filemeta.Make': JSON.parse(params.make)}});
                 }
-                if (params.capture_location) {
-                    query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.capture_location)}});
-                }
+                //if (params.capture_location) {
+                    //query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.capture_location)}});
+                //}
                 if (params.izitru) {
-                    query.post_filter({terms: {'verification.izitru.verdict': JSON.parse(params.izitru)}});
+                    query.post_filter({terms: {'verification.izitru': JSON.parse(params.izitru)}});
                 }
                 if (params.original_source) {
                     query.post_filter({terms: {'original_source': JSON.parse(params.original_source)}});
@@ -1082,8 +1082,8 @@
         /**
          * Item list with sidebar preview
          */
-        .directive('vpSearchResults', ['$timeout', '$location', 'preferencesService', 'packages', 'tags', 'asset',
-            function($timeout, $location, preferencesService, packages, tags, asset) {
+        .directive('vpSearchResults', ['$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset',
+            function($timeout, $location, api, preferencesService, packages, tags, asset) {
             var update = {
                 'archive:view': {
                     'allowed': [
@@ -1137,13 +1137,27 @@
                                 _.remove(scope.selectedList, {_id: item._id});
                             }
                         }
-                        scope.selected.preview = item;
-                        if (scope.selected.preview !== undefined) {
-                            $timeout(function(){
-                                filmstrip();
-                            });
+                        var results = item.verification.results;
+                        var updatePreview = function() {
+                            console.log(item.verification.results.incandescent_google);
+                            scope.selected.preview = item;
+                            if (scope.selected.preview !== undefined) {
+                                $timeout(function(){
+                                    filmstrip();
+                                });
+                            }
+                            $location.search('_id', item ? item._id : null);
                         }
-                        $location.search('_id', item ? item._id : null);
+                        if (typeof results === 'string') {
+                            api('verification_results')
+                            .getById(results)
+                            .then(function(new_results) {
+                                item.verification.results = new_results;
+                                updatePreview();
+                            });
+                        } else {
+                            updatePreview();
+                        }
                     };
 
                     scope.openLightbox = function openLightbox() {
@@ -1563,7 +1577,7 @@
                     scope.$watch('item', reloadData);
 
                     function sortTineyeResults() {
-                        var matches = scope.item.verification.tineye.results.matches;
+                        var matches = scope.item.verification.results.tineye.results.matches;
                         angular.forEach(matches, function(match) {
 
                             var backlinks = _.sortBy(match.backlinks, 'crawl_date');

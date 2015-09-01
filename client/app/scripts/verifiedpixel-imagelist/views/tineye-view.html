@@ -1,12 +1,12 @@
 <div class="metadata-view">
     <!-- VERIFICATION METADATA -->
-    <dl ng-if="item.verification.tineye.results">
+    <dl ng-if="item.verification.tineye">
         <dt translate>Tineye Total Results</dt>
-        <dd>{{ item.verification.tineye.results.total_results }}</dd>
+        <dd>{{ item.verification.results.tineye.results.total_results }}</dd>
     </dl>
 
-    <ul ng-if="item.verification.tineye.results.matches" class="tineye-matches">
-      <li ng-repeat="match in item.verification.tineye.results.matches | orderBy: 'earliest_crawl_date' |limitTo:10">
+    <ul ng-if="item.verification.results.tineye.results.matches" class="tineye-matches">
+      <li ng-repeat="match in item.verification.results.tineye.results.matches | orderBy: 'earliest_crawl_date' |limitTo:10">
         <dl>
           <dt>
             <ul>

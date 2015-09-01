@@ -4,18 +4,27 @@
         <dt translate>GRIS Total Results</dt>
         <dd>{{ item.verification.gris.searchInformation.formattedTotalResults }}</dd>
     </dl>
-    <dl ng-if="item.verification.gris.results">
+    <dl ng-if="item.verification.results.incandescent_google">
         <dt translate>GRIS Matches</dt>
         <dd>:</dd>
     </dl>
 
-    <ul ng-if="item.verification.gris.results" class="gris-matches">
-      <li ng-repeat="match in item.verification.gris.items | limitTo:10">
-        <dl ng-if="match.image">
-          <dt><img ng-src="{{ match.image.thumbnailLink }}" width="75" /></dt>
-          <dd>
-          </dd>
-        </dl>
+    <ul ng-if="item.verification.results.incandescent_google" class="gris-matches">
+      <!--<li ng-repeat="pages in item.verification.results.incandescent_google | limitTo:10">-->
+      <li ng-repeat="(url_id, pages) in item.verification.results.incandescent_google track by url_id">
+
+        <pre>{{$index}}</pre>
+        <pre>{{item.verification.results.incandescent_google[url_id]}}</pre>
+        <pre>{{item.verification.results.incandescent_google[url_id]["456"]}}</pre>
+
+        <li ng-repeat="(page_id, match) in item.verification.results.incandescent_google[url_id]">
+          <span>{{ page_id }}</span>
+          <dl>
+            <dt><img ng-src="{{ match.usage-image }}" width="75" /></dt>
+            <dd>
+            </dd>
+          </dl>
+        </li>
       </li>
     </ul>
     <!-- END VERIFICATION METADATA -->
