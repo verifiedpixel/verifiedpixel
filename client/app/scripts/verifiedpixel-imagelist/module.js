@@ -1054,9 +1054,8 @@
                                 _.remove(scope.selectedList, {_id: item._id});
                             }
                         }
-                        var results = item.verification.results;
+                        var results = (item.verification) ? item.verification.results : null;
                         var updatePreview = function() {
-                            console.log(item.verification.results.incandescent_google);
                             scope.selected.preview = item;
                             if (scope.selected.preview !== undefined) {
                                 $timeout(function(){
@@ -1493,10 +1492,8 @@
 
                     scope.$watch('item', reloadData);
 
-                    function sortTineyeResults() {
-                        var matches = scope.item.verification.results.tineye.results.matches;
+                    function sortTineyeResults(matches) {
                         angular.forEach(matches, function(match) {
-
                             var backlinks = _.sortBy(match.backlinks, 'crawl_date');
                             var earliestCrawl = backlinks[0]['crawl_date'];
                             match.earliest_crawl_date = new Date(earliestCrawl); 
@@ -1520,7 +1517,12 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
-                        sortTineyeResults();
+                        if (scope.item.verification &&
+                            scope.item.verification.results &&
+                            scope.item.verification.results.tineye) {
+                            var matches = scope.item.verification.results.tineye.results.matches;
+                            sortTineyeResults(matches);
+                        }
                     }
                 }
             };
