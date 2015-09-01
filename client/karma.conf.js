@@ -9,18 +9,17 @@ module.exports = function(config) {
 
         preprocessors: {
             '**/*.html': ['ng-html2js'],
-            'app/scripts/!(bower_components)/*.js': ['coverage']
+            '**/verifiedpixel-*/**/*.js': ['coverage']
         },
 
         // list of files / patterns to load in the browser
         files: [
-            'test-main.js',
             'app/scripts/bower_components/jquery/dist/jquery.js',
             'app/scripts/bower_components/angular/angular.js',
             {pattern: 'app/**/*.js', included: false},
-            {pattern: 'app/scripts/verifiedpixel--*/**/*[sS]pec.js', included: false},
+            {pattern: 'app/scripts/superdesk/**/*[sS]pec.js', included: false},
             'app/scripts/verifiedpixel-*/**/*.html',
-            'app/scripts/bower_components/superdesk/client/app/scripts/superdesk-*/**/*.html'
+            'test-main.js'
         ],
 
         // list of files to exclude
