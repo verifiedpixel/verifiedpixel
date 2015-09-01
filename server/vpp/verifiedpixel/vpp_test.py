@@ -65,8 +65,10 @@ class VPPTestCase:
             verification_results = list(get_resource_service('verification_results').get(
                 req=ParsedRequest(), lookup={'_id': verification_results}
             ))[0]
-            _id = verification_results['_id']
+            # _id = verification_results['_id']
             for field in ['_id', '_etag', '_created', '_updated']:
                 del verification_results[field]
+            # with open(str(_id), 'w') as f:
+                # json.dump(verification_results, f)
         self.assertEqual(verification_stats, stats_references)
         self.assertEqual(verification_results, verification_references)

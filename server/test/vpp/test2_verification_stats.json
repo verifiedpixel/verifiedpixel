@@ -5,8 +5,10 @@
         "total_google": 15
     },
     "izitru": {
+        "location": "NA",
         "verdict": "1"
     },
+
     "tineye": {
         "total": 4774
     }

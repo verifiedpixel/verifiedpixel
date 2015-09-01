@@ -24,7 +24,7 @@ from .izitru import get_izitru_results
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
-from .logging import debug  # noqa
+from .logging import debug, print_task_exception   # noqa
 
 
 register('dill', dill.dumps, dill.loads, content_type='application/x-binary-data', content_encoding='binary')
@@ -134,7 +134,7 @@ def append_api_results_to_item(self, item, api_name, args, verification_id):
         handle_elastic_write_problems_wrapper(
             lambda: superdesk.get_resource_service('verification_results').patch(
                 verification_id,
-                {'{api}'.format(api=api_name): verification_results}
+                {api_name: verification_results}
             )
         )
 
@@ -171,6 +171,7 @@ def append_incandescent_results_to_item(self, item, href):
     max_retries=20, countdown=5, bind=True,
     name='vpp.append_incandescent_result_callback', ignore_result=False
 )
+@print_task_exception
 def append_incandescent_results_to_item_callback(self, get_data, item_id, filename, verification_id):
     api_name = 'incandescent'
 
@@ -221,7 +222,6 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
             {api_name: verification_result}
         )
     )
-    return
 
 
 @celery.task(bind=True, name='vpp.finalize_verification', ignore_result=False)

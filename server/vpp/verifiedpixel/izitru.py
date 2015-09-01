@@ -44,11 +44,12 @@ def get_izitru_results(filename, content):
     if response.status_code != 200:
         raise APIGracefulException(response)
     result = response.json()
-    if 'verdict' not in result:
+    if 'verdict' not in result or 'EXIF' not in result:
         raise APIGracefulException(result)
     return {
         'stats': {
             'verdict': result['verdict'],
+            'location': result['EXIF']['captureLocation']
         },
         'results': result
     }

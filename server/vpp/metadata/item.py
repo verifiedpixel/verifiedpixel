@@ -275,6 +275,7 @@ metadata_schema = {
                         'nullable': True,
                         'schema': {
                             'verdict': {'type': 'integer'},
+                            'location': {'type': 'string'},
                         },
                     },
                     'tineye': {
