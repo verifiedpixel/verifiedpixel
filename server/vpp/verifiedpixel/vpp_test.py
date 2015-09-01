@@ -58,18 +58,15 @@ class VPPTestCase:
                 cls.app.config['MONGO_DBNAME']
             )
 
-    def assertVerificationResult(self, results, references, verification_references):
-        self.assertIn('results', results)
-        verification_id = results['results']
-        if not isinstance(verification_id, dict):
-            verification_result = list(get_resource_service('verification_results').get(
-                req=ParsedRequest(), lookup={'_id': verification_id}
+    def assertVerificationResult(self, result, stats_references, verification_references):
+        verification_results = result['results']
+        verification_stats = result['stats']
+        if not isinstance(verification_results, dict):
+            verification_results = list(get_resource_service('verification_results').get(
+                req=ParsedRequest(), lookup={'_id': verification_results}
             ))[0]
+            _id = verification_results['_id']
             for field in ['_id', '_etag', '_created', '_updated']:
-                del verification_result[field]
-        else:
-            verification_result = verification_id
-        references['results'] = None
-        results['results'] = None
-        self.assertEqual(references, results)
-        self.assertEqual(verification_result, verification_references)
+                del verification_results[field]
+        self.assertEqual(verification_stats, stats_references)
+        self.assertEqual(verification_results, verification_references)

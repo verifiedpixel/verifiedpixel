@@ -46,4 +46,9 @@ def get_izitru_results(filename, content):
     result = response.json()
     if 'verdict' not in result:
         raise APIGracefulException(result)
-    return {'total': result['verdict'], 'results': result}
+    return {
+        'stats': {
+            'verdict': result['verdict'],
+        },
+        'results': result
+    }

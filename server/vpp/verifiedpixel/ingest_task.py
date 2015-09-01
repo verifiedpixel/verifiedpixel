@@ -115,27 +115,28 @@ def append_api_results_to_item(self, item, api_name, args, verification_id):
                   "verification of {file}:\n {exception}".format(
                       api=api_name, file=filename, exception=e
                   ))
-            verification_result = {"status": "error", "message": repr(e)}
-            results_number = None
+            verification_stats = {"status": "error", "message": repr(e)}
+            verification_results = None
     else:
         info("{api}: matchs found for {file}.".format(
             api=api_name, file=filename
         ))
-        verification_result = results_object['results']
-        results_number = results_object['total']
+        verification_results = results_object['results']
+        verification_stats = results_object['stats']
     # record result to database
     handle_elastic_write_problems_wrapper(
         lambda: superdesk.get_resource_service('ingest').patch(
             item['_id'],
-            {'verification.{api}'.format(api=api_name): results_number}
+            {'verification.stats.{api}'.format(api=api_name): verification_stats}
         )
     )
-    handle_elastic_write_problems_wrapper(
-        lambda: superdesk.get_resource_service('verification_results').patch(
-            verification_id,
-            {'{api}'.format(api=api_name): verification_result}
+    if verification_results:
+        handle_elastic_write_problems_wrapper(
+            lambda: superdesk.get_resource_service('verification_results').patch(
+                verification_id,
+                {'{api}'.format(api=api_name): verification_results}
+            )
         )
-    )
 
 
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_incandescent_result', ignore_result=False)
@@ -195,7 +196,7 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
         verification_result = {}
         for url, data in raw_results.items():
             for page_n, page in data['pages'].items():
-                source = 'incandescent_' + page['source']
+                source = page['source']
                 key = url.replace('.', '_')
                 if source not in verification_result:
                     verification_result[source] = {}
@@ -206,15 +207,18 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
     # record result to database
     handle_elastic_write_problems_wrapper(
         lambda: superdesk.get_resource_service('ingest').patch(
-            item_id,
-            {"verification.{source}".format(source=source): len(results)
-                for source, results in verification_result.items()}
+            item_id, {
+                "verification.stats.incandescent": {
+                    "total_{source}".format(source=source): len(results)
+                    for source, results in verification_result.items()
+                }
+            }
         )
     )
     handle_elastic_write_problems_wrapper(
         lambda: superdesk.get_resource_service('verification_results').patch(
             verification_id,
-            verification_result
+            {api_name: verification_result}
         )
     )
     return
