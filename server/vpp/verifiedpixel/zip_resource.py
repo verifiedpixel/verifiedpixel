@@ -1,7 +1,7 @@
 import logging
-import json
 import zipfile
 from flask import current_app as app
+from flask import json
 from eve.utils import ParsedRequest
 from io import BytesIO, StringIO
 
@@ -64,14 +64,22 @@ class VerifiedPixelZipResource(Resource):
 def zip_items(result_id, items_ids):
     archive_service = get_resource_service('archive')
     vppzip_service = get_resource_service('verifiedpixel_zip')
+    results_service = get_resource_service('verification_results')
 
     vppzip_service.patch(
         result_id,
         {'status': "processing"},
     )
 
-    items = archive_service.get_from_mongo(req=ParsedRequest(),
-                                           lookup={'_id': {'$in': items_ids}})
+    items = list(archive_service.get_from_mongo(
+        req=ParsedRequest(), lookup={'_id': {'$in': items_ids}}))
+    verification_ids = [item['verification']['results'] for item in items]
+    verification_results = {
+        result['_id']: result for result in
+        list(results_service.get_from_mongo(
+            req=ParsedRequest(), lookup={'_id': {'$in': verification_ids}})
+        )
+    }
     verification_data_object = StringIO()
     verification_data = {}
     zip_file_object = BytesIO()
@@ -80,6 +88,11 @@ def zip_items(result_id, items_ids):
         item_id = item['_id']
         image = get_original_image(item)[1]
         zip_file.writestr(item_id, image)
+        item['verification']['results'] = verification_results[
+            item['verification']['results']
+        ]
+        for field in ['_id', '_etag', '_created', '_updated']:
+            del item['verification']['results'][field]
         verification_data[item_id] = item['verification']
     json.dump(verification_data, verification_data_object)
     zip_file.writestr('verification.json', verification_data_object.getvalue())

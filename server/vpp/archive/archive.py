@@ -279,13 +279,18 @@ class ArchiveService(BaseService):
 
     def on_delete(self, doc):
         """Delete associated binary files."""
-        if doc and doc.get('renditions'):
-            for file_id in [rend.get('media') for rend in doc.get('renditions', {}).values()
-                            if rend.get('media')]:
-                try:
-                    app.media.delete(file_id)
-                except (NotFound):
-                    pass
+        if doc:
+            if doc.get('renditions'):
+                for file_id in [rend.get('media') for rend in doc.get('renditions', {}).values()
+                                if rend.get('media')]:
+                    try:
+                        app.media.delete(file_id)
+                    except (NotFound):
+                        pass
+            if doc.get('verification') and doc.get('verification').get('results'):
+                get_resource_service('verification_results').delete_action(
+                    {'_id': doc.get('verification').get('results')}
+                )
 
     def on_deleted(self, doc):
         if doc[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:

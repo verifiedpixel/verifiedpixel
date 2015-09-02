@@ -25,8 +25,8 @@
     <div class="item-info">
         <dl class="verification-results">
             <dt translate>Izitru Verdict</dt>
-            <dd ng-if="item.verification.izitru.verdict" class="iztru-{{ item.verification.izitru.verdict }}" title="Izitru rating of {{ item.verification.izitru.verdict }}">{{ item.verification.izitru.verdict }}</dd>
-            <dd ng-if="!item.verification.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
+            <dd ng-if="item.verification.stats.izitru.verdict" class="iztru-{{ item.verification.stats.izitru.verdict }}" title="Izitru rating of {{ item.verification.stats.izitru.verdict }}">{{ item.verification.stats.izitru.verdict }}</dd>
+            <dd ng-if="!item.verification.stats.izitru.verdict" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
 
             <dt translate>GPS Info Status</dt>
             <dd class="gps" ng-if="item.converted_exif.gpsinfo" title="Item has GPS metadata">Item has GPS metadata</dd>

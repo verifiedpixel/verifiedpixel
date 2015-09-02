@@ -1,48 +1,33 @@
-import hashlib
-import time
 from bson.objectid import ObjectId
 from gridfs import GridFS
 from flask import current_app as app
 from eve.utils import ParsedRequest
-from requests import request
-from PIL import Image
-from io import BytesIO
 from kombu.serialization import register
 import dill
 from celery import chord, group
-import json
-
-from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
-
-from apiclient.discovery import build as google_build
-from apiclient.discovery import HttpError as GoogleHttpError
 
 import superdesk
 from superdesk.celery_app import celery
 
 from .logging import error, warning, info, success
 from .elastic import handle_elastic_write_problems_wrapper
-from .vpp_mock import prepare_sequence_from_args
+from .exceptions import APIGracefulException, ImageNotFoundException
+from .vpp_mock import (
+    activate_izitru_mock, activate_tineye_mock, activate_incandescent_mock
+)
+from .incandescent import (
+    get_incandescent_results, get_incandescent_results_callback
+)
+from .tineye import get_tineye_results
+from .izitru import get_izitru_results
 
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
-from .logging import debug  # noqa
+from .logging import debug, print_task_exception   # noqa
 
 
 register('dill', dill.dumps, dill.loads, content_type='application/x-binary-data', content_encoding='binary')
-
-
-def init_tineye(app):
-    app.data.vpp_tineye_api = TinEyeAPIRequest(
-        api_url=app.config['TINEYE_API_URL'],
-        public_key=app.config['TINEYE_PUBLIC_KEY'],
-        private_key=app.config['TINEYE_SECRET_KEY']
-    )
-
-
-class ImageNotFoundException(Exception):
-    pass
 
 
 def get_original_image(item):
@@ -59,133 +44,118 @@ def get_original_image(item):
     raise ImageNotFoundException()
 
 
-class APIGracefulException(Exception):
-    pass
-
-
-def get_tineye_results(content):
-    try:
-        response = superdesk.app.data.vpp_tineye_api.search_data(content)
-    except TinEyeAPIError as e:
-        # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
-        if e.code == 400:
-            return {"status": "error", "message": repr(e.message)}
-        raise APIGracefulException(e)
-    except KeyError as e:
-        if e.args[0] == 'code':
-            raise APIGracefulException(e)
-    else:
-        return response.json_results
-
-
-def get_gris_results(href):
-    try:
-        service = google_build('customsearch', 'v1',
-                               developerKey=superdesk.app.config['GRIS_API_KEY'])
-        res = service.cse().list(
-            q=href,
-            searchType='image',
-            cx=superdesk.app.config['GRIS_API_CX'],
-        ).execute()
-    except GoogleHttpError as e:
-        raise APIGracefulException(e)
-    return res
-
-
-def get_izitru_results(filename, content):
-    izitru_security_data = int(time.time())
-    m = hashlib.md5()
-    m.update(str(izitru_security_data).encode())
-    m.update(superdesk.app.config['IZITRU_PRIVATE_KEY'].encode())
-    izitru_security_hash = m.hexdigest()
-
-    upfile = content
-    img = Image.open(BytesIO(content))
-    if img.format != 'JPEG':
-        exif = img.info.get('exif', b"")
-        converted_image = BytesIO()
-        img.save(converted_image, 'JPEG', exif=exif)
-        upfile = converted_image.getvalue()
-        converted_image.close()
-    img.close()
-
-    data = {
-        'activationKey': superdesk.app.config['IZITRU_ACTIVATION_KEY'],
-        'securityData': izitru_security_data,
-        'securityHash': izitru_security_hash,
-        'exactMatch': 'true',
-        'nearMatch': 'false',
-        'storeImage': 'true',
-    }
-    files = {'upFile': (filename, upfile, 'image/jpeg', {'Expires': '0'})}
-    response = request('POST', superdesk.app.config['IZITRU_API_URL'], data=data, files=files)
-    if response.status_code != 200:
-        raise APIGracefulException(response)
-    result = response.json()
-    if 'verdict' not in result:
-        raise APIGracefulException(result)
-    return result
-
-
 API_GETTERS = {
     'izitru': {"function": get_izitru_results, "args": ("filename", "content",)},
     'tineye': {"function": get_tineye_results, "args": ("content",)},
-    'gris': {"function": get_gris_results, "args": ("href",)},
+    # 'incandescent': {"function": get_incandescent_results, "args": ("href",)},
 }
 
 
-def get_placeholder_api_getter(fixtures_list):  # pragma: no cover
+MOCKS = {
+    'izitru': {
+        'function': activate_izitru_mock,
+        'fixtures': [
+            {"response_file": "test/vpp/mock_izitru_1.json"},
+            {"response_file": "test/vpp/mock_izitru_3.json"},
+            {"response_file": "test/vpp/mock_izitru_5.json"},
+            {"response": {'status': 'error', 'message': 'something gone wrong'}}
+        ]
+    },
+    'tineye': {
+        'function': activate_tineye_mock,
+        'fixtures': [
+            {"response_file": "test/vpp/mock_tineye_many.json"},
+            {"response_file": "test/vpp/mock_tineye_zero.json"},
+            {"response": {'status': 'error', 'message': 'something gone wrong'}}
+        ]
+    },
+    'incandescent': {
+        'function': activate_incandescent_mock,
+        'fixtures': [
+            {"response_file": './test/vpp/incandescent_add_response.json'},
+        ]
+    },
+    'incandescent_callback': {
+        'function': activate_incandescent_mock,
+        'fixtures': [
+            {"response_file": './test/vpp/incandescent_result_response.json'}
+        ]
+    },
+}
 
-    def create_eternal_fixture_generator():
-        i = 0
-        fixtures = [json.loads(x[1]) for x in prepare_sequence_from_args(fixtures_list)]
-        max = len(fixtures)
-        while True:
-            yield fixtures[i]
-            i = (i + 1) % max
 
-    fixture_generator = create_eternal_fixture_generator()
-
-    def api_getter(*args, **kwargs):
-        return next(fixture_generator)
-
+def get_api_getter(api_name, api_getter=None):
+    if not api_getter:
+        api_getter = API_GETTERS[api_name]['function']
+    if app.config['USE_VERIFICATION_MOCK']:
+        if 'api_getter' not in MOCKS[api_name]:
+            mock = MOCKS[api_name]
+            api_wrapper = mock['function'](*mock['fixtures'], eternal=True)
+            MOCKS[api_name]['api_getter'] = api_wrapper(api_getter)
+        api_getter = MOCKS[api_name]['api_getter']
     return api_getter
 
-MOCK_API_GETTERS = {
-    'izitru': {"function": get_placeholder_api_getter([
-        {"response_file": "test/vpp/mock_izitru_1.json"},
-        {"response_file": "test/vpp/mock_izitru_3.json"},
-        {"response_file": "test/vpp/mock_izitru_5.json"},
-        {"response": {'status': 'error', 'message': 'something gone wrong'}}
-    ]), "args": ("filename", "content",)},
-    'tineye': {"function": get_placeholder_api_getter([
-        {"response_file": "test/vpp/mock_tineye_many.json"},
-        {"response_file": "test/vpp/mock_tineye_zero.json"},
-        {"response": {'status': 'error', 'message': 'something gone wrong'}}
-    ]), "args": ("content",)},
-    'gris': {"function": get_placeholder_api_getter([
-        {"response": {'status': 'error', 'message': 'something gone wrong'}}
-    ]), "args": ("href",)},
-}
 
-
-def get_api_getters():
-    if app.config['USE_VERIFICATION_MOCK']:
-        return MOCK_API_GETTERS  # pragma: no cover
-    else:
-        return API_GETTERS
+def write_results(api_name, item_id, verification_id, verification_stats, verification_results):
+    handle_elastic_write_problems_wrapper(
+        lambda: superdesk.get_resource_service('ingest').patch(
+            item_id,
+            {'verification.stats.{api}'.format(api=api_name): verification_stats}
+        )
+    )
+    if verification_results:
+        handle_elastic_write_problems_wrapper(
+            lambda: superdesk.get_resource_service('verification_results').patch(
+                verification_id,
+                {api_name: verification_results}
+            )
+        )
 
 
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_api_result', ignore_result=False)
-def append_api_results_to_item(self, item, api_name, args):
+def append_api_results_to_item(self, item, api_name, args, verification_id):
     filename = item['slugline']
-    api_getter = get_api_getters()[api_name]['function']
     info(
         "{api}: searching matches for {file}... ({tries} of {max})".format(
             api=api_name, file=filename, tries=self.request.retries, max=self.max_retries
         ))
     try:
-        verification_result = api_getter(*args)
+        results_object = get_api_getter(api_name)(*args)
+    except APIGracefulException as e:
+        if self.request.retries < self.max_retries:
+            warning("{api}: API exception raised during "
+                    "verification of {file} (retrying):\n {exception}".format(
+                        api=api_name, file=filename, exception=e))
+            raise self.retry(
+                exc=e, countdown=app.config['VERIFICATION_TASK_RETRY_INTERVAL'])
+        else:
+            error("{api}: max retries exceeded on "
+                  "verification of {file}:\n {exception}".format(
+                      api=api_name, file=filename, exception=e
+                  ))
+            verification_stats = {"status": "error", "message": repr(e)}
+            verification_results = None
+    else:
+        info("{api}: matchs found for {file}.".format(
+            api=api_name, file=filename
+        ))
+        verification_results = results_object['results']
+        verification_stats = results_object['stats']
+    write_results(api_name,
+                  item['_id'], verification_id,
+                  verification_stats, verification_results)
+
+
+@celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_incandescent_result', ignore_result=False)
+def append_incandescent_results_to_item(self, item, href):
+    api_name = 'incandescent'
+    filename = item['slugline']
+    info(
+        "{api}: searching matches for {file}... ({tries} of {max})".format(
+            api=api_name, file=filename, tries=self.request.retries, max=self.max_retries
+        ))
+    try:
+        get_data = get_api_getter(api_name, get_incandescent_results)(href)
     except APIGracefulException as e:
         if self.request.retries < self.max_retries:
             warning("{api}: API exception raised during "
@@ -197,19 +167,54 @@ def append_api_results_to_item(self, item, api_name, args):
                   "verification of {file}:\n {exception}".format(
                       api=api_name, file=filename, exception=e))
             verification_result = {"status": "error", "message": repr(e)}
+            return verification_result
     else:
-        info("{api}: matchs found for {file}.".format(
+        info("{api}: waiting for matches for {file}.".format(
             api=api_name, file=filename))
+        return get_data
+
+
+@celery.task(
+    max_retries=20, countdown=5, bind=True,
+    name='vpp.append_incandescent_result_callback', ignore_result=False
+)
+def append_incandescent_results_to_item_callback(self, get_data, item_id, filename, verification_id):
+    api_name = 'incandescent'
+
+    if 'status' in get_data:
+        error("{api}: API exception raised on "
+              "verification of {file}:\n {exception}".format(
+                  api=api_name, file=filename, exception=get_data))
+        verification_results = get_data
+        verification_stats = {}
+    else:
+        try:
+            results_object = get_api_getter(
+                'incandescent_callback', get_incandescent_results_callback
+            )(get_data)
+            verification_stats = results_object['stats']
+            verification_results = results_object['results']
+        except APIGracefulException as e:
+            if self.request.retries < self.max_retries:
+                raise self.retry(exc=e)
+            else:
+                error("{api}: timeout exceeded on "
+                      "verification of {file}:\n {exception}".format(
+                          api=api_name, file=filename, exception=e))
+                verification_results = {"status": "error", "message": repr(e)}
+                verification_stats = {}
+        else:
+            info("{api}: matchs found for {file}.".format(
+                api=api_name, file=filename))
     # record result to database
-    handle_elastic_write_problems_wrapper(
-        lambda: superdesk.get_resource_service('ingest').patch(
-            item['_id'],
-            {'verification.{api}'.format(api=api_name): verification_result}
-        )
+    write_results(
+        api_name,
+        item_id, verification_id,
+        verification_stats, verification_results
     )
 
 
-@celery.task(bind=True, name='vpp.finalize_verification')
+@celery.task(bind=True, name='vpp.finalize_verification', ignore_result=False)
 def finalize_verification(self, *args, item_id, desk_id):
     success('Fetching item: {} into desk "Verified Images".'.format(item_id))
     handle_elastic_write_problems_wrapper(
@@ -224,6 +229,11 @@ def finalize_verification(self, *args, item_id, desk_id):
             lookup={'_id': item_id}
         )
     )
+
+
+@celery.task(ignore_result=False, name='vpp.wait_for_results')
+def wait_for_results(*args, **kwargs):
+    return
 
 
 @celery.task(bind=True, name='vpp.verify_ingest')
@@ -246,6 +256,15 @@ def verify_ingest(self):
         error(e)
         raise(e)
     for item in items:
+        verification_id = handle_elastic_write_problems_wrapper(
+            lambda: superdesk.get_resource_service('verification_results').post([{}])
+        )[0]
+        handle_elastic_write_problems_wrapper(
+            lambda: superdesk.get_resource_service('ingest').patch(
+                item['_id'],
+                {'verification.results': verification_id}
+            )
+        )
         filename = item['slugline']
         info(
             'found new ingested item: "{}"'.format(filename)
@@ -259,16 +278,40 @@ def verify_ingest(self):
             "content": content,
             "href": href
         }
-        chord(
-            group(
-                (append_api_results_to_item.subtask(
-                    args=(
-                        item, api_name,
-                        [all_args[arg_name] for arg_name in data['args']]
+        verification_tasks = group(
+            (
+                chord([
+                    append_api_results_to_item.subtask(
+                        args=(
+                            item, api_name,
+                            [all_args[arg_name] for arg_name in data['args']]
+                        ),
+                        kwargs={
+                            'verification_id': verification_id
+                        }
                     )
-                ))
-                for api_name, data in get_api_getters().items()
+                    for api_name, data in API_GETTERS.items()
+                ],
+                    wait_for_results.subtask()
+                )
             ),
+            (
+                append_incandescent_results_to_item.subtask(
+                    kwargs={
+                        "item": item,
+                        "href": all_args['href'],
+                    }
+                ) | append_incandescent_results_to_item_callback.subtask(
+                    kwargs={
+                        "filename": all_args['filename'],
+                        "item_id": item['_id'],
+                        'verification_id': verification_id
+                    }
+                )
+            )
+        )
+        chord(
+            verification_tasks,
             finalize_verification.subtask(
                 kwargs={"item_id": item['_id'], "desk_id": desk_id},
                 immutable=True

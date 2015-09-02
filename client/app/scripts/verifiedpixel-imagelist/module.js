@@ -1,96 +1,16 @@
 (function() {
     'use strict';
 
-    var ENTER = 13;
-
-    CommentsService.$inject = ['api'];
-    function CommentsService(api) {
-
-        this.comments = null;
-
-        this.fetch = function(item) {
-            var criteria = {
-                where: {
-                    item: item
-                },
-                embedded: {user: 1}
-            };
-
-            return api.item_comments.query(criteria)
-                .then(angular.bind(this, function(result) {
-                    this.comments = result._items;
-                }));
-        };
-
-        this.save = function(comment) {
-            return api.item_comments.save(comment);
-        };
-    }
-
-    CommentsCtrl.$inject = ['$scope', '$routeParams', 'commentsService', 'api', '$q'];
-    function CommentsCtrl($scope, $routeParams, commentsService, api, $q) {
-
-        $scope.text = null;
-        $scope.saveEnterFlag = false;
-        $scope.$watch('item._id', reload);
-        $scope.users = [];
-
-        $scope.saveOnEnter = function($event) {
-            if (!$scope.saveEnterFlag || $event.keyCode !== ENTER || $event.shiftKey) {
-                return;
-            }
-            $scope.save();
-        };
-
-        $scope.save = function() {
-            var text = $scope.text || '';
-            if (!text.length) {
-                return;
-            }
-
-            $scope.text = '';
-            $scope.flags = {saving: true};
-
-            commentsService.save({
-                text: text,
-                item: $scope.item._id
-            }).then(reload);
-        };
-
-        $scope.cancel = function() {
-            $scope.text = '';
-        };
-
-        function reload() {
-            if ($scope.item) {
-                commentsService.fetch($scope.item._id).then(function() {
-                    $scope.comments = commentsService.comments;
-                });
-            }
-        }
-
-        $scope.$on('item:comment', function(e, data) {
-            if (data.item === $scope.item.guid) {
-                reload();
-            }
-        });
-
-        function setActiveComment() {
-            $scope.active = $routeParams.comments || null;
-        }
-
-        $scope.$on('$locationChangeSuccess', setActiveComment);
-        setActiveComment();
-    }
 
     ImageListService.$inject = ['$location', 'gettext'];
     function ImageListService($location, gettext) {
         var sortOptions = [
             {field: 'versioncreated', label: gettext('Updated')},
             {field: 'firstcreated', label: gettext('Created')},
-            {field: 'verification.izitru.verdict', label: gettext('Izitru Verdict')},
-            {field: 'verification.gris.searchinformation.totalResults', label: gettext('GRIS Results')},
-            {field: 'verification.tineye.results.total_results', label: gettext('Tineye Results')},
+            {field: 'verification.stats.izitru.verdict', label: gettext('Izitru Verdict')},
+            {field: 'verification.stats.izitru.location', label: gettext('Izitru Location')},
+            {field: 'verification.stats.incandescent.total_google', label: gettext('GRIS Results')},
+            {field: 'verification.stats.tineye.total', label: gettext('Tineye Results')},
             {field: 'urgency', label: gettext('News Value')},
             {field: 'anpa_category.name', label: gettext('Category')},
             {field: 'slugline', label: gettext('Keyword')},
@@ -254,10 +174,10 @@
                     query.post_filter({terms: {'filemeta.Make': JSON.parse(params.make)}});
                 }
                 if (params.capture_location) {
-                    query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.capture_location)}});
+                    query.post_filter({terms: {'verification.stats.izitru.location': JSON.parse(params.capture_location)}});
                 }
                 if (params.izitru) {
-                    query.post_filter({terms: {'verification.izitru.verdict': JSON.parse(params.izitru)}});
+                    query.post_filter({terms: {'verification.stats.izitru.verdict': JSON.parse(params.izitru)}});
                 }
                 if (params.original_source) {
                     query.post_filter({terms: {'original_source': JSON.parse(params.original_source)}});
@@ -615,24 +535,19 @@
     }
 
     function keysToLowerCase(obj) {
-        if (!typeof(obj) === "object" || typeof(obj) === "string" || typeof(obj) === "number" || typeof(obj) === "boolean") {
-            return obj;
+        var output = {};
+        for (var i in obj) {
+            if (Object.prototype.toString.apply(obj[i]) === '[object Object]') {
+                output[i.toLowerCase()] = keysToLowerCase(obj[i]);
+            } else {
+                output[i.toLowerCase()] = obj[i];
+            }
         }
-        var keys = Object.keys(obj);
-        var n = keys.length;
-        var lowKey;
-        while (n--) {
-            var key = keys[n];
-            if (key === (lowKey = key.toLowerCase()))
-                continue;
-            obj[lowKey] = keysToLowerCase(obj[key]);
-            delete obj[key];
-        }
-        return (obj);
+        return output;
     }
 
-    ImageListController.$inject = ['$scope', '$location', 'api', 'search', 'notify', 'session'];
-    function ImageListController($scope, $location, api, search, notify, session) {
+    ImageListController.$inject = ['$scope', '$location', 'api', 'imagelist', 'notify', 'session'];
+    function ImageListController($scope, $location, api, imagelist, notify, session) {
         $scope.context = 'search';
         $scope.$on('item:deleted:archive:text', itemDelete);
 
@@ -655,7 +570,7 @@
                 $location.search('page', null);
             }
 
-            var criteria = search.query($location.search()).getCriteria(true);
+            var criteria = imagelist.query($location.search()).getCriteria(true);
             var provider = 'search';
             if (criteria.repo) {
                 provider = criteria.repo;
@@ -800,7 +715,7 @@
 
     angular.module('verifiedpixel.imagelist', [
         'ngMap',
-        'mentio', 
+        'mentio',
         'superdesk.api',
         'superdesk.users',
         'superdesk.desks',
@@ -808,17 +723,9 @@
         'superdesk.list',
         'superdesk.keyboard'
     ])
-        .config(['apiProvider', function(apiProvider) {
-            apiProvider.api('item_comments', {
-                type: 'http',
-                backend: {rel: 'item_comments'}
-            });
-        }])
-        .service('search', ImageListService)
+        .service('imagelist', ImageListService)
         .service('tags', TagService)
-        .service('commentsService', CommentsService)
         .controller('MultiActionBar', MultiActionBarController)
-        .controller('CommentsWidgetCtrl', CommentsCtrl)
         .filter('FacetLabels', function() {
             return function(input) {
                 if (input.toUpperCase() === 'URGENCY') {
@@ -1088,8 +995,8 @@
         /**
          * Item list with sidebar preview
          */
-        .directive('vpSearchResults', ['$timeout', '$location', 'preferencesService', 'packages', 'tags', 'asset',
-            function($timeout, $location, preferencesService, packages, tags, asset) {
+        .directive('vpSearchResults', ['$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset',
+            function($timeout, $location, api, preferencesService, packages, tags, asset) {
             var update = {
                 'archive:view': {
                     'allowed': [
@@ -1143,13 +1050,26 @@
                                 _.remove(scope.selectedList, {_id: item._id});
                             }
                         }
-                        scope.selected.preview = item;
-                        if (scope.selected.preview !== undefined) {
-                            $timeout(function(){
-                                filmstrip();
-                            });
+                        var results = (item && item.verification) ? item.verification.results : null;
+                        var updatePreview = function() {
+                            scope.selected.preview = item;
+                            if (scope.selected.preview !== undefined) {
+                                $timeout(function(){
+                                    filmstrip();
+                                });
+                            }
+                            $location.search('_id', item ? item._id : null);
                         }
-                        $location.search('_id', item ? item._id : null);
+                        if (typeof results === 'string') {
+                            api('verification_results')
+                            .getById(results)
+                            .then(function(new_results) {
+                                item.verification.results = new_results;
+                                updatePreview();
+                            });
+                        } else {
+                            updatePreview();
+                        }
                     };
 
                     scope.openLightbox = function openLightbox() {
@@ -1217,8 +1137,8 @@
         /**
          * Item search component
          */
-        .directive('vpItemSearch', ['$location', '$timeout', 'asset', 'api', 'tags', 'search', 'metadata',
-            function($location, $timeout, asset, api, tags, search, metadata) {
+        .directive('vpItemSearch', ['$location', '$timeout', 'asset', 'api', 'tags', 'imagelist', 'metadata',
+            function($location, $timeout, asset, api, tags, imagelist, metadata) {
             return {
                 scope: {
                     repo: '=',
@@ -1367,7 +1287,7 @@
                         })
                         .then(function (currentTags) {
                             scope.subjectitems = {
-                                subject: search.getSubjectCodes(currentTags, scope.subjectcodes)
+                                subject: imagelist.getSubjectCodes(currentTags, scope.subjectcodes)
                             };
                         });
 
@@ -1376,7 +1296,7 @@
                      */
                     scope.subjectSearch = function (item) {
                         tags.initSelectedFacets().then(function (currentTags) {
-                            var subjectCodes = search.getSubjectCodes(currentTags, scope.subjectcodes);
+                            var subjectCodes = imagelist.getSubjectCodes(currentTags, scope.subjectcodes);
                             if (item.subject.length > subjectCodes.length) {
                                 /* Adding subject codes to filter */
                                 var addItemSubjectName = 'subject.name:(' + item.subject[item.subject.length - 1].name + ')',
@@ -1568,10 +1488,8 @@
 
                     scope.$watch('item', reloadData);
 
-                    function sortTineyeResults() {
-                        var matches = scope.item.verification.tineye.results.matches;
+                    function sortTineyeResults(matches) {
                         angular.forEach(matches, function(match) {
-
                             var backlinks = _.sortBy(match.backlinks, 'crawl_date');
                             var earliestCrawl = backlinks[0]['crawl_date'];
                             match.earliest_crawl_date = new Date(earliestCrawl); 
@@ -1595,7 +1513,13 @@
                                 scope.versionCreator = user.display_name;
                             });
                         }
-                        sortTineyeResults();
+                        if (scope.item.verification &&
+                            scope.item.verification.results &&
+                            scope.item.verification.results.tineye
+                        ) {
+                            var matches = scope.item.verification.results.tineye.results.matches;
+                            sortTineyeResults(matches);
+                        }
                     }
                 }
             };

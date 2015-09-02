@@ -1,46 +1,46 @@
 <div class="metadata-view">
 
     <!-- VERIFICATION METADATA -->
-    <dl ng-if="item.verification.izitru.verdict">
+    <dl ng-if="item.verification.stats.izitru.verdict">
         <dt translate>Izitru Verdict</dt>
-        <dd>{{ item.verification.izitru.verdict }}</dd>
+        <dd>{{ item.verification.stats.izitru.verdict }}</dd>
     </dl>
-    <dl ng-if="item.verification.izitru.imageQuality">
+    <dl ng-if="item.verification.results.izitru.imageQuality">
         <dt translate>Image Quality</dt>
-        <dd>{{ item.verification.izitru.imageQuality }}</dd>
+        <dd>{{ item.verification.results.izitru.imageQuality }}</dd>
     </dl>
-    <dl ng-if="item.verification.izitru.jpegStructureAnalysis">
+    <dl ng-if="item.verification.results.izitru.jpegStructureAnalysis">
         <dt translate>JPEG Structure Analysis</dt>
-        <dd>{{ item.verification.izitru.jpegStructureAnalysis }}</dd>
+        <dd>{{ item.verification.results.izitru.jpegStructureAnalysis }}</dd>
     </dl>
-    <dl ng-if="item.verification.izitru.deviceSignatureAnalysis">
+    <dl ng-if="item.verification.results.izitru.deviceSignatureAnalysis">
         <dt translate>Device Signature Analysis</dt>
-        <dd>{{ item.verification.izitru.deviceSignatureAnalysis }}</dd>
+        <dd>{{ item.verification.results.izitru.deviceSignatureAnalysis }}</dd>
     </dl>
-    <dl ng-if="item.verification.izitru.sensorPatternAnalysis">
+    <dl ng-if="item.verification.results.izitru.sensorPatternAnalysis">
         <dt translate>Sensor Pattern Analysis</dt>
-        <dd>{{ item.verification.izitru.sensorPatternAnalysis }}</dd>
+        <dd>{{ item.verification.results.izitru.sensorPatternAnalysis }}</dd>
     </dl>
-    <dl ng-if="item.verification.izitru.multipleJpegAnalysis">
+    <dl ng-if="item.verification.results.izitru.multipleJpegAnalysis">
         <dt translate>Multiple JPEG Analysis</dt>
-        <dd>{{ item.verification.izitru.multipleJpegAnalysis }}</dd>
+        <dd>{{ item.verification.results.izitru.multipleJpegAnalysis }}</dd>
     </dl>
     <!-- END VERIFICATION METADATA -->
 
     <h4>Izitru verdict</h4>
 
-    <div class="it-scale" ng-if="item.verification.izitru.verdict">
+    <div class="it-scale" ng-if="item.verification.stats.izitru.verdict">
         <dl>
-            <dt ng-if="item.verification.izitru.verdict == 1">High Trust</dt>
-                <dd ng-if="item.verification.izitru.verdict == 1">This image has passed all six Izitru forensic tests and has not subsequently been edited. When you see a High rating, you can be very confident that you're looking at an unmodified original from a digital camera.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 2">Medium Trust</dt>
-                <dd ng-if="item.verification.izitru.verdict == 2">Forensic tests on this image were inconclusive, so not trust rating can be assigned.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 3">Undetermined file history</dt>
-                <dd ng-if="item.verification.izitru.verdict == 3">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 4">Potential file modification</dt>
-                <dd ng-if="item.verification.izitru.verdict == 4">Potential file modification: One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.izitru.verdict == 5">No Trust</dt>
-                <dd ng-if="item.verification.izitru.verdict == 5">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</dd>
+            <dt ng-if="item.verification.stats.izitru.verdict == 1">High Trust</dt>
+                <dd ng-if="item.verification.stats.izitru.verdict == 1">This image has passed all six Izitru forensic tests and has not subsequently been edited. When you see a High rating, you can be very confident that you're looking at an unmodified original from a digital camera.</dd>
+            <dt ng-if="item.verification.stats.izitru.verdict == 2">Medium Trust</dt>
+                <dd ng-if="item.verification.stats.izitru.verdict == 2">Forensic tests on this image were inconclusive, so not trust rating can be assigned.</dd>
+            <dt ng-if="item.verification.stats.izitru.verdict == 3">Undetermined file history</dt>
+                <dd ng-if="item.verification.stats.izitru.verdict == 3">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
+            <dt ng-if="item.verification.stats.izitru.verdict == 4">Potential file modification</dt>
+                <dd ng-if="item.verification.stats.izitru.verdict == 4">Potential file modification: One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
+            <dt ng-if="item.verification.stats.izitru.verdict == 5">No Trust</dt>
+                <dd ng-if="item.verification.stats.izitru.verdict == 5">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</dd>
         </dl>
     </div>
 

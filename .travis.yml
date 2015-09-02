@@ -3,7 +3,8 @@ language: python
 sudo: false
 
 env:
-    - TARGET=unit
+    - TARGET=server_unit
+    - TARGET=client_unit
     #- TARGET=server_ldap
     #- TARGET=server_public_api
     #- TARGET=e2e_chrome
@@ -15,6 +16,8 @@ python:
 matrix:
     allow_failures:
         - env: TARGET=e2e_firefox
+        - env: TARGET=client_unit
+    fast_finish: true
 
 services:
     - mongodb
@@ -28,7 +31,7 @@ cache:
     - $HOME/.cache/bower
 
 before_install:
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "client_unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         npm install -g grunt-cli bower ;
       fi
     - if [ "${TARGET}" != "${TARGET/e2e/}" ]; then
@@ -41,18 +44,18 @@ before_install:
       fi
 
 install:
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/server/}" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "server_unit" ] || [ "${TARGET}" != "${TARGET/server/}" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         cd server &&
         pip install -q -r requirements.txt &&
         cd .. ;
       fi
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "client_unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         cd client && npm install && cd .. ;
       fi
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "client_unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         cd client && bower install && cd .. ;
       fi
-    - if [ "${TARGET}" = "unit" ]; then
+    - if [ "${TARGET}" = "server_unit" ]; then
         cd server && pip install coveralls==1.0a2 && cd .. ;
       fi
 
@@ -69,11 +72,13 @@ before_script:
       fi
 
 script:
-        #cd client && npm test && cd .. ;
         #cd server && behave ./features/ --format progress2 --logging-level ERROR && cd .. ;
-    - if [ "${TARGET}" = "unit" ]; then
+    - if [ "${TARGET}" = "server_unit" ]; then
         cd server && nosetests vpp --with-coverage --cover-package=vpp.verifiedpixel && cd .. &&
         cd server && flake8 && cd .. ;
+      fi
+    - if [ "${TARGET}" = "client_unit" ]; then
+        cd client && npm test && cd .. ;
       fi
     - if [ "${TARGET}" = "server_ldap" ]; then
         cd server &&
@@ -105,7 +110,7 @@ after_script:
 
 after_success:
         #cd client && grunt coveralls && cd .. ;
-    - if [ "${TARGET}" = "unit" ]; then
+    - if [ "${TARGET}" = "server_unit" ]; then
         cd server && coveralls --merge="../client/coveralls.json" ;
       fi
 notifications:

@@ -6,13 +6,11 @@ from superdesk import get_resource_service
 from superdesk.tests import setup
 from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
-from vpp.verifiedpixel.ingest_task import (
-    APIGracefulException, verify_ingest,
-    get_tineye_results, get_izitru_results, get_gris_results
-)
+from .ingest_task import verify_ingest
 
 from .vpp_mock import (
-    activate_tineye_mock, activate_izitru_mock, activate_gris_mock
+    activate_tineye_mock, activate_izitru_mock,
+    activate_incandescent_mock
 )
 from .vpp_test import VPPTestCase
 
@@ -45,6 +43,7 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
         with self.app.app_context():
             AppInitializeWithDataCommand().run()
         self.expected_verification_results = []
+        self.expected_verification_stats = []
         self.mock_item = {"slugline": "test"}
 
     @activate_izitru_mock(
@@ -53,13 +52,14 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     @activate_tineye_mock(
         {"response_file": './test/vpp/test1_tineye_response.json'}
     )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'}
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
     )
     def test_happy_day_png(self):
         self.upload_fixture_image(
             './test/vpp/test.png',
+            './test/vpp/test1_verification_stats.json',
             './test/vpp/test1_verification_result.json'
         )
         with self.app.app_context():
@@ -68,9 +68,11 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
-            self.assertEqual(
-                self.expected_verification_results[0],
-                list(items)[0]['verification']
+            verification_result = list(items)[0]['verification']
+            self.assertVerificationResult(
+                verification_result,
+                self.expected_verification_stats[0],
+                self.expected_verification_results[0]
             )
 
     @activate_izitru_mock(
@@ -79,13 +81,14 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
     @activate_tineye_mock(
         {"response_file": './test/vpp/test2_tineye_response.json'}
     )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test2_gris_search_response.json'}
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
     )
     def test_happy_day_jpg(self):
         self.upload_fixture_image(
             './test/vpp/test2.jpg',
+            './test/vpp/test2_verification_stats.json',
             './test/vpp/test2_verification_result.json'
         )
         with self.app.app_context():
@@ -94,54 +97,60 @@ class VerifiedPixelAppTest(TestCase, VPPTestCase):
             items = superdesk.get_resource_service('archive').get(
                 req=ParsedRequest(), lookup=lookup
             )
-            self.assertEqual(
-                self.expected_verification_results[0],
-                list(items)[0]['verification']
+            verification_result = list(items)[0]['verification']
+            self.assertVerificationResult(
+                verification_result,
+                self.expected_verification_stats[0],
+                self.expected_verification_results[0]
             )
 
-    # Izitru
-
-    @activate_izitru_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_izitru500(self):
-        with self.assertRaises(APIGracefulException):
-            get_izitru_results(self.mock_item['slugline'], self.mock_image)
-
-    @activate_izitru_mock({"status": 200, "response": {"foo": "bar"}, })
-    def test_retry_failed_izitru200(self):
-        with self.assertRaises(APIGracefulException):
-            get_izitru_results(self.mock_item['slugline'], self.mock_image)
-
-    # TinEye
-
-    @activate_tineye_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye500(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
-    @activate_tineye_mock({"status": 404, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye404(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
-    @activate_tineye_mock({"status": 200, "response": {"foo": "bar"}, })
-    def test_retry_failed_tineye200(self):
-        with self.assertRaises(APIGracefulException):
-            get_tineye_results(self.mock_image)
-
-    @activate_tineye_mock({"status": 400,
-                           "response": {"code": 400, "messages": ['foobar']}, })
-    def test_retry_futile_tineye400(self):
-        self.assertEqual(
-            get_tineye_results(self.mock_image),
-            {"status": "error", "message": "['foobar']"}
+    @activate_izitru_mock(
+        {"response_file": './test/vpp/test2_izitru_response.json'}
+    )
+    @activate_tineye_mock(
+        {"response_file": './test/vpp/test2_tineye_response.json'}
+    )
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
+    )
+    def test_happy_day_jpg_remove(self):
+        self.upload_fixture_image(
+            './test/vpp/test2.jpg',
+            './test/vpp/test2_verification_stats.json',
+            './test/vpp/test2_verification_result.json'
         )
+        with self.app.app_context():
+            verify_ingest()
+            item = list(superdesk.get_resource_service('archive').get(
+                req=ParsedRequest(), lookup={'type': 'picture'}
+            ))[0]
+            verification_result = item['verification']
+            results_id = verification_result['results']
+            self.assertVerificationResult(
+                verification_result,
+                self.expected_verification_stats[0],
+                self.expected_verification_results[0]
+            )
 
-    # GRIS
+            results = list(superdesk.get_resource_service('verification_results').get(
+                req=ParsedRequest(), lookup={'_id': results_id}
+            ))
+            self.assertEqual(len(results), 1)
 
-    @activate_gris_mock({"status": 500, "response": {"foo": "bar"}, })
-    def test_retry_failed_gris(self):
-        with self.assertRaises(APIGracefulException):
-            get_gris_results('image.jpg.to')
+            superdesk.get_resource_service('archive').delete_action(
+                {'_id': item['_id']}
+            )
+
+            verification_result = list(superdesk.get_resource_service('archive').get(
+                req=ParsedRequest(), lookup={'_id': item['_id']}
+            ))
+            self.assertEqual(len(verification_result), 0)
+
+            results = list(superdesk.get_resource_service('verification_results').get(
+                req=ParsedRequest(), lookup={'_id': results_id}
+            ))
+            self.assertEqual(len(results), 0)
 
     # misc
 
