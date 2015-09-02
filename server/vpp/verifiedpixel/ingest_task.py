@@ -182,12 +182,18 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
     api_name = 'incandescent'
 
     if 'status' in get_data:
-        verification_result = get_data
+        error("{api}: API exception raised on "
+              "verification of {file}:\n {exception}".format(
+                  api=api_name, file=filename, exception=get_data))
+        verification_results = get_data
+        verification_stats = {}
     else:
         try:
-            raw_results = get_api_getter(
+            results_object = get_api_getter(
                 'incandescent_callback', get_incandescent_results_callback
             )(get_data)
+            verification_stats = results_object['stats']
+            verification_results = results_object['results']
         except APIGracefulException as e:
             if self.request.retries < self.max_retries:
                 raise self.retry(exc=e)
@@ -195,30 +201,16 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
                 error("{api}: timeout exceeded on "
                       "verification of {file}:\n {exception}".format(
                           api=api_name, file=filename, exception=e))
-                verification_result = {"status": "error", "message": repr(e)}
+                verification_results = {"status": "error", "message": repr(e)}
+                verification_stats = {}
         else:
             info("{api}: matchs found for {file}.".format(
                 api=api_name, file=filename))
-
-        verification_result = {}
-        for url, data in raw_results.items():
-            for page_n, page in data['pages'].items():
-                source = page['source']
-                key = url.replace('.', '_')
-                if source not in verification_result:
-                    verification_result[source] = {}
-                if key not in verification_result[source]:
-                    verification_result[source][key] = {}
-                verification_result[source][key][page_n] = page
     # record result to database
     write_results(
         api_name,
         item_id, verification_id,
-        {
-            "total_{source}".format(source=source): len(results)
-            for source, results in verification_result.items()
-        },
-        verification_result
+        verification_stats, verification_results
     )
 
 

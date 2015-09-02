@@ -55,7 +55,25 @@ def get_incandescent_results_callback(get_data):
     get_response = request(
         'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers
     )
-    get_result = get_response.json()
-    if get_result.get('status') == 710:
-        raise(APIGracefulException(get_result))
-    return get_result
+    raw_results = get_response.json()
+    if raw_results.get('status') == 710:
+        raise(APIGracefulException(raw_results))
+
+    verification_results = {}
+    verification_stats = {}
+    for url, data in raw_results.items():
+        for page_n, page in data['pages'].items():
+            source = page['source']
+            key = url.replace('.', '_')
+            if source not in verification_results:
+                verification_results[source] = {}
+                verification_stats["total_{}".format(source)] = 0
+            verification_stats["total_{}".format(source)] += 1
+            if key not in verification_results[source]:
+                verification_results[source][key] = {}
+            verification_results[source][key][page_n] = page
+
+    return {
+        'stats': verification_stats,
+        'results': verification_results
+    }
