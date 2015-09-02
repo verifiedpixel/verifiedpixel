@@ -56,7 +56,7 @@ def get_incandescent_results_callback(get_data):
         'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers
     )
     raw_results = get_response.json()
-    if 'status' not in raw_results or raw_results.get('status') == 710:
+    if raw_results.get('status', None) == 710:
         raise(APIGracefulException(raw_results))
 
     verification_results = {}
