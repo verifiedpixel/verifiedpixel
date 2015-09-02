@@ -24,7 +24,7 @@ from .izitru import get_izitru_results
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
-from .logging import debug  # noqa
+from .logging import debug, print_task_exception   # noqa
 
 
 register('dill', dill.dumps, dill.loads, content_type='application/x-binary-data', content_encoding='binary')
@@ -88,10 +88,28 @@ def get_api_getter(api_name, api_getter=None):
     if not api_getter:
         api_getter = API_GETTERS[api_name]['function']
     if app.config['USE_VERIFICATION_MOCK']:
-        mock = MOCKS[api_name]
-        api_wrapper = mock['function'](*mock['fixtures'])
-        api_getter = api_wrapper(api_getter)
+        if 'api_getter' not in MOCKS[api_name]:
+            mock = MOCKS[api_name]
+            api_wrapper = mock['function'](*mock['fixtures'], eternal=True)
+            MOCKS[api_name]['api_getter'] = api_wrapper(api_getter)
+        api_getter = MOCKS[api_name]['api_getter']
     return api_getter
+
+
+def write_results(api_name, item_id, verification_id, verification_stats, verification_results):
+    handle_elastic_write_problems_wrapper(
+        lambda: superdesk.get_resource_service('ingest').patch(
+            item_id,
+            {'verification.stats.{api}'.format(api=api_name): verification_stats}
+        )
+    )
+    if verification_results:
+        handle_elastic_write_problems_wrapper(
+            lambda: superdesk.get_resource_service('verification_results').patch(
+                verification_id,
+                {api_name: verification_results}
+            )
+        )
 
 
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_api_result', ignore_result=False)
@@ -115,27 +133,17 @@ def append_api_results_to_item(self, item, api_name, args, verification_id):
                   "verification of {file}:\n {exception}".format(
                       api=api_name, file=filename, exception=e
                   ))
-            verification_result = {"status": "error", "message": repr(e)}
-            results_number = None
+            verification_stats = {"status": "error", "message": repr(e)}
+            verification_results = None
     else:
         info("{api}: matchs found for {file}.".format(
             api=api_name, file=filename
         ))
-        verification_result = results_object['results']
-        results_number = results_object['total']
-    # record result to database
-    handle_elastic_write_problems_wrapper(
-        lambda: superdesk.get_resource_service('ingest').patch(
-            item['_id'],
-            {'verification.{api}'.format(api=api_name): results_number}
-        )
-    )
-    handle_elastic_write_problems_wrapper(
-        lambda: superdesk.get_resource_service('verification_results').patch(
-            verification_id,
-            {'{api}'.format(api=api_name): verification_result}
-        )
-    )
+        verification_results = results_object['results']
+        verification_stats = results_object['stats']
+    write_results(api_name,
+                  item['_id'], verification_id,
+                  verification_stats, verification_results)
 
 
 @celery.task(max_retries=3, bind=True, serializer='dill', name='vpp.append_incandescent_result', ignore_result=False)
@@ -195,29 +203,23 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
         verification_result = {}
         for url, data in raw_results.items():
             for page_n, page in data['pages'].items():
-                source = 'incandescent_' + page['source']
+                source = page['source']
                 key = url.replace('.', '_')
                 if source not in verification_result:
                     verification_result[source] = {}
                 if key not in verification_result[source]:
                     verification_result[source][key] = {}
                 verification_result[source][key][page_n] = page
-
     # record result to database
-    handle_elastic_write_problems_wrapper(
-        lambda: superdesk.get_resource_service('ingest').patch(
-            item_id,
-            {"verification.{source}".format(source=source): len(results)
-                for source, results in verification_result.items()}
-        )
+    write_results(
+        api_name,
+        item_id, verification_id,
+        {
+            "total_{source}".format(source=source): len(results)
+            for source, results in verification_result.items()
+        },
+        verification_result
     )
-    handle_elastic_write_problems_wrapper(
-        lambda: superdesk.get_resource_service('verification_results').patch(
-            verification_id,
-            verification_result
-        )
-    )
-    return
 
 
 @celery.task(bind=True, name='vpp.finalize_verification', ignore_result=False)
@@ -239,7 +241,6 @@ def finalize_verification(self, *args, item_id, desk_id):
 
 @celery.task(ignore_result=False, name='vpp.wait_for_results')
 def wait_for_results(*args, **kwargs):
-    debug((args, kwargs, ))
     return
 
 

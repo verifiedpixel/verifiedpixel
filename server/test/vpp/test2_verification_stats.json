@@ -1,7 +1,15 @@
 {
-    "incandescent_baidu": 2,
-    "incandescent_bing": 4,
-    "incandescent_google": 15,
-    "izitru": "1",
-    "tineye": 4774
+    "incandescent": {
+        "total_baidu": 2,
+        "total_bing": 4,
+        "total_google": 15
+    },
+    "izitru": {
+        "location": "NA",
+        "verdict": "1"
+    },
+
+    "tineye": {
+        "total": 4774
+    }
 }

@@ -11,19 +11,19 @@
             </li>
             <li ng-class="{active: tab === 'gris'}">
                 <button ng-click="tab = 'gris'" tooltip="Google Revere Image Search" tooltip-placement="bottom">
-                    <i class="fa fa-2x fa-google"></i> ({{item.verification.incandescent_google}})
+                    <i class="fa fa-2x fa-google"></i> ({{item.verification.stats.incandescent.total_google}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'tineye'}">
                 <button ng-click="tab = 'tineye'" tooltip="Tineye" tooltip-placement="bottom">
                     <i ng-class="{active: tab === 'tineye'}" class="fa fa-2x tineye"></i>
-                    ({{item.verification.tineye}})
+                    ({{item.verification.stats.tineye.total}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'izitru'}">
                 <button ng-click="tab = 'izitru'" tooltip="Izitru" tooltip-placement="bottom">
                     <i ng-class="{active: tab === 'izitru'}" class="fa fa-2x izitru"></i>
-                    ({{item.verification.izitru}})
+                    ({{item.verification.stats.izitru.verdict}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'comments'}">

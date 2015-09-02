@@ -1,6 +1,5 @@
 from httmock import urlmatch, HTTMock
 import json
-import logging
 import re
 from unittest import mock
 
@@ -10,9 +9,7 @@ from urllib3.connectionpool import HTTPConnectionPool
 orig_urlopen = HTTPConnectionPool.urlopen
 from urllib3_mock import Responses  # noqa
 
-
-logger = logging.getLogger('superdesk')
-logger.setLevel(logging.DEBUG)
+from .logging import debug  # noqa
 
 
 METADATA = 0
@@ -34,18 +31,30 @@ def prepare_sequence_from_args(args):
     return sequence
 
 
-def get_fixture_generator(fixtures):
-    return (fixture for fixture in prepare_sequence_from_args(fixtures))
+def create_eternal_fixture_generator(fixtures_list):
+    i = 0
+    fixtures = [x for x in prepare_sequence_from_args(fixtures_list)]
+    max = len(fixtures)
+    while True:
+        yield fixtures[i]
+        i = (i + 1) % max
 
 
-def activate_izitru_mock(*fixtures):
-    fixture_generator = get_fixture_generator(fixtures)
+def get_fixture_generator(fixtures, eternal=False):
+    if eternal:
+        return create_eternal_fixture_generator(fixtures)
+    else:
+        return (fixture for fixture in prepare_sequence_from_args(fixtures))
+
+
+def activate_izitru_mock(*fixtures, eternal=False):
+    fixture_generator = get_fixture_generator(fixtures, eternal)
 
     @urlmatch(
         scheme='https', netloc='www.izitru.com', path='/scripts/uploadAPI.pl'
     )
     def izitru_request(url, request):
-        logger.debug("served requests mock for IZITRU")
+        debug("served requests mock for IZITRU")
         fixture = next(fixture_generator)
         return {
             'status_code': fixture[METADATA]['status'],
@@ -60,14 +69,14 @@ def activate_izitru_mock(*fixtures):
     return wrap
 
 
-def activate_incandescent_mock(*fixtures):
-    fixture_generator = get_fixture_generator(fixtures)
+def activate_incandescent_mock(*fixtures, eternal=False):
+    fixture_generator = get_fixture_generator(fixtures, eternal)
 
     @urlmatch(
         scheme='https', netloc='incandescent.xyz'
     )
     def incandescent_request(url, request):
-        logger.debug("served requests mock for INCANDESCENT")
+        debug("served requests mock for INCANDESCENT")
         fixture = next(fixture_generator)
         return {
             'status_code': fixture[METADATA]['status'],
@@ -82,12 +91,12 @@ def activate_incandescent_mock(*fixtures):
     return wrap
 
 
-def activate_tineye_mock(*fixtures):
+def activate_tineye_mock(*fixtures, eternal=False):
     responses = Responses('urllib3')
-    fixture_generator = get_fixture_generator(fixtures)
+    fixture_generator = get_fixture_generator(fixtures, eternal)
 
     def tineye_response(request):
-        logger.debug("served urllib3 mock for TINEYE")
+        debug("served urllib3 mock for TINEYE")
         fixture = next(fixture_generator)
         return (fixture[METADATA]['status'], {}, fixture[CONTENT])
     responses.add_callback(

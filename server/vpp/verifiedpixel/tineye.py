@@ -31,4 +31,9 @@ def get_tineye_results(content):
     result = response.json_results
     if 'results' not in result or 'total_results' not in result['results']:
         raise APIGracefulException(result)
-    return {'total': result['results']['total_results'], 'results': result}
+    return {
+        'stats': {
+            'total': result['results']['total_results']
+        },
+        'results': result
+    }

@@ -265,14 +265,39 @@ metadata_schema = {
         'type': 'dict',
         'nullable': True,
         'schema': {
-            'izitru': {'type': 'integer'},
-            'tineye': {'type': 'integer'},
-            'incandescent_google': {'type': 'integer'},
-            'incandescent_bing': {'type': 'integer'},
-            'incandescent_baidu': {'type': 'integer'},
-            'incandescent_yandex': {'type': 'integer'},
-            'incandescent_other': {'type': 'integer'},
-            'results': Resource.rel('verification_results')
+            'results': Resource.rel('verification_results'),
+            'stats': {
+                'type': 'dict',
+                'nullable': True,
+                'schema': {
+                    'izitru': {
+                        'type': 'dict',
+                        'nullable': True,
+                        'schema': {
+                            'verdict': {'type': 'integer'},
+                            'location': {'type': 'string'},
+                        },
+                    },
+                    'tineye': {
+                        'type': 'dict',
+                        'nullable': True,
+                        'schema': {
+                            'total': {'type': 'integer'},
+                        },
+                    },
+                    'incandescent': {
+                        'type': 'dict',
+                        'nullable': True,
+                        'schema': {
+                            'total_google': {'type': 'integer'},
+                            'total_bing': {'type': 'integer'},
+                            'total_baidu': {'type': 'integer'},
+                            'total_yandex': {'type': 'integer'},
+                            'total_other': {'type': 'integer'},
+                        },
+                    },
+                },
+            }
         }
     },
 

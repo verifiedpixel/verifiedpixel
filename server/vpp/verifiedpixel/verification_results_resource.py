@@ -23,11 +23,7 @@ class VerificationResultsResource(Resource):
     schema = {
         'izitru': {'type': 'dict'},
         'tineye': {'type': 'dict'},
-        'incandescent_google': {'type': 'list'},
-        'incandescent_bing': {'type': 'list'},
-        'incandescent_baidu': {'type': 'list'},
-        'incandescent_yandex': {'type': 'list'},
-        'incandescent_other': {'type': 'list'},
+        'incandescent': {'type': 'dict'},
     }
     privileges = {
         'GET': 'verification_results',

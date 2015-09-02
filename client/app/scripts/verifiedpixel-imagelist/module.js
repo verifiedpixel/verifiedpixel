@@ -7,9 +7,10 @@
         var sortOptions = [
             {field: 'versioncreated', label: gettext('Updated')},
             {field: 'firstcreated', label: gettext('Created')},
-            {field: 'verification.izitru', label: gettext('Izitru Verdict')},
-            {field: 'verification.incandescent_google', label: gettext('GRIS Results')},
-            {field: 'verification.tineye', label: gettext('Tineye Results')},
+            {field: 'verification.stats.izitru.verdict', label: gettext('Izitru Verdict')},
+            {field: 'verification.stats.izitru.location', label: gettext('Izitru Location')},
+            {field: 'verification.stats.incandescent.total_google', label: gettext('GRIS Results')},
+            {field: 'verification.stats.tineye.total', label: gettext('Tineye Results')},
             {field: 'urgency', label: gettext('News Value')},
             {field: 'anpa_category.name', label: gettext('Category')},
             {field: 'slugline', label: gettext('Keyword')},
@@ -172,11 +173,11 @@
                 if (params.make) {
                     query.post_filter({terms: {'filemeta.Make': JSON.parse(params.make)}});
                 }
-                //if (params.capture_location) {
-                    //query.post_filter({terms: {'verification.izitru.EXIF.captureLocation': JSON.parse(params.capture_location)}});
-                //}
+                if (params.capture_location) {
+                    query.post_filter({terms: {'verification.stats.izitru.location': JSON.parse(params.capture_location)}});
+                }
                 if (params.izitru) {
-                    query.post_filter({terms: {'verification.izitru': JSON.parse(params.izitru)}});
+                    query.post_filter({terms: {'verification.stats.izitru.verdict': JSON.parse(params.izitru)}});
                 }
                 if (params.original_source) {
                     query.post_filter({terms: {'original_source': JSON.parse(params.original_source)}});
@@ -1514,7 +1515,8 @@
                         }
                         if (scope.item.verification &&
                             scope.item.verification.results &&
-                            scope.item.verification.results.tineye) {
+                            scope.item.verification.results.tineye
+                        ) {
                             var matches = scope.item.verification.results.tineye.results.matches;
                             sortTineyeResults(matches);
                         }
