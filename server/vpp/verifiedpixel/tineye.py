@@ -23,17 +23,15 @@ def get_tineye_results(content):
     except TinEyeAPIError as e:
         # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
         if e.code == 400:
-            return {'total': None, 'results': {"status": "error", "message": repr(e.message)}}
+            return {
+                'stats': {'total': None},
+                'results': {"status": "error", "message": repr(e.message)}
+            }
         raise APIGracefulException(e)
-    except KeyError as e:
-        if e.args[0] == 'code':
-            raise APIGracefulException(e)
+    except Exception as e:
+        raise APIGracefulException(e)
     result = response.json_results
-    if 'results' not in result or 'total_results' not in result['results']:
-        raise APIGracefulException(result)
     return {
-        'stats': {
-            'total': result['results']['total_results']
-        },
+        'stats': {'total': result['results']['total_results']},
         'results': result
     }

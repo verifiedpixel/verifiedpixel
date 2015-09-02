@@ -61,18 +61,20 @@ def get_incandescent_results_callback(get_data):
 
     verification_results = {}
     verification_stats = {}
-    for url, data in raw_results.items():
-        for page_n, page in data['pages'].items():
-            source = page['source']
-            key = url.replace('.', '_')
-            if source not in verification_results:
-                verification_results[source] = {}
-                verification_stats["total_{}".format(source)] = 0
-            verification_stats["total_{}".format(source)] += 1
-            if key not in verification_results[source]:
-                verification_results[source][key] = {}
-            verification_results[source][key][page_n] = page
-
+    try:
+        for url, data in raw_results.items():
+            for page_n, page in data['pages'].items():
+                source = page['source']
+                key = url.replace('.', '_')
+                if source not in verification_results:
+                    verification_results[source] = {}
+                    verification_stats["total_{}".format(source)] = 0
+                verification_stats["total_{}".format(source)] += 1
+                if key not in verification_results[source]:
+                    verification_results[source][key] = {}
+                verification_results[source][key][page_n] = page
+    except (TypeError, KeyError) as e:
+        raise(APIGracefulException(e))
     return {
         'stats': verification_stats,
         'results': verification_results

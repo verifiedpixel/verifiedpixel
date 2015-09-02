@@ -23,12 +23,21 @@ class TinEyeTest(TestCase, VPPTestCase):
         with self.assertRaises(APIGracefulException):
             get_tineye_results(self.mock_image)
 
+    @activate_tineye_mock({"status": 200,
+                           "response": {"code": 200, "results": ['foobar']}, })
+    def test_retry_futile_tineye200_2(self):
+        with self.assertRaises(APIGracefulException):
+            get_tineye_results(self.mock_image)
+
     @activate_tineye_mock({"status": 400,
                            "response": {"code": 400, "messages": ['foobar']}, })
     def test_retry_futile_tineye400(self):
         self.assertEqual(
             get_tineye_results(self.mock_image),
-            {'results': {'message': "['foobar']", 'status': 'error'}, 'total': None}
+            {
+                'results': {'message': "['foobar']", 'status': 'error'},
+                'stats': {'total': None},
+            }
         )
 
     @activate_tineye_mock({"status": 401,

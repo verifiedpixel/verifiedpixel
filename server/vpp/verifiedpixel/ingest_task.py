@@ -87,7 +87,7 @@ MOCKS = {
 def get_api_getter(api_name, api_getter=None):
     if not api_getter:
         api_getter = API_GETTERS[api_name]['function']
-    if app.config['USE_VERIFICATION_MOCK']:
+    if app.config['USE_VERIFICATION_MOCK']:  # pragma no cover
         if 'api_getter' not in MOCKS[api_name]:
             mock = MOCKS[api_name]
             api_wrapper = mock['function'](*mock['fixtures'], eternal=True)
@@ -133,8 +133,8 @@ def append_api_results_to_item(self, item, api_name, args, verification_id):
                   "verification of {file}:\n {exception}".format(
                       api=api_name, file=filename, exception=e
                   ))
-            verification_stats = {"status": "error", "message": repr(e)}
-            verification_results = None
+            verification_results = {"status": "error", "message": repr(e)}
+            verification_stats = {"total": None}
     else:
         info("{api}: matchs found for {file}.".format(
             api=api_name, file=filename
