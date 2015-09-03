@@ -16,7 +16,7 @@ WORKDIR	/opt/superdesk-client/
 COPY ./superdesk_vhost.conf /etc/nginx/sites-enabled/superdesk.conf
 EXPOSE	9000
 EXPOSE	80
-CMD ["sh", "-c" "grunt build && nginx"]
+CMD ["sh", "-c", "grunt build && nginx"]
 
 # install app-wide dependencies
 COPY ./package.json /opt/superdesk-client/
