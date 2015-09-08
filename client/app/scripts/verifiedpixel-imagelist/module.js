@@ -1707,6 +1707,8 @@
 
     MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http'];
     function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http) {
+        this.download_queue = [];
+
         this.download = function() {
             // implement multi file download
             var added = 0;
