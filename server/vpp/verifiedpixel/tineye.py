@@ -1,6 +1,7 @@
 from pytineye.api import TinEyeAPIRequest, TinEyeAPIError
 
 import superdesk
+from flask import current_app
 from .exceptions import APIGracefulException
 
 
@@ -19,7 +20,7 @@ def init_tineye(app):
 
 def get_tineye_results(content):
     try:
-        response = superdesk.app.data.vpp_tineye_api.search_data(content)
+        response = current_app.data.vpp_tineye_api.search_data(content)
     except TinEyeAPIError as e:
         # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
         if e.code == 400:

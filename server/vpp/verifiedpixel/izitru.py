@@ -3,6 +3,7 @@ import time
 from requests import request
 from PIL import Image
 from io import BytesIO
+from flask import current_app
 
 import superdesk
 
@@ -18,7 +19,7 @@ def get_izitru_results(filename, content):
     izitru_security_data = int(time.time())
     m = hashlib.md5()
     m.update(str(izitru_security_data).encode())
-    m.update(superdesk.app.config['IZITRU_PRIVATE_KEY'].encode())
+    m.update(current_app.config['IZITRU_PRIVATE_KEY'].encode())
     izitru_security_hash = m.hexdigest()
 
     upfile = content
@@ -32,7 +33,7 @@ def get_izitru_results(filename, content):
     img.close()
 
     data = {
-        'activationKey': superdesk.app.config['IZITRU_ACTIVATION_KEY'],
+        'activationKey': current_app.config['IZITRU_ACTIVATION_KEY'],
         'securityData': izitru_security_data,
         'securityHash': izitru_security_hash,
         'exactMatch': 'true',
@@ -40,7 +41,7 @@ def get_izitru_results(filename, content):
         'storeImage': 'true',
     }
     files = {'upFile': (filename, upfile, 'image/jpeg', {'Expires': '0'})}
-    response = request('POST', superdesk.app.config['IZITRU_API_URL'], data=data, files=files)
+    response = request('POST', current_app.config['IZITRU_API_URL'], data=data, files=files)
     if response.status_code != 200:
         raise APIGracefulException(response)
     result = response.json()

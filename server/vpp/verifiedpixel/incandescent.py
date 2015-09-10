@@ -7,6 +7,8 @@ import json
 import urllib.parse
 from requests import request
 from hashlib import sha1 as sha
+from flask import current_app
+
 import superdesk
 
 from .exceptions import APIGracefulException
@@ -16,8 +18,8 @@ from pprint import pprint  # noqa
 
 
 def get_incandescent_results(href):
-    uid = superdesk.app.config['INCANDESCENT_UID']
-    apiKey = superdesk.app.config['INCANDESCENT_APIKEY']
+    uid = current_app.config['INCANDESCENT_UID']
+    apiKey = current_app.config['INCANDESCENT_APIKEY']
     expires = datetime.datetime.now() - datetime.timedelta(minutes=110)
     utc_expires = calendar.timegm(expires.timetuple())
     to_string = str(uid) + "\n" + str(utc_expires)
