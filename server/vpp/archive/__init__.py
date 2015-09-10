@@ -7,6 +7,7 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+from apps.archive.saved_searches import AllSavedSearchesResource
 
 
 """Media archive module"""
@@ -16,11 +17,10 @@ import logging
 from .archive import ArchiveResource, ArchiveService, ArchiveVersionsResource, AutoSaveResource, \
     ArchiveSaveService
 from .commands import RemoveExpiredSpikeContent
-from .ingest import IngestResource, IngestService
+from .ingest import IngestResource, AppIngestService
 from .item_comments import ItemCommentsResource, ItemCommentsSubResource, ItemCommentsService, ItemCommentsSubService
 from .user_content import UserContentResource, UserContentService
 from .archive_lock import ArchiveLockResource, ArchiveUnlockResource, ArchiveLockService, ArchiveUnlockService
-from .archive_crop import ArchiveCropService, ArchiveCropResource
 from .archive_spike import ArchiveUnspikeResource, ArchiveSpikeService, ArchiveSpikeResource, ArchiveUnspikeService
 import superdesk
 from apps.common.components.utils import register_component
@@ -34,6 +34,7 @@ from .saved_searches import SavedSearchesService, SavedSearchesResource, \
     SavedSearchItemsResource, SavedSearchItemsService
 from .archive_link import ArchiveLinkResource, ArchiveLinkService
 from .archive_rewrite import ArchiveRewriteResource, ArchiveRewriteService
+from superdesk.services import BaseService
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ logger = logging.getLogger(__name__)
 def init_app(app):
 
     endpoint_name = 'ingest'
-    service = IngestService(endpoint_name, backend=superdesk.get_backend())
+    service = AppIngestService(endpoint_name, backend=superdesk.get_backend())
     IngestResource(endpoint_name, app=app, service=service)
 
     endpoint_name = 'archive_versions'
@@ -64,10 +65,6 @@ def init_app(app):
     endpoint_name = 'archive_lock'
     service = ArchiveLockService(endpoint_name, backend=superdesk.get_backend())
     ArchiveLockResource(endpoint_name, app=app, service=service)
-
-    endpoint_name = 'archive_crop'
-    service = ArchiveCropService(endpoint_name, backend=superdesk.get_backend())
-    ArchiveCropResource(endpoint_name, app=app, service=service)
 
     endpoint_name = 'archive_unlock'
     service = ArchiveUnlockService(endpoint_name, backend=superdesk.get_backend())
@@ -96,6 +93,10 @@ def init_app(app):
     endpoint_name = 'saved_searches'
     service = SavedSearchesService(endpoint_name, backend=superdesk.get_backend())
     SavedSearchesResource(endpoint_name, app=app, service=service)
+
+    endpoint_name = 'all_saved_searches'
+    service = BaseService(endpoint_name, backend=superdesk.get_backend())
+    AllSavedSearchesResource(endpoint_name, app=app, service=service)
 
     endpoint_name = 'saved_search_items'
     service = SavedSearchItemsService(endpoint_name, backend=superdesk.get_backend())
