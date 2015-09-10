@@ -1,11 +1,10 @@
 from unittest import TestCase
-from superdesk.tests import setup
 
 from .ingest_task import get_incandescent_results, get_incandescent_results_callback
 from .exceptions import APIGracefulException
 
 from .vpp_mock import activate_incandescent_mock
-from .vpp_test import VPPTestCase
+from .vpp_test import VPPTestCase, setup
 
 from pprint import pprint  # noqa @TODO: debug
 

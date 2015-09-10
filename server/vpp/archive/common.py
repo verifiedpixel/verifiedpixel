@@ -17,17 +17,19 @@ from flask import current_app as app
 from eve.versioning import insert_versioning_documents
 from pytz import timezone
 
+from superdesk.users.services import get_sign_off
 from superdesk.celery_app import update_key
 from superdesk.utc import utcnow, get_expiry_date
-from settings import OrganizationNameAbbreviation
+from settings import ORGANIZATION_NAME_ABBREVIATION
 from superdesk import get_resource_service
-from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE
+from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, \
+    LINKED_IN_PACKAGES, BYLINE, SIGN_OFF, EMBARGO
 from superdesk.workflow import set_default_state, is_workflow_state_transition_valid
 import superdesk
 from apps.archive.archive import SOURCE as ARCHIVE
 from vpp.metadata.item import GUID_NEWSML, GUID_FIELD, GUID_TAG, not_analyzed
-from vpp.metadata.packages import PACKAGE_TYPE, TAKES_PACKAGE, SEQUENCE
-from vpp.metadata.utils import generate_guid
+from superdesk.metadata.packages import PACKAGE_TYPE, TAKES_PACKAGE, SEQUENCE
+from superdesk.metadata.utils import generate_guid
 from superdesk.errors import SuperdeskApiError, IdentifierGenerationError
 
 CUSTOM_HATEOAS = {'self': {'title': 'Archive', 'href': '/archive/{_id}'}}
@@ -48,6 +50,7 @@ def update_version(updates, original):
 
 def on_create_item(docs, repo_type=ARCHIVE):
     """Make sure item has basic fields populated."""
+
     for doc in docs:
         update_dates_for(doc)
         set_original_creator(doc)
@@ -64,9 +67,11 @@ def on_create_item(docs, repo_type=ARCHIVE):
         if 'event_id' not in doc:
             doc['event_id'] = generate_guid(type=GUID_TAG)
 
-        set_default_state(doc, 'draft')
-        doc.setdefault('_id', doc[GUID_FIELD])
+        set_default_state(doc, CONTENT_STATE.DRAFT)
+        doc.setdefault(config.ID_FIELD, doc[GUID_FIELD])
         set_dateline(doc, repo_type)
+        set_byline(doc, repo_type)
+        set_sign_off(doc, repo_type=repo_type)
 
         if not doc.get(ITEM_OPERATION):
             doc[ITEM_OPERATION] = ITEM_CREATE
@@ -74,9 +79,10 @@ def on_create_item(docs, repo_type=ARCHIVE):
 
 def set_dateline(doc, repo_type):
     """
-    If repo_type is ARCHIVE then sets dateline property for the article represented by doc. Dateline has 3 parts:
-    Located, Date (Format: Month Day) and Source. Dateline can either be simple: Sydney, July 30 AAP - or can be
-    complex: Surat,Gujarat,IN, July 30 AAP -. Date in the dateline should be timezone sensitive to the Located.
+    If repo_type is ARCHIVE and dateline isn't available then this method sets dateline property for the article
+    represented by doc. Dateline has 3 parts: Located, Date (Format: Month Day) and Source.
+    Dateline can either be simple: Sydney, July 30 AAP - or can be complex: Surat,Gujarat,IN, July 30 AAP -.
+    Date in the dateline should be timezone sensitive to the Located.
 
     Located is set on the article based on user preferences if available. If located is not available in
     user preferences then dateline in full will not be set.
@@ -85,9 +91,9 @@ def set_dateline(doc, repo_type):
     :param repo_type: collection name where the doc will be persisted
     """
 
-    if repo_type == ARCHIVE:
+    if repo_type == ARCHIVE and 'dateline' not in doc:
         current_date_time = dateline_ts = utcnow()
-        doc['dateline'] = {'date': current_date_time, 'source': OrganizationNameAbbreviation}
+        doc['dateline'] = {'date': current_date_time, 'source': ORGANIZATION_NAME_ABBREVIATION}
 
         user = get_user()
         if user and user.get('user_preferences', {}).get('dateline:located'):
@@ -105,7 +111,19 @@ def set_dateline(doc, repo_type):
 
                 doc['dateline']['located'] = located
                 doc['dateline']['text'] = '{}, {} {} -'.format(located['city'], formatted_date,
-                                                               OrganizationNameAbbreviation)
+                                                               ORGANIZATION_NAME_ABBREVIATION)
+
+
+def set_byline(doc, repo_type=ARCHIVE):
+    """
+    Sets byline property on the doc if it's from ARCHIVE repo. If user creating the article has byline set in the
+    profile then doc['byline'] = user_profile['byline']. Otherwise it's not set.
+    """
+
+    if repo_type == ARCHIVE:
+        user = get_user()
+        if user and user.get(BYLINE):
+            doc[BYLINE] = user[BYLINE]
 
 
 def on_duplicate_item(doc):
@@ -114,6 +132,7 @@ def on_duplicate_item(doc):
     doc[GUID_FIELD] = generate_guid(type=GUID_NEWSML)
     generate_unique_id_and_name(doc)
     doc.setdefault('_id', doc[GUID_FIELD])
+    set_sign_off(doc)
 
 
 def update_dates_for(doc):
@@ -137,44 +156,30 @@ def set_original_creator(doc):
     usr = get_user()
     user = str(usr.get('_id', ''))
     doc['original_creator'] = user
-    doc['sign_off'] = usr.get('sign_off', usr.get('username', ''))[:3]
 
 
-def set_sign_off(updates, original):
-    usr = get_user()
-    if not usr:
+def set_sign_off(updates, original=None, repo_type=ARCHIVE):
+    """
+    Set sign_off on updates object. Rules:
+        1. updates['sign_off'] = original['sign_off'] + sign_off of the user performing operation.
+        2. If the last modified user and the user performing operation are same then sign_off shouldn't change
+    """
+
+    if repo_type != ARCHIVE:
         return
 
-    sign_off = usr.get('sign_off', usr['username'][:3])
-    current_sign_off = original.get('sign_off', '')
+    user = get_user()
+    if not user:
+        return
+
+    sign_off = get_sign_off(user)
+    current_sign_off = '' if original is None else original.get(SIGN_OFF, '')
 
     if current_sign_off.endswith(sign_off):
         return
 
     updated_sign_off = '{}/{}'.format(current_sign_off, sign_off)
-    updates['sign_off'] = updated_sign_off[1:] if updated_sign_off.startswith('/') else updated_sign_off
-
-
-item_url = 'regex("[\w,.:_-]+")'
-
-extra_response_fields = [GUID_FIELD, 'headline', 'firstcreated', 'versioncreated', 'archived']
-
-aggregations = {
-    'type': {'terms': {'field': 'type'}},
-    'desk': {'terms': {'field': 'task.desk'}},
-    'stage': {'terms': {'field': 'task.stage'}},
-    'category': {'terms': {'field': 'anpa_category.name'}},
-    'source': {'terms': {'field': 'source'}},
-    'state': {'terms': {'field': 'state'}},
-    'urgency': {'terms': {'field': 'urgency'}},
-    'day': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-24H'}]}},
-    'week': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1w'}]}},
-    'month': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1M'}]}},
-    'make': {'terms': {'field': 'filemeta.Make'}},
-    'capture_location': {'terms': {'field': 'verification.izitru.EXIF.captureLocation'}},
-    'izitru': {'terms': {'field': 'verification.izitru.verdict'}},
-    'original_source': {'terms': {'field': 'original_source'}}
-}
+    updates[SIGN_OFF] = updated_sign_off[1:] if updated_sign_off.startswith('/') else updated_sign_off
 
 
 def generate_unique_id_and_name(item, repo_type=ARCHIVE):
@@ -413,9 +418,23 @@ def item_schema(extra=None):
         },
         SEQUENCE: {
             'type': 'integer'
+        },
+        EMBARGO: {
+            'type': 'datetime',
+            'nullable': True
         }
     }
     schema.update(metadata_schema)
     if extra:
         schema.update(extra)
     return schema
+
+
+def is_item_in_package(item):
+    """
+    Checks if the passed item is a member of a non-takes package
+    :param item:
+    :return: True if the item belongs to a non-takes package
+    """
+    return item.get(LINKED_IN_PACKAGES, None) \
+        and sum(1 for x in item.get(LINKED_IN_PACKAGES, []) if x.get(PACKAGE_TYPE, '') == '')

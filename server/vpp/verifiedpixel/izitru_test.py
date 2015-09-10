@@ -1,11 +1,10 @@
 from unittest import TestCase
-from superdesk.tests import setup
 
 from .izitru import get_izitru_results
 from .exceptions import APIGracefulException
 
 from .vpp_mock import activate_izitru_mock
-from .vpp_test import VPPTestCase
+from .vpp_test import VPPTestCase, setup
 
 from pprint import pprint  # noqa @TODO: debug
 
