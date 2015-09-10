@@ -16,17 +16,17 @@ from flask import current_app as app
 import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError, InvalidStateTransitionError
-from vpp.metadata.item import ITEM_STATE
+from superdesk.metadata.item import ITEM_STATE
 from superdesk.notification import push_notification
 from superdesk.services import BaseService
 from superdesk.utc import get_expiry_date
-from .common import get_user, item_url, is_assigned_to_a_desk
+from superdesk.metadata.utils import item_url
+from .common import get_user, is_assigned_to_a_desk, get_expiry
 from superdesk.workflow import is_workflow_state_transition_valid
 from apps.archive.archive import ArchiveResource, SOURCE as ARCHIVE
-from apps.tasks import get_expiry
 from apps.packages import PackageService, TakesPackageService
 from apps.archive.archive_rewrite import ArchiveRewriteService
-from apps.archive.common import item_operations, ITEM_OPERATION
+from apps.archive.common import item_operations, ITEM_OPERATION, is_item_in_package, set_sign_off
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +69,21 @@ class ArchiveSpikeService(BaseService):
 
     def on_update(self, updates, original):
         updates[ITEM_OPERATION] = ITEM_SPIKE
+        self._validate_item(original)
         self._validate_take(original)
         self._update_rewrite(original)
+        set_sign_off(updates, original=original)
+
+    def _validate_item(self, original):
+        """
+        Raises an exception if the item is linked in a non-take package, the idea being that you don't whant to
+        inadvertently remove thing from packages, this force that to be done as a conscious action.
+        :param original:
+        :raise: An exception or nothing
+        """
+        if is_item_in_package(original):
+            raise SuperdeskApiError.badRequestError(message="This item is in a package" +
+                                                            " it needs to be removed before the item can be spiked")
 
     def _validate_take(self, original):
         takes_service = TakesPackageService()
@@ -135,6 +148,7 @@ class ArchiveUnspikeService(BaseService):
 
     def on_update(self, updates, original):
         updates[ITEM_OPERATION] = ITEM_UNSPIKE
+        set_sign_off(updates, original=original)
 
     def update(self, id, updates, original):
         original_state = original[ITEM_STATE]
@@ -156,7 +170,7 @@ superdesk.workflow_state('spiked')
 
 superdesk.workflow_action(
     name='spike',
-    exclude_states=['spiked', 'published', 'scheduled', 'killed'],
+    exclude_states=['spiked', 'published', 'scheduled', 'corrected', 'killed'],
     privileges=['spike']
 )
 
