@@ -21,8 +21,11 @@
                 visible="true">
             </marker>
         </map>
-        <dl ng-if="item.verification.izitru.EXIF.captureLocation">
+        <dl ng-if="item.verification.stats.izitru.location">
             <dt translate>Capture Location</dt>
-            <dd>{{ item.verification.izitru.EXIF.captureLocation }}</dd>
+            <dd>{{ item.verification.stats.izitru.location }} 
+              (<a href="http://maps.google.com/maps?q={{ item.converted_exif.gpslat }},{{ item.converted_exif.gpslon }}&ll={{item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}&z=15" target="_blank">open in new tab</a>)
+
+            </dd>
         </dl>
     </div>

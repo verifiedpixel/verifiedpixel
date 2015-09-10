@@ -8,16 +8,16 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from apps.users.services import current_user_has_privilege
-from settings import DEFAULT_SOURCE_VALUE_FOR_MANUAL_ARTICLES, VERSION
-
 SOURCE = 'archive'
 
 import flask
 from superdesk.resource import Resource
-from .common import extra_response_fields, item_url, aggregations, remove_unwanted, update_state, set_item_expiry, \
+from superdesk.metadata.utils import extra_response_fields, item_url, aggregations
+from .common import remove_unwanted, update_state, set_item_expiry, \
     is_update_allowed, on_create_item, on_duplicate_item, get_user, update_version, set_sign_off, \
-    handle_existing_data, item_schema, validate_schedule
+    handle_existing_data, item_schema, validate_schedule, is_item_in_package, ITEM_DUPLICATE, ITEM_OPERATION, \
+    ITEM_RESTORE, ITEM_UPDATE, ITEM_DESCHEDULE
+from .archive_crop import ArchiveCropService
 from flask import current_app as app
 from werkzeug.exceptions import NotFound
 from superdesk import get_resource_service
@@ -26,8 +26,8 @@ from eve.versioning import resolve_document_version, versioned_id_field
 from superdesk.activity import add_activity, ACTIVITY_CREATE, ACTIVITY_UPDATE, ACTIVITY_DELETE
 from eve.utils import parse_request, config
 from superdesk.services import BaseService
-from apps.users.services import is_admin
-from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE
+from superdesk.users.services import current_user_has_privilege, is_admin
+from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO
 from apps.common.components.utils import get_component
 from apps.item_autosave.components.item_autosave import ItemAutosave
 from apps.common.models.base_model import InvalidEtag
@@ -42,8 +42,8 @@ from apps.packages import PackageService, TakesPackageService
 from .archive_media import ArchiveMediaService
 from superdesk.utc import utcnow
 import datetime
-from apps.archive.common import ITEM_DUPLICATE, ITEM_OPERATION, ITEM_RESTORE,\
-    ITEM_UPDATE, ITEM_DESCHEDULE, SEQUENCE
+from settings import DEFAULT_SOURCE_VALUE_FOR_MANUAL_ARTICLES, VERSION
+from superdesk.metadata.packages import ITEM_REF, SEQUENCE
 
 
 logger = logging.getLogger(__name__)
@@ -110,7 +110,7 @@ class ArchiveResource(Resource):
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT']
     versioning = True
-    privileges = {'POST': 'archive', 'PATCH': 'archive', 'PUT': 'archive'}
+    privileges = {'POST': SOURCE, 'PATCH': SOURCE, 'PUT': SOURCE}
 
 
 def update_word_count(doc):
@@ -152,6 +152,9 @@ class ArchiveService(BaseService):
 
             if doc[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:
                 self.packageService.on_create([doc])
+
+            # Do the validation after Circular Reference check passes in Package Service
+            self.validate_embargo(doc)
 
             if doc.get('media'):
                 self.mediaService.on_create([doc])
@@ -201,6 +204,9 @@ class ArchiveService(BaseService):
                 updates['publish_schedule'] = None
             else:
                 # validate the schedule
+                if is_item_in_package(original):
+                    raise SuperdeskApiError.badRequestError(message='This item is in a package' +
+                                                            ' it needs to be removed before the item can be scheduled!')
                 package = TakesPackageService().get_take_package(original) or {}
                 validate_schedule(updates.get('publish_schedule'), package.get(SEQUENCE, 1))
 
@@ -225,22 +231,34 @@ class ArchiveService(BaseService):
         updates['versioncreated'] = utcnow()
         set_item_expiry(updates, original)
         updates['version_creator'] = str_user_id
-        set_sign_off(updates, original)
+        set_sign_off(updates, original=original)
         update_word_count(updates)
 
         if force_unlock:
             del updates['force_unlock']
+
+        # create crops
+        crop_service = ArchiveCropService()
+        crop_service.validate_multiple_crops(updates, original)
+        crop_service.create_multiple_crops(updates, original)
 
         if original[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:
             self.packageService.on_update(updates, original)
 
         update_version(updates, original)
 
+        # Do the validation after Circular Reference check passes in Package Service
+        updated = original.copy()
+        updated.update(updates)
+        self.validate_embargo(updated)
+
     def on_updated(self, updates, original):
         get_component(ItemAutosave).clear(original['_id'])
 
         if original[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:
             self.packageService.on_updated(updates, original)
+
+        ArchiveCropService().delete_replaced_crop_files(updates, original)
 
         user = get_user()
 
@@ -279,13 +297,18 @@ class ArchiveService(BaseService):
 
     def on_delete(self, doc):
         """Delete associated binary files."""
-        if doc and doc.get('renditions'):
-            for file_id in [rend.get('media') for rend in doc.get('renditions', {}).values()
-                            if rend.get('media')]:
-                try:
-                    app.media.delete(file_id)
-                except (NotFound):
-                    pass
+        if doc:
+            if doc.get('renditions'):
+                for file_id in [rend.get('media') for rend in doc.get('renditions', {}).values()
+                                if rend.get('media')]:
+                    try:
+                        app.media.delete(file_id)
+                    except (NotFound):
+                        pass
+            if doc.get('verification') and doc.get('verification').get('results'):
+                get_resource_service('verification_results').delete_action(
+                    {'_id': doc.get('verification').get('results')}
+                )
 
     def on_deleted(self, doc):
         if doc[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:
@@ -327,15 +350,17 @@ class ArchiveService(BaseService):
 
         if curr[config.VERSION] != last_version:
             raise SuperdeskApiError.preconditionFailedError('Invalid last version %s' % last_version)
+
         old['_id'] = old['_id_document']
         old['_updated'] = old['versioncreated'] = utcnow()
         set_item_expiry(old, doc)
         del old['_id_document']
         old[ITEM_OPERATION] = ITEM_RESTORE
 
-        resolve_document_version(old, 'archive', 'PATCH', curr)
-
+        resolve_document_version(old, SOURCE, 'PATCH', curr)
         remove_unwanted(old)
+        set_sign_off(updates=old, original=curr)
+
         super().replace(id=item_id, document=old, original=curr)
 
         del doc['old_version']
@@ -355,9 +380,9 @@ class ArchiveService(BaseService):
                 if groups.get('id') != 'root':
                     associations = groups.get('refs', [])
                     for assoc in associations:
-                        if assoc.get('residRef'):
+                        if assoc.get(ITEM_REF):
                             item, _item_id, _endpoint = self.packageService.get_associated_item(assoc)
-                            assoc['residRef'] = assoc['guid'] = self.duplicate_content(item)
+                            assoc[ITEM_REF] = assoc['guid'] = self.duplicate_content(item)
 
         return self._duplicate_item(original_doc)
 
@@ -377,7 +402,7 @@ class ArchiveService(BaseService):
         item_model = get_model(ItemModel)
 
         on_duplicate_item(new_doc)
-        resolve_document_version(new_doc, 'archive', 'PATCH', new_doc)
+        resolve_document_version(new_doc, SOURCE, 'PATCH', new_doc)
         if original_doc.get('task', {}).get('desk') is not None and new_doc.get('state') != 'submitted':
             new_doc[ITEM_STATE] = CONTENT_STATE.SUBMITTED
         item_model.create([new_doc])
@@ -486,6 +511,39 @@ class ArchiveService(BaseService):
             return req_for_save == 'true'
 
         return True
+
+    def validate_embargo(self, item):
+        """
+        Validates the embargo of the item. Following are checked:
+            1. Item can't be a package or a take or a re-write of another story
+            2. Publish Schedule and Embargo are mutually exclusive
+            3. Always a future date except in case of Corrected and Killed.
+        :raises: SuperdeskApiError.badRequestError() if the validation fails
+        """
+
+        if item[ITEM_TYPE] != CONTENT_TYPE.COMPOSITE:
+            embargo = item.get(EMBARGO)
+            if embargo:
+                if item.get('publish_schedule') or item[ITEM_STATE] == CONTENT_STATE.SCHEDULED:
+                    raise SuperdeskApiError.badRequestError("An item can't have both Publish Schedule and Embargo")
+
+                package = TakesPackageService().get_take_package(item)
+                if package:
+                    raise SuperdeskApiError.badRequestError("Takes doesn't support Embargo")
+
+                if item.get('rewrite_of'):
+                    raise SuperdeskApiError.badRequestError("Rewrites doesn't support Embargo")
+
+                if not isinstance(embargo, datetime.date) or not embargo.time():
+                    raise SuperdeskApiError.badRequestError("Invalid Embargo")
+
+                if item[ITEM_STATE] not in [CONTENT_STATE.CORRECTED, CONTENT_STATE.KILLED] and embargo <= utcnow():
+                    raise SuperdeskApiError.badRequestError("Embargo cannot be earlier than now")
+        elif item[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE and not self.takesService.is_takes_package(item):
+            if item.get(EMBARGO):
+                raise SuperdeskApiError.badRequestError("A Package doesn't support Embargo")
+
+            self.packageService.check_if_any_item_in_package_has_embargo(item)
 
 
 class AutoSaveResource(Resource):

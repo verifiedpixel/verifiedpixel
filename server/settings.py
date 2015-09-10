@@ -127,27 +127,51 @@ SENTRY_INCLUDE_PATHS = ['superdesk']
 
 INSTALLED_APPS = [
     'apps.auth',
-    'apps.users',
+    'superdesk.roles',
+]
+
+# LDAP settings
+LDAP_SERVER = env('LDAP_SERVER', '')  # Ex: ldap://sourcefabric.org
+LDAP_SERVER_PORT = env('LDAP_SERVER_PORT', 389)
+
+# Fully Qualified Domain Name. Ex: sourcefabric.org
+LDAP_FQDN = env('LDAP_FQDN', '')
+
+# LDAP_BASE_FILTER limit the base filter to the security group. Ex: OU=Superdesk Users,dc=sourcefabric,dc=org
+LDAP_BASE_FILTER = env('LDAP_BASE_FILTER', '')
+
+# change the user depending on the LDAP directory structure
+LDAP_USER_FILTER = env('LDAP_USER_FILTER', "(&(objectCategory=user)(objectClass=user)(sAMAccountName={}))")
+
+# LDAP User Attributes to fetch. Keys would be LDAP Attribute Name and Value would be Supderdesk Model Attribute Name
+LDAP_USER_ATTRIBUTES = json.loads(env('LDAP_USER_ATTRIBUTES',
+                                      '{"givenName": "first_name", "sn": "last_name", '
+                                      '"displayName": "display_name", "mail": "email", '
+                                      '"ipPhone": "phone"}'))
+
+if LDAP_SERVER:
+    INSTALLED_APPS.append('apps.ldap')
+else:
+    INSTALLED_APPS.append('superdesk.users')
+    INSTALLED_APPS.append('apps.auth.db')
+
+
+INSTALLED_APPS.extend([
     'superdesk.upload',
     'superdesk.notification',
     'superdesk.activity',
-    'superdesk.comments',
+    'apps.comments',
 
     'superdesk.io',
     'superdesk.io.subjectcodes',
-    'superdesk.io.reuters',
-    'superdesk.io.aap',
-    'superdesk.io.afp',
+    'apps.io',
     'superdesk.io.ftp',
     'superdesk.io.rss',
     'superdesk.publish',
-    'superdesk.macro_register',
     'superdesk.commands',
-    'superdesk.data_consistency',
     'superdesk.locators.locators',
 
     'vpp.archive',
-
     'apps.stages',
     'apps.desks',
     'apps.planning',
@@ -159,28 +183,25 @@ INSTALLED_APPS = [
     'apps.prepopulate',
     'apps.vocabularies',
     'apps.legal_archive',
-
     'vpp.search',
-
     'apps.privilege',
     'apps.rules',
     'apps.highlights',
     'apps.publish',
     'apps.publish.publish_filters',
-    'apps.macros',
     'apps.dictionaries',
     'apps.duplication',
     'apps.aap_mm',
     'apps.spellcheck',
     'apps.templates',
-    'apps.text_archive',
+    'apps.archived',
     'apps.validators',
     'apps.validate',
-    'apps.publicapi_publish',
     'apps.workspace',
+    'apps.macros',
 
     'vpp.verifiedpixel',
-]
+])
 
 RESOURCE_METHODS = ['GET', 'POST']
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
@@ -219,32 +240,9 @@ MAIL_SERVER = env('MAIL_SERVER', 'smtp.googlemail.com')
 MAIL_PORT = int(env('MAIL_PORT', 465))
 MAIL_USE_TLS = json.loads(env('MAIL_USE_TLS', 'False').lower())
 MAIL_USE_SSL = json.loads(env('MAIL_USE_SSL', 'False').lower())
-MAIL_USERNAME = env('MAIL_USERNAME', 'verifiedpiyel@gmail.com')
-MAIL_PASSWORD = env('MAIL_PASSWORD', 'wh0st0l3myp1x3l5')
+MAIL_USERNAME = env('MAIL_USERNAME', 'verifiedpixel@gmail.com')
+MAIL_PASSWORD = env('MAIL_PASSWORD', 'secret')
 ADMINS = [MAIL_USERNAME]
-
-# LDAP settings
-LDAP_SERVER = env('LDAP_SERVER', '')  # Ex: ldap://sourcefabric.org
-LDAP_SERVER_PORT = env('LDAP_SERVER_PORT', 389)
-
-# Fully Qualified Domain Name. Ex: sourcefabric.org
-LDAP_FQDN = env('LDAP_FQDN', '')
-
-# LDAP_BASE_FILTER limit the base filter to the security group. Ex: OU=Superdesk Users,dc=sourcefabric,dc=org
-LDAP_BASE_FILTER = env('LDAP_BASE_FILTER', '')
-
-# change the user depending on the LDAP directory structure
-LDAP_USER_FILTER = env('LDAP_USER_FILTER', "(&(objectCategory=user)(objectClass=user)(sAMAccountName={}))")
-
-# LDAP User Attributes to fetch. Keys would be LDAP Attribute Name and Value would be Supderdesk Model Attribute Name
-LDAP_USER_ATTRIBUTES = {'givenName': 'first_name', 'sn': 'last_name', 'displayName': 'display_name',
-                        'mail': 'email', 'ipPhone': 'phone'}
-
-if LDAP_SERVER:
-    INSTALLED_APPS.append('apps.auth.ldap')
-else:
-    INSTALLED_APPS.append('apps.auth.db')
-
 SUPERDESK_TESTING = (env('SUPERDESK_TESTING', 'false').lower() == 'true')
 
 # The number of minutes since the last update of the Mongo auth object after which it will be deleted
@@ -306,11 +304,12 @@ IZITRU_API_URL = env('IZITRU_API_URL', 'https://www.izitru.com/scripts/uploadAPI
 IZITRU_PRIVATE_KEY = env('IZITRU_PRIVATE_KEY', 'private-key')
 IZITRU_ACTIVATION_KEY = env('IZITRU_ACTIVATION_KEY', 'activation-key')
 
-GRIS_API_KEY = env('GRIS_API_KEY', 'api-key')
-GRIS_API_CX = env('GRIS_API_CX', 'api:cx')
+INCANDESCENT_UID = int(env('INCANDESCENT_UID', 1234))
+INCANDESCENT_APIKEY = env('INCANDESCENT_APIKEY', 'secret')
 
 VERIFICATION_TASK_RETRY_INTERVAL = int(env('VERIFICATION_TASK_RETRY_INTERVAL', 60))
+USE_VERIFICATION_MOCK = bool(env('USE_VERIFICATION_MOCK', False))
 
 
-OrganizationName = "Sourcefabric"
-OrganizationNameAbbreviation = "SF"
+ORGANIZATION_NAME = "Sourcefabric"
+ORGANIZATION_NAME_ABBREVIATION = "SF"

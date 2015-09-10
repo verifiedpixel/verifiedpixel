@@ -67,6 +67,7 @@ backend:
    - GRIS_API_KEY
    - GRIS_API_CX
    - USE_VERIFICATION_MOCK=__EMPTY__
+>>>>>>> 3efbe28bd69ed77cdc5c4d7b8c17ae01019999e9
   volumes:
    - ../results/server/unit:/opt/superdesk/results-unit/
    - ../results/server/behave:/opt/superdesk/results-behave/

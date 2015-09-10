@@ -18,7 +18,6 @@ GUID_FIELD = 'guid'
 GUID_NEWSML = 'newsml'
 INGEST_ID = 'ingest_id'
 FAMILY_ID = 'family_id'
-PUBLISH_STATES = ['published', 'killed', 'corrected', 'scheduled']
 
 pub_status = ['usable', 'withhold', 'canceled']
 PUB_STATUS = namedtuple('PUBSTATUS', ['USABLE', 'HOLD', 'CANCELED'])(*pub_status)
@@ -35,6 +34,11 @@ content_state = ['draft', 'ingested', 'routed', 'fetched', 'submitted', 'in_prog
 CONTENT_STATE = namedtuple('CONTENT_STATE', ['DRAFT', 'INGESTED', 'ROUTED', 'FETCHED', 'SUBMITTED', 'PROGRESS',
                                              'SPIKED', 'PUBLISHED', 'KILLED', 'CORRECTED',
                                              'SCHEDULED', 'HOLD'])(*content_state)
+PUBLISH_STATES = {CONTENT_STATE.PUBLISHED, CONTENT_STATE.SCHEDULED, CONTENT_STATE.CORRECTED, CONTENT_STATE.KILLED}
+
+BYLINE = 'byline'
+SIGN_OFF = 'sign_off'
+EMBARGO = 'embargo'
 
 metadata_schema = {
     # Identifiers
@@ -203,7 +207,7 @@ metadata_schema = {
         'mapping': not_analyzed
     },
 
-    'byline': {
+    BYLINE: {
         'type': 'string',
         'nullable': True,
     },
@@ -231,7 +235,7 @@ metadata_schema = {
         'type': 'dict',
         'nullable': True,
         'schema': {
-            'located': {'type': 'dict'},
+            'located': {'type': 'dict', 'nullable': True},
             'date': {'type': 'datetime'},
             'source': {'type': 'string'},
             'text': {'type': 'string'}
@@ -262,7 +266,43 @@ metadata_schema = {
         'type': 'list'
     },
     'verification': {
-        'type': 'dict'
+        'type': 'dict',
+        'nullable': True,
+        'schema': {
+            'results': Resource.rel('verification_results'),
+            'stats': {
+                'type': 'dict',
+                'nullable': True,
+                'schema': {
+                    'izitru': {
+                        'type': 'dict',
+                        'nullable': True,
+                        'schema': {
+                            'verdict': {'type': 'integer'},
+                            'location': {'type': 'string'},
+                        },
+                    },
+                    'tineye': {
+                        'type': 'dict',
+                        'nullable': True,
+                        'schema': {
+                            'total': {'type': 'integer'},
+                        },
+                    },
+                    'incandescent': {
+                        'type': 'dict',
+                        'nullable': True,
+                        'schema': {
+                            'total_google': {'type': 'integer'},
+                            'total_bing': {'type': 'integer'},
+                            'total_baidu': {'type': 'integer'},
+                            'total_yandex': {'type': 'integer'},
+                            'total_other': {'type': 'integer'},
+                        },
+                    },
+                },
+            }
+        }
     },
 
     # aka Locator as per NewML Specification
@@ -303,7 +343,7 @@ metadata_schema = {
     },
     'more_coming': {'type': 'boolean', 'default': False},
     # Field which contains all the sign-offs done on this article, eg. twd/jwt/ets
-    'sign_off': {
+    SIGN_OFF: {
         'type': 'string'
     },
 
@@ -324,3 +364,10 @@ metadata_schema = {
 
 metadata_schema['lock_user']['versioned'] = False
 metadata_schema['lock_session']['versioned'] = False
+
+crop_schema = {
+    'CropLeft': {'type': 'integer'},
+    'CropRight': {'type': 'integer'},
+    'CropTop': {'type': 'integer'},
+    'CropBottom': {'type': 'integer'}
+}

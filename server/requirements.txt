@@ -7,9 +7,12 @@ git+git://github.com/superdesk/eve@sync-develop-24-june#egg=Eve==0.6.0-dev
 # workaround conflict with requests library:
 pip==7.1.0
 
--e git+git://github.com/verifiedpixel/superdesk@vp20150804-2#egg=Superdesk-Server
+-e git+git://github.com/verifiedpixel/superdesk-core@vp20150910#egg=Superdesk-Core==0.0.1-dev
+-e git+git://github.com/verifiedpixel/superdesk@vp20150910#egg=Superdesk-Server
 -e git+git://github.com/verifiedpixel/pytineye@vp20150721#egg=pytineye
-google-api-python-client==1.4.1
+-e git+git://github.com/verifiedpixel/celery@vpp3.1.18#egg=celery
+redis
+autobahn[asyncio]==0.10.4
 Pillow==2.9.0
 requests==2.7.0
 httmock==1.2.3

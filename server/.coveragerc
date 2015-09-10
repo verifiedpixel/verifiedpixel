@@ -1,0 +1,6 @@
+[run]
+omit =
+    vpp/verifiedpixel/elastic.py
+    vpp/verifiedpixel/logging.py
+    vpp/verifiedpixel/vpp_mock.py
+    vpp/verifiedpixel/vpp_test.py

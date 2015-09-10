@@ -8,14 +8,14 @@ import zipfile
 
 import superdesk
 from superdesk import get_resource_service
-from superdesk.tests import setup
 
 from vpp.verifiedpixel.ingest_task import verify_ingest
 
 from .vpp_mock import (
-    activate_tineye_mock, activate_izitru_mock, activate_gris_mock
+    activate_tineye_mock, activate_izitru_mock,
+    activate_incandescent_mock
 )
-from .vpp_test import VPPTestCase
+from .vpp_test import VPPTestCase, setup
 
 from pprint import pprint  # noqa @TODO: debug
 
@@ -42,6 +42,7 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         with self.app.app_context():
             AppInitializeWithDataCommand().run()
         self.expected_verification_results = []
+        self.expected_verification_stats = []
 
     @activate_izitru_mock(
         {"response_file": './test/vpp/test1_izitru_response.json'},
@@ -51,11 +52,11 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         {"response_file": './test/vpp/test1_tineye_response.json'},
         {"response_file": './test/vpp/test2_tineye_response.json'}
     )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'},
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test2_gris_search_response.json'}
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'},
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
     )
     def test_zip_output(self):
         image_paths = [
@@ -64,11 +65,13 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         ]
         self.upload_fixture_image(
             image_paths[0],
+            './test/vpp/test1_verification_stats.json',
             './test/vpp/test1_verification_result.json',
             '0',
         )
         self.upload_fixture_image(
             image_paths[1],
+            './test/vpp/test2_verification_stats.json',
             './test/vpp/test2_verification_result.json',
             '1',
         )
@@ -101,10 +104,10 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
                 zip_file.read('verification.json').decode()
             )
             for img_id, item_id in verified_items_ids.items():
-                self.assertEqual(
+                self.assertVerificationResult(
                     verification_dict[item_id],
-                    self.expected_verification_results[img_id],
-                    "Verification json in zip not match"
+                    self.expected_verification_stats[img_id],
+                    self.expected_verification_results[img_id]
                 )
                 with open(image_paths[img_id], 'rb') as f:
                     self.assertEqual(
@@ -121,11 +124,11 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         {"response_file": './test/vpp/test1_tineye_response.json'},
         {"response_file": './test/vpp/test2_tineye_response.json'}
     )
-    @activate_gris_mock(
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test1_gris_search_response.json'},
-        {"response_file": './test/vpp/gris_discovery_response.json'},
-        {"response_file": './test/vpp/test2_gris_search_response.json'}
+    @activate_incandescent_mock(
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'},
+        {"response_file": './test/vpp/incandescent_add_response.json'},
+        {"response_file": './test/vpp/incandescent_result_response.json'}
     )
     def test_zip_output_delete(self):
         image_paths = [
@@ -134,11 +137,13 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
         ]
         self.upload_fixture_image(
             image_paths[0],
+            './test/vpp/test1_verification_stats.json',
             './test/vpp/test1_verification_result.json',
             '0',
         )
         self.upload_fixture_image(
             image_paths[1],
+            './test/vpp/test2_verification_stats.json',
             './test/vpp/test2_verification_result.json',
             '1',
         )
