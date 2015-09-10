@@ -18,8 +18,9 @@ from pprint import pprint  # noqa
 
 
 def get_incandescent_results(href):
-    uid = current_app.config['INCANDESCENT_UID']
-    apiKey = current_app.config['INCANDESCENT_APIKEY']
+    with superdesk.app.app_context():
+        uid = current_app.config['INCANDESCENT_UID']
+        apiKey = current_app.config['INCANDESCENT_APIKEY']
     expires = datetime.datetime.now() - datetime.timedelta(minutes=110)
     utc_expires = calendar.timegm(expires.timetuple())
     to_string = str(uid) + "\n" + str(utc_expires)

@@ -7,6 +7,14 @@ import imghdr
 from superdesk import get_resource_service
 from superdesk.media.renditions import generate_renditions
 from superdesk.upload import url_for_media
+from superdesk.tests import setup as superdesk_setup
+from app import get_app
+
+
+def setup(context, app_factory=None):
+    if not app_factory:
+        app_factory = get_app
+    return superdesk_setup(context=context, app_factory=app_factory)
 
 
 class VPPTestCase:

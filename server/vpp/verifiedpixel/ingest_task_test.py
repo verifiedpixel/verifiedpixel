@@ -3,7 +3,6 @@ from eve.utils import ParsedRequest
 
 import superdesk
 from superdesk import get_resource_service
-from superdesk.tests import setup
 from apps.prepopulate.app_initialize import AppInitializeWithDataCommand
 
 from .ingest_task import verify_ingest
@@ -12,7 +11,7 @@ from .vpp_mock import (
     activate_tineye_mock, activate_izitru_mock,
     activate_incandescent_mock
 )
-from .vpp_test import VPPTestCase
+from .vpp_test import VPPTestCase, setup
 
 from pprint import pprint  # noqa @TODO: debug
 

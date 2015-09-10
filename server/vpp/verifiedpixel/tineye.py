@@ -20,7 +20,13 @@ def init_tineye(app):
 
 def get_tineye_results(content):
     try:
-        response = current_app.data.vpp_tineye_api.search_data(content)
+        with superdesk.app.app_context():
+            current_app.data.vpp_tineye_api = TinEyeAPIRequest(
+                api_url=current_app.config['TINEYE_API_URL'],
+                public_key=current_app.config['TINEYE_PUBLIC_KEY'],
+                private_key=current_app.config['TINEYE_SECRET_KEY']
+            )
+            response = current_app.data.vpp_tineye_api.search_data(content)
     except TinEyeAPIError as e:
         # @TODO: or e.message[0] == 'NO_SIGNATURE_ERROR' ?
         if e.code == 400:

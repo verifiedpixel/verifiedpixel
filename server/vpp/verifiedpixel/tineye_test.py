@@ -1,11 +1,10 @@
 from unittest import TestCase
-from superdesk.tests import setup
 
 from .tineye import get_tineye_results
 from .exceptions import APIGracefulException
 
 from .vpp_mock import activate_tineye_mock
-from .vpp_test import VPPTestCase
+from .vpp_test import VPPTestCase, setup
 
 from pprint import pprint  # noqa @TODO: debug
 
