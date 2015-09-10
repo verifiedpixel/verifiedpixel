@@ -58,14 +58,15 @@ backend:
    - SUPERDESK_URL=http://127.0.0.1/api
    - SUPERDESK_CLIENT_URL=http://127.0.0.1
    - SUPERDESK_TESTING=True
-   - TINEYE_API_URL
+   - TINEYE_API_URL=__EMPTY__
    - TINEYE_PUBLIC_KEY
    - TINEYE_SECRET_KEY
-   - IZITRU_API_URL
+   - IZITRU_API_URL=__EMPTY__
    - IZITRU_PRIVATE_KEY
    - IZITRU_ACTIVATION_KEY
    - GRIS_API_KEY
    - GRIS_API_CX
+   - USE_VERIFICATION_MOCK=__EMPTY__
   volumes:
    - ../results/server/unit:/opt/superdesk/results-unit/
    - ../results/server/behave:/opt/superdesk/results-behave/
