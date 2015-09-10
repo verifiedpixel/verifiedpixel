@@ -56,7 +56,7 @@ def get_incandescent_results_callback(get_data):
         'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers
     )
     raw_results = get_response.json()
-    if raw_results.get('status', None) == 710:
+    if raw_results.get('status', None) in [710, 755]:
         raise(APIGracefulException(raw_results))
 
     verification_results = {}
@@ -74,7 +74,7 @@ def get_incandescent_results_callback(get_data):
                     verification_results[source][key] = {}
                 verification_results[source][key][page_n] = page
     except (TypeError, KeyError) as e:
-        raise(APIGracefulException(e))
+        raise(APIGracefulException((e, raw_results, )))
     return {
         'stats': verification_stats,
         'results': verification_results

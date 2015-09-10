@@ -175,7 +175,7 @@ def append_incandescent_results_to_item(self, item, href):
 
 
 @celery.task(
-    max_retries=20, countdown=5, bind=True,
+    max_retries=20, countdown=15, bind=True,
     name='vpp.append_incandescent_result_callback', ignore_result=False
 )
 def append_incandescent_results_to_item_callback(self, get_data, item_id, filename, verification_id):
@@ -196,7 +196,7 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
             verification_results = results_object['results']
         except APIGracefulException as e:
             if self.request.retries < self.max_retries:
-                raise self.retry(exc=e)
+                raise self.retry(exc=e, countdown=self.countdown)
             else:
                 error("{api}: timeout exceeded on "
                       "verification of {file}:\n {exception}".format(
