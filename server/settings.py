@@ -173,7 +173,6 @@ INSTALLED_APPS = [
     'apps.aap_mm',
     'apps.spellcheck',
     'apps.templates',
-    'apps.text_archive',
     'apps.validators',
     'apps.validate',
     'apps.publicapi_publish',
@@ -237,8 +236,10 @@ LDAP_BASE_FILTER = env('LDAP_BASE_FILTER', '')
 LDAP_USER_FILTER = env('LDAP_USER_FILTER', "(&(objectCategory=user)(objectClass=user)(sAMAccountName={}))")
 
 # LDAP User Attributes to fetch. Keys would be LDAP Attribute Name and Value would be Supderdesk Model Attribute Name
-LDAP_USER_ATTRIBUTES = {'givenName': 'first_name', 'sn': 'last_name', 'displayName': 'display_name',
-                        'mail': 'email', 'ipPhone': 'phone'}
+LDAP_USER_ATTRIBUTES = json.loads(env('LDAP_USER_ATTRIBUTES',
+                                      '{"givenName": "first_name", "sn": "last_name", '
+                                      '"displayName": "display_name", "mail": "email", '
+                                      '"ipPhone": "phone"}'))
 
 if LDAP_SERVER:
     INSTALLED_APPS.append('apps.auth.ldap')
@@ -306,10 +307,11 @@ IZITRU_API_URL = env('IZITRU_API_URL', 'https://www.izitru.com/scripts/uploadAPI
 IZITRU_PRIVATE_KEY = env('IZITRU_PRIVATE_KEY', 'private-key')
 IZITRU_ACTIVATION_KEY = env('IZITRU_ACTIVATION_KEY', 'activation-key')
 
-GRIS_API_KEY = env('GRIS_API_KEY', 'api-key')
-GRIS_API_CX = env('GRIS_API_CX', 'api:cx')
+INCANDESCENT_UID = int(env('INCANDESCENT_UID', 1234))
+INCANDESCENT_APIKEY = env('INCANDESCENT_APIKEY', 'secret')
 
 VERIFICATION_TASK_RETRY_INTERVAL = int(env('VERIFICATION_TASK_RETRY_INTERVAL', 60))
+USE_VERIFICATION_MOCK = bool(env('USE_VERIFICATION_MOCK', False))
 
 
 OrganizationName = "Sourcefabric"

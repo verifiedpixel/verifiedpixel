@@ -1,5 +1,5 @@
 from flask import current_app as app
-from eve.utils import config
+from eve.utils import config, ParsedRequest
 import json
 import ntpath
 import imghdr
@@ -12,7 +12,8 @@ from superdesk.upload import url_for_media
 class VPPTestCase:
 
     def upload_fixture_image(
-        self, fixture_image_path, verification_result_path, headline='test'
+        self, fixture_image_path,
+        verification_stats_path, verification_result_path, headline='test'
     ):
         with self.app.app_context():
             with open(fixture_image_path, mode='rb') as f:
@@ -40,6 +41,8 @@ class VPPTestCase:
             image_id = get_resource_service('ingest').post(data)
         with open(verification_result_path, 'r') as f:
             self.expected_verification_results.append(json.load(f))
+        with open(verification_stats_path, 'r') as f:
+            self.expected_verification_stats.append(json.load(f))
         return image_id
 
     @classmethod
@@ -54,3 +57,18 @@ class VPPTestCase:
             connection._purge_index(
                 cls.app.config['MONGO_DBNAME']
             )
+
+    def assertVerificationResult(self, result, stats_references, verification_references):
+        verification_results = result['results']
+        verification_stats = result['stats']
+        if not isinstance(verification_results, dict):
+            verification_results = list(get_resource_service('verification_results').get(
+                req=ParsedRequest(), lookup={'_id': verification_results}
+            ))[0]
+            # _id = verification_results['_id']
+            for field in ['_id', '_etag', '_created', '_updated']:
+                del verification_results[field]
+            # with open(str(_id), 'w') as f:
+                # json.dump(verification_results, f)
+        self.assertEqual(verification_stats, stats_references)
+        self.assertEqual(verification_results, verification_references)

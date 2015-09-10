@@ -11,24 +11,28 @@
             </li>
             <li ng-class="{active: tab === 'gris'}">
                 <button ng-click="tab = 'gris'" tooltip="Google Revere Image Search" tooltip-placement="bottom">
-                    <i class="fa fa-2x fa-google"></i> ({{item.verification.gris.searchInformation.totalResults}})
+                    <i class="fa fa-2x fa-google"></i> ({{item.verification.stats.incandescent.total_google}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'tineye'}">
                 <button ng-click="tab = 'tineye'" tooltip="Tineye" tooltip-placement="bottom">
                     <i ng-class="{active: tab === 'tineye'}" class="fa fa-2x tineye"></i>
-                    ({{item.verification.tineye.results.total_results}})
+                    ({{item.verification.stats.tineye.total}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'izitru'}">
                 <button ng-click="tab = 'izitru'" tooltip="Izitru" tooltip-placement="bottom">
                     <i ng-class="{active: tab === 'izitru'}" class="fa fa-2x izitru"></i>
-                    ({{item.verification.izitru.verdict}})
                 </button>
             </li>
             <li ng-class="{active: tab === 'comments'}">
                 <button ng-click="tab = 'comments'" tooltips="Comments" tooltip-placement="bottom">
                     <i class="fa fa-2x fa-comments"></i> ({{item.comments.length}})
+                </button>
+            </li>
+            <li ng-class="{active: tab === 'glossary'}">
+                <button ng-click="tab = 'glossary'" tooltips="Glossary" tooltip-placement="bottom">
+                    <i class="fa fa-2x fa-book"></i>
                 </button>
             </li>
         </ul>
@@ -43,5 +47,6 @@
         <div ng-if="tab === 'tineye'" vp-media-tineye data-item="item"></div>
         <div ng-if="tab === 'izitru'" vp-media-izitru data-item="item"></div>
         <div ng-if="tab === 'comments'" vp-media-comments data-item="item"></div>
+        <div ng-if="tab === 'glossary'" vp-glossary data-item="item"></div>
     </div>
 </div>

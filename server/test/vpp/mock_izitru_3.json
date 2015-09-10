@@ -1,0 +1,32 @@
+{
+    "deviceSignatureAnalysis": "Passed",
+    "sensorPatternAnalysis": "Passed",
+    "verdict": "3",
+    "imageID": "637a8bc8-c988-4976-8424-9bce933ef5df",
+    "imageQuality": "76",
+    "deviceSignatureDetails": {},
+    "jpegStructureAnalysis": "Passed",
+    "EXIF": {
+        "modifyDate": "Dec 30, 2000 10:18:16",
+        "metadataDate": "Dec 30, 2000 10:18:16",
+        "captureLocation": "NA",
+        "captureDevice": "E990 (Nikon)",
+        "focalLength": "8.2 mm",
+        "captureLocationLongitude": "NA",
+        "exposureTime": "1/344",
+        "lens": "NA",
+        "flash": "No Flash",
+        "iso": "100",
+        "imageSize": "2048 x 1536",
+        "createDate": "Dec 30, 2000 10:18:16",
+        "creatorTool": "E990v1.1",
+        "fnumber": "7.0",
+        "captureLocationLatitude": "NA",
+        "focusDistance": "NA"
+    },
+    "multipleJpegAnalysis": "0/58",
+    "imageMatching": {
+        "exactMatch": "857497bc-722b-42ab-98f8-e11a8604f2dd 20150728, a75957a0-fd96-498f-9eff-deab74165c27 20150728",
+        "nearMatch": "NA"
+    }
+}

@@ -14,6 +14,7 @@ module.exports = {
         tasks: ['hint'],
         files: [
             '<%= appDir %>/scripts/*.js',
+            '<%= appDir %>/scripts/**/*.js',
             '<%= appDir %>/scripts/superdesk*/**/*.js'
         ]
     },
@@ -46,5 +47,10 @@ module.exports = {
         options: {livereload: true},
         tasks: ['template:docs'],
         files: ['<%= appDir %>/docs.html']
+    },
+    ng_templates: {
+        options: {livereload: true},
+        tasks: ['ngtemplates:app'],
+        files: ['<%= appDir %>/scripts/verifiedpixel*/**/*.html']
     }
 };

@@ -3,7 +3,8 @@ language: python
 sudo: false
 
 env:
-    - TARGET=unit
+    - TARGET=server_unit
+    - TARGET=client_unit
     #- TARGET=server_ldap
     #- TARGET=server_public_api
     #- TARGET=e2e_chrome
@@ -15,6 +16,8 @@ python:
 matrix:
     allow_failures:
         - env: TARGET=e2e_firefox
+        - env: TARGET=client_unit
+    fast_finish: true
 
 services:
     - mongodb
@@ -28,7 +31,7 @@ cache:
     - $HOME/.cache/bower
 
 before_install:
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "client_unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         npm install -g grunt-cli bower ;
       fi
     - if [ "${TARGET}" != "${TARGET/e2e/}" ]; then
@@ -41,18 +44,18 @@ before_install:
       fi
 
 install:
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/server/}" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "server_unit" ] || [ "${TARGET}" != "${TARGET/server/}" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         cd server &&
         pip install -q -r requirements.txt &&
         cd .. ;
       fi
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "client_unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         cd client && npm install && cd .. ;
       fi
-    - if [ "${TARGET}" = "unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
+    - if [ "${TARGET}" = "client_unit" ] || [ "${TARGET}" != "${TARGET/e2e/}" ]; then
         cd client && bower install && cd .. ;
       fi
-    - if [ "${TARGET}" = "unit" ]; then
+    - if [ "${TARGET}" = "server_unit" ]; then
         cd server && pip install coveralls==1.0a2 && cd .. ;
       fi
 
@@ -69,11 +72,13 @@ before_script:
       fi
 
 script:
-        #cd client && npm test && cd .. ;
         #cd server && behave ./features/ --format progress2 --logging-level ERROR && cd .. ;
-    - if [ "${TARGET}" = "unit" ]; then
+    - if [ "${TARGET}" = "server_unit" ]; then
         cd server && nosetests vpp --with-coverage --cover-package=vpp.verifiedpixel && cd .. &&
         cd server && flake8 && cd .. ;
+      fi
+    - if [ "${TARGET}" = "client_unit" ]; then
+        cd client && npm test && cd .. ;
       fi
     - if [ "${TARGET}" = "server_ldap" ]; then
         cd server &&
@@ -105,9 +110,9 @@ after_script:
 
 after_success:
         #cd client && grunt coveralls && cd .. ;
-    - if [ "${TARGET}" = "unit" ]; then
+    - if [ "${TARGET}" = "server_unit" ]; then
         cd server && coveralls --merge="../client/coveralls.json" ;
       fi
 notifications:
   slack:
-    secure: pJbVDxWL5J1HB9UhM5oOeBHrDxZk0EG1YyYd1cCwf6XVXnBogb+PS0UB8g8peRCuRgaKZIozy9CQ5MUf1fHKK6ScxUZKQCDE3lWBjff1gSyT7aIu/HNmVDrn8p/3U8D56SDqIiXOZm9riSAa4WgZYLcZgm18sz0CdRG7dEVB1zn5j5gwS3ChwDJe2haQWJbZzrO6dV2Z1qonBJe/CPcV2luRuDEM26PDNXIsCpvPqYFDtqglOLxpSfuBaBxqbTgpJXnDLRd6YPP0Un1FYr3l4DN9c5MWid7KwWvHBLyYAVNAMD/VcoRaEB7km7u+9eruNGf08IorUi0B0MRq8Hea0//xMKSlG5pJ0d/cS5TV7wOHiDEMdaWV3yYq3+xsZBZdk+tk3Su3ecd/6prMiTxyr+MY1bUnSS73Fk/ixgv9okm9IM7IDe8LvicvUkTuw2VbAFdaPe9Nrv77hheZw50d6dmHbaZnC792purAqwyHFTOE4Hl0EyB07STfjw1+LeXfxV36c1CBuiN+3O0zjEMILRvzadLMweJu38GpWFfbeNywb6FoiTPMPXdHzx1DVWIAoKTJeeV7d1A1pzy3XSOtA71C5K7ggxFk6aDZE15K8mV015bcF/iaOK43jAaWV4cpL55EUXq6ut54VlRP3vfeL8HbiUTfpONOX77A+sKiiZA=
+    secure: VRr7XsiNpTropmFYTDqEvM+ZQ4Wwu00r/wlI8Vf9H9nuvyXwzjTyPrgcLbTlIs9WAaCcaFZmft2Wi0gu/GSi19MCzT3Wr2fhJrZOuaEbvOX6vYUojsRgPoIHHpxtiFUwEAL7HuO9EAGOmsz/KLAcleeCPl5e8lpBDhbzvsC3++Zhciann6UciEiCau1szIwS3ACwFKKOY7ZM1uWRbqBMBAKzMihJAZRN98bmuqXHpP55w+QNSLCRHQ9dlETuVT0OsQsa57OECLRqUoWHtXCzrQLgPT1hYluiiD0zsLf1A2ZyYcJonztaUB4RgVs2JEbirVCtJfE2A31AgLW4bMnN4ZkJx6sA/oHD/H9mkZfBo+aBd8KPU1+KWHL2idCIHyQTFiIA72krCb7QOyZbMmM/Jls3vQUQzjQolAbVfl4BnbekyZCb20K5r56Taf/VdqevhZOpMuZkKTwG25DgB3MPd7m2oX+NKqrg8R++12M8BBQGX3DABgVu/mB6Mu6muEGOjeC6D0EIYCRVsn57kzdT4XDyDV91ZyD2NVMpIt7KDUKrKYuj4r7muAbr5RqqZCqyctxZvkAHeME9AaucPGzRJ4Rd9EEDqMRNvNJ+czeDScaf7wo1mjT+Gh4/C4Qf/a0QxQCtOTCeIOfiEu1LjOW7ykqazs0DNMuzLJE2h2vpFl4=
