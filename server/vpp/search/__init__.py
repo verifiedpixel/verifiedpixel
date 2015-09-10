@@ -12,7 +12,7 @@ from flask import current_app as app, json, g
 from eve_elastic.elastic import set_filters
 
 import superdesk
-from superdesk.metadata.item import CONTENT_STATE, ITEM_STATE
+from vpp.metadata.item import CONTENT_STATE, ITEM_STATE
 from superdesk.metadata.utils import aggregations
 from vpp.archive.archive import SOURCE as ARCHIVE
 

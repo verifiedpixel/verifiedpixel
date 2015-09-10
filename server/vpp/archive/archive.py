@@ -27,7 +27,7 @@ from superdesk.activity import add_activity, ACTIVITY_CREATE, ACTIVITY_UPDATE, A
 from eve.utils import parse_request, config
 from superdesk.services import BaseService
 from superdesk.users.services import current_user_has_privilege, is_admin
-from superdesk.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO
+from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO
 from apps.common.components.utils import get_component
 from apps.item_autosave.components.item_autosave import ItemAutosave
 from apps.common.models.base_model import InvalidEtag

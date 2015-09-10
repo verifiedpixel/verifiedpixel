@@ -11,7 +11,7 @@
 from flask import request
 
 from superdesk import get_resource_service, Service
-from superdesk.metadata.item import EMBARGO
+from vpp.metadata.item import EMBARGO
 from superdesk.resource import Resource, build_custom_hateoas
 from apps.packages import TakesPackageService
 from apps.archive.common import CUSTOM_HATEOAS
