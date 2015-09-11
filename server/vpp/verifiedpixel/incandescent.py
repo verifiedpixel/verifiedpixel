@@ -2,8 +2,8 @@ import logging  # noqa @TODO:
 import hmac
 import base64
 import datetime
-import calendar
 import json
+import time
 import urllib.parse
 from requests import request
 from hashlib import sha1 as sha
@@ -21,8 +21,7 @@ def get_incandescent_results(href):
     with superdesk.app.app_context():
         uid = current_app.config['INCANDESCENT_UID']
         apiKey = current_app.config['INCANDESCENT_APIKEY']
-    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=110)
-    utc_expires = calendar.timegm(expires.timetuple())
+    utc_expires = int(time.time()) + 300
     to_string = str(uid) + "\n" + str(utc_expires)
     binary_signature = hmac.new(apiKey.encode(), to_string.encode(), sha)
     signature = urllib.parse.quote_plus(
