@@ -21,7 +21,7 @@ def get_incandescent_results(href):
     with superdesk.app.app_context():
         uid = current_app.config['INCANDESCENT_UID']
         apiKey = current_app.config['INCANDESCENT_APIKEY']
-    expires = datetime.datetime.now() - datetime.timedelta(minutes=110)
+    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=110)
     utc_expires = calendar.timegm(expires.timetuple())
     to_string = str(uid) + "\n" + str(utc_expires)
     binary_signature = hmac.new(apiKey.encode(), to_string.encode(), sha)
