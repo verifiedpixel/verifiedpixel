@@ -1,7 +1,7 @@
     <div
         ng-if="item.converted_exif.gpsinfo.gpslatitude && item.converted_exif.gpsinfo.gpslongitude">
         <map
-            style="height: 125px; width: 350px"
+            style="height: 155px; width: 420px"
             zoom="17" 
             center="[{{ item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}]" 
             disable-default-u-i="false"
@@ -21,11 +21,8 @@
                 visible="true">
             </marker>
         </map>
-        <dl ng-if="item.verification.stats.izitru.location">
-            <dt translate>Capture Location</dt>
-            <dd>{{ item.verification.stats.izitru.location }} 
-              (<a href="http://maps.google.com/maps?q={{ item.converted_exif.gpslat }},{{ item.converted_exif.gpslon }}&ll={{item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}&z=15" target="_blank">open in new tab</a>)
+        <div ng-if="item.verification.stats.izitru.location">
+          (<a href="http://maps.google.com/maps?q={{ item.converted_exif.gpslat }},{{ item.converted_exif.gpslon }}&ll={{item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}&z=15" target="_blank">open in new tab</a>)
 
-            </dd>
-        </dl>
+        </div>
     </div>
