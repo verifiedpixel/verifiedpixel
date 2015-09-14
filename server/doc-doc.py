@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+
 from pprint import pprint  # noqa
 from jinja2 import Template
 import json
+import sys
 
 
 ACCUMULATABLE_CMDS = ['ENV', 'EXPOSE', 'ADD', 'COPY']
@@ -124,7 +127,11 @@ def render_dockerfile(parsed):
 
 
 def main():
-    parsed = parse_dockerfile('./Dockerfile')
+    if len(sys.argv) > 1:
+        dockerfile_path = sys.argv[1]
+    else:
+        dockerfile_path = './Dockerfile'
+    parsed = parse_dockerfile(dockerfile_path)
     rendered = render_dockerfile(parsed)
     print(rendered)
 
