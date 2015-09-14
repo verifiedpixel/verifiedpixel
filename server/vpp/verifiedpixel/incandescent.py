@@ -1,7 +1,5 @@
-import logging  # noqa @TODO:
 import hmac
 import base64
-import datetime
 import json
 import time
 import urllib.parse
