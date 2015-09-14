@@ -9,6 +9,8 @@ Documentation (Coming soon) •
 * redis
 
 ## Build the server
+Prerequisites/full-installation for Ubuntu Trusty Tahr: https://github.com/verifiedpixel/verifiedpixel/blob/master/server/INSTAL
+
 For the sake of simplification we're going to say that you're in your download location.
 ```bash
 $cd server
@@ -32,6 +34,8 @@ If you've made your keys into a script into an executable (chmod a+x) execute it
 (env)$source yourscriptname
 ```
 ## Build the client
+Prerequisites/full-installation for Ubuntu Trusty Tahr: https://github.com/verifiedpixel/verifiedpixel/blob/master/client/INSTALL.md
+
 Open a new terminal pane.
 ```bash
 $cd client
