@@ -76,6 +76,17 @@ script:
     - if [ "${TARGET}" = "server_unit" ]; then
         cd server && nosetests vpp --with-coverage --cover-package=vpp.verifiedpixel && cd .. &&
         cd server && flake8 && cd .. ;
+        cp server/INSTALL.md server/INSTALL.md.orig &&
+        cp client/INSTALL.md client/INSTALL.md.orig &&
+        ./generate-install-docs.sh ;
+        if [ $(diff server/INSTALL.md.orig server/INSTALL.md | wc -l) -ne 0 ]; then
+            echo "Server docs are not up-to-date" ;
+            exit 3 ;
+        fi ;
+        if [ $(diff client/INSTALL.md.orig client/INSTALL.md | wc -l) -ne 0 ]; then
+            echo "Client docs are not up-to-date" ;
+            exit 3 ;
+        fi ;
       fi
     - if [ "${TARGET}" = "client_unit" ]; then
         cd client && npm test && cd .. ;
