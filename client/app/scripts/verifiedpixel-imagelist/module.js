@@ -1718,8 +1718,6 @@
             var items_ids = items.map(function(item) { return item._id });
             api.save('verifiedpixel_zip', {"items": items_ids}).then(function(result) {
                 ctrl.download_queue.push(result._id);
-                console.log("i am your pusherman");
-                console.log(ctrl.download_queue);
             });
         };
 
@@ -1728,7 +1726,6 @@
             var index_in_queue = ctrl.download_queue.indexOf(id);
             if (index_in_queue >= 0) {
                 ctrl.download_queue.splice(index_in_queue, 1);
-                console.log(data.url);
                 $window.open(data.url);
             } else {
                 console.log("not in queue:");
