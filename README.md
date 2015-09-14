@@ -9,7 +9,7 @@ Documentation (Coming soon) •
 * redis
 
 ## Build the server
-Prerequisites/full-installation for Ubuntu Trusty Tahr: https://github.com/verifiedpixel/verifiedpixel/blob/master/server/INSTAL
+Prerequisites/full-installation for Ubuntu Trusty Tahr: https://github.com/verifiedpixel/verifiedpixel/blob/master/server/INSTALL.md
 
 For the sake of simplification we're going to say that you're in your download location.
 ```bash
