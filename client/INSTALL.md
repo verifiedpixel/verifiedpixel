@@ -1,12 +1,10 @@
 
 
-import base image
-
 We gonna use `ubuntu:trusty` as a base.
 
 
 
-install system-wide dependencies
+##### Install system-wide dependencies
 
 Execute:
 
@@ -31,7 +29,7 @@ npm -g install grunt-cli bower
 
 
 
-setup the environment
+##### Setup the environment
 
 Copy from the repository dir:
 
@@ -41,7 +39,7 @@ cp -r ./superdesk_vhost.conf /etc/nginx/sites-enabled/superdesk.conf
 
 
 
-install app-wide dependencies
+##### Install app-wide dependencies
 
 Copy from the repository dir:
 
@@ -72,7 +70,7 @@ bower --allow-root install
 
 
 
-copy sources
+##### Copy application sources
 
 Copy from the repository dir:
 
