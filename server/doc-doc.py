@@ -68,12 +68,12 @@ TEMPLATES = {
 ```
 """,
 
-    "ADD": """Copy from the repository dir:
+    "ADD": Template("""Copy from the repository dir:
 
 ```sh
-cp -r {args}
-```
-""",
+{% for arg in args %}cp -r {{arg}}
+{% endfor %}```
+"""),
 
     "CMD": lambda args: Template("""To start the application execute:
 
