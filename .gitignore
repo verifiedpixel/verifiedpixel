@@ -1,6 +1,6 @@
 .env
-/.project
-/.pydevproject
+.project
+.pydevproject
 *.pyc
 *.swp
 *.swo
@@ -26,9 +26,9 @@ include/
 assets/
 .idea/
 .vagrant/
-/client/.tern-project
-/server/.project
-/server/.pydevproject
-/server/.settings/org.eclipse.core.resources.prefs
-/results/
+client/.tern-project
+server/.project
+server/.pydevproject
+server/.settings/org.eclipse.core.resources.prefs
+results/
 *.bak
