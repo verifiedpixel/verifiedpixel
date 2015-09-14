@@ -1,9 +1,10 @@
-/app/scripts/.project
-/npm-debug.log
-/.settings
-/.project
+app/scripts/.project
+npm-debug.log
+.settings
+.project
 node_modules
 dist
+app/scripts/vpp-templates.js
 *.swp
 *.swo
 *.swn
