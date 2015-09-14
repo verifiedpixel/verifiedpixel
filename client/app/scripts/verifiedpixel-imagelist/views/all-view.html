@@ -31,7 +31,7 @@
     </div>
 
     <div ng-if="item.converted_exif" class="vpp-card gray-top">
-      <p class="question-text" >With what model of camera was this photo taken?</p>
+      <p class="question-text" >Which camera model took the photo?</p>
       <p ng-switch on="item.converted_exif.lensmake || '_undefined_'" class="answer-text">
         <span ng-switch-when="_undefined_">Unknown</span>
         <span ng-switch-default>{{ item.converted_exif.lensmake }}, {{ item.converted_exif.lensmodel }}</span>
@@ -47,7 +47,7 @@
         </span>
       </p>
 
-      <p class="question-text" >What is this photos's resolution and file size?</p>
+      <p class="question-text" >What is this photo's resolution and file size?</p>
       <p class="answer-text" >{{ item.verification.results.izitru.EXIF.imageSize }} pixels</p>
     </div>
 
@@ -95,7 +95,7 @@
 
     <div class="vpp-card gray-top">
       <p class="question-text">Who submitted this photo?</p>
-      <p class="answer-text">{{ item.original_source }} created this photo <span sd-reldate-complex ng-model="item.firstcreated"></span>.
+      <p class="answer-text">{{ item.original_source }} created this photo on <span sd-reldate-complex ng-model="item.firstcreated"></span>.
         Sent to <span sd-meta-ingest data-item="item"></span></p>
 
       <p class="question-text">Was any other information submitted with this photo?</p>
