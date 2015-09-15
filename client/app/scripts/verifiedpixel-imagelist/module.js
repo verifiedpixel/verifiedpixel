@@ -1709,31 +1709,35 @@
 
 
 
-    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', '$http'];
-    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, $http) {
+    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', 'api', '$http', '$scope', '$window'];
+    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, api, $http, $scope, $window) {
+        var ctrl = this;
+
+        this.download_queue = [];
+
         this.download = function() {
             // implement multi file download
             var added = 0;
             var items = multi.getItems();
-            var zip = new JSZip();
-            items.forEach(function (item) {
-                var href = item.renditions.original.href;
-                $http.get(href, {responseType: "arraybuffer"}).then(function(response) {
-                    // add the image
-                    zip.file(item.slugline, response.data);
-                    zip.file(item.slugline + '.verification.json', JSON.stringify(item.verification));
-                    zip.file(item.slugline + '.metadata.json', JSON.stringify(item.filemeta));
-                    added++;
-                    if (added === items.length) {
-                        var blob = zip.generate({type:"blob"});
-                        saveAs(blob, 'verified-images.zip');
-                    }
-                }, function(response) {
-                    console.log('error', response);
-                });
+            var items_ids = items.map(function(item) { return item._id });
+            api.save('verifiedpixel_zip', {"items": items_ids}).then(function(result) {
+                ctrl.download_queue.push(result._id);
             });
-            
         };
+
+        $scope.$on('verifiedpixel_zip:ready', function(_e, data) {
+            var id = data.id;
+            var index_in_queue = ctrl.download_queue.indexOf(id);
+            if (index_in_queue >= 0) {
+                ctrl.download_queue.splice(index_in_queue, 1);
+                $window.open(data.url);
+            } else {
+                console.log("not in queue:");
+                console.log(index_in_queue);
+                console.log(id);
+                console.log(ctrl.download_queue);
+            }
+        });
 
         this.delete = function() {
             // use spike to delete

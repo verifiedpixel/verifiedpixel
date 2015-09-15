@@ -16,7 +16,6 @@ logstash:
 
 kibana:
   build: kibana
-  restart: always
 
 elastic:
   image: elasticsearch:1.5
