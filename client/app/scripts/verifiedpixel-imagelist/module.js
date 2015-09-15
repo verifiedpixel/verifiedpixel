@@ -553,6 +553,7 @@
         $scope.$on('item:deleted:archive:text', itemDelete);
         $scope.$on('item:created', refresh);
         $scope.$on('item:fetch', refresh);
+        $scope.$on('item:spike', refresh);
 
         function itemDelete(e, data) {
             if (session.identity._id === data.user) {
