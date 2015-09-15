@@ -549,7 +549,10 @@
     ImageListController.$inject = ['$scope', '$location', 'api', 'imagelist', 'notify', 'session'];
     function ImageListController($scope, $location, api, imagelist, notify, session) {
         $scope.context = 'search';
+
         $scope.$on('item:deleted:archive:text', itemDelete);
+        $scope.$on('item:created', refresh);
+        $scope.$on('item:fetch', refresh);
 
         function itemDelete(e, data) {
             if (session.identity._id === data.user) {
