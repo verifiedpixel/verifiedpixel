@@ -12,7 +12,6 @@ SOURCE = 'archive'
 
 import flask
 from superdesk.resource import Resource
-from superdesk.metadata.utils import extra_response_fields, item_url, aggregations
 from .common import remove_unwanted, update_state, set_item_expiry, \
     is_update_allowed, on_create_item, on_duplicate_item, get_user, update_version, set_sign_off, \
     handle_existing_data, item_schema, validate_schedule, is_item_in_package, ITEM_DUPLICATE, ITEM_OPERATION, \
@@ -27,7 +26,6 @@ from superdesk.activity import add_activity, ACTIVITY_CREATE, ACTIVITY_UPDATE, A
 from eve.utils import parse_request, config
 from superdesk.services import BaseService
 from superdesk.users.services import current_user_has_privilege, is_admin
-from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO
 from apps.common.components.utils import get_component
 from apps.item_autosave.components.item_autosave import ItemAutosave
 from apps.common.models.base_model import InvalidEtag
@@ -44,6 +42,9 @@ from superdesk.utc import utcnow
 import datetime
 from settings import DEFAULT_SOURCE_VALUE_FOR_MANUAL_ARTICLES, VERSION
 from superdesk.metadata.packages import ITEM_REF, SEQUENCE
+
+from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO
+from vpp.metadata.utils import extra_response_fields, item_url, aggregations
 
 
 logger = logging.getLogger(__name__)

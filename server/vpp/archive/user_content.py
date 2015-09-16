@@ -11,9 +11,10 @@
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.services import BaseService
 from .common import CUSTOM_HATEOAS
-from superdesk.metadata.utils import aggregations
 from .archive import ArchiveResource
 import superdesk
+
+from vpp.metadata.utils import aggregations
 
 
 class UserContentResource(Resource):
