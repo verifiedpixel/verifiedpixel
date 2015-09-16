@@ -10,18 +10,20 @@ from .logging import warning
 from .logging import debug  # noqa
 
 
+RETRY_INTERVAL = 0.5  # s
+
+
 def handle_elastic_timeout_wrapper(f):
-    retry_interval = 0.5  # s
     max_retry = 60
 
     def retry(e):
-        nonlocal retry_interval
+        nonlocal RETRY_INTERVAL
         warning("Can't connect to elasticsearch, retrying in "
                 "{interval} s: {exception}".format(
-                    interval=retry_interval, exception=str(e.__class__).split("'")[1]))
-        sleep(retry_interval)
-        retry_interval *= 2
-        if retry_interval > max_retry:
+                    interval=RETRY_INTERVAL, exception=str(e.__class__).split("'")[1]))
+        sleep(RETRY_INTERVAL)
+        RETRY_INTERVAL *= 2
+        if RETRY_INTERVAL > max_retry:
             raise(e)
 
     while True:
@@ -54,5 +56,6 @@ def handle_elastic_write_problems_wrapper(f):
                 raise(e)
             else:
                 warning("restarting transaction because of Eve OriginalChangedError")
+                sleep(RETRY_INTERVAL)
         else:
             break
