@@ -10,8 +10,30 @@
 
 from datetime import datetime
 from uuid import uuid4
-from settings import SERVER_DOMAIN
-from .item import GUID_TAG, GUID_NEWSML
+from flask import current_app as app
+from .item import GUID_TAG, GUID_NEWSML, GUID_FIELD
+
+
+item_url = 'regex("[\w,.:_-]+")'
+
+extra_response_fields = [GUID_FIELD, 'headline', 'firstcreated', 'versioncreated', 'archived']
+
+aggregations = {
+    'type': {'terms': {'field': 'type'}},
+    'desk': {'terms': {'field': 'task.desk'}},
+    'stage': {'terms': {'field': 'task.stage'}},
+    'category': {'terms': {'field': 'anpa_category.name'}},
+    'source': {'terms': {'field': 'source'}},
+    'state': {'terms': {'field': 'state'}},
+    'urgency': {'terms': {'field': 'urgency'}},
+    'day': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-24H'}]}},
+    'week': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1w'}]}},
+    'month': {'date_range': {'field': 'firstcreated', 'format': 'dd-MM-yyy HH:mm:ss', 'ranges': [{'from': 'now-1M'}]}},
+    'make': {'terms': {'field': 'filemeta.Make'}},
+    'capture_location': {'terms': {'field': 'verification.izitru.EXIF.captureLocation'}},
+    'izitru': {'terms': {'field': 'verification.izitru.verdict'}},
+    'original_source': {'terms': {'field': 'original_source'}},
+}
 
 
 def generate_guid(**hints):
@@ -28,7 +50,9 @@ def generate_guid(**hints):
     t = datetime.today()
 
     if hints['type'].lower() == GUID_TAG:
-        return tag_guid_format % {'domain': SERVER_DOMAIN, 'year': t.year, 'identifier': hints['id']}
+        return tag_guid_format % {'domain': app.config['SERVER_DOMAIN'], 'year': t.year, 'identifier': hints['id']}
     elif hints['type'].lower() == GUID_NEWSML:
-        return newsml_guid_format % {'domain': SERVER_DOMAIN, 'timestamp': t.isoformat(), 'identifier': hints['id']}
+        return newsml_guid_format % {'domain': app.config['SERVER_DOMAIN'],
+                                     'timestamp': t.isoformat(),
+                                     'identifier': hints['id']}
     return None
