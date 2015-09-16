@@ -95,8 +95,12 @@
 
     <div class="vpp-card gray-top">
       <p class="question-text">Who submitted this photo?</p>
-      <p class="answer-text">{{ item.original_source }} created this photo on <span sd-reldate-complex ng-model="item.firstcreated"></span>.
-        Sent to <span sd-meta-ingest data-item="item"></span></p>
+      <p class="answer-text">
+        <a ng-href="mailto:{{ item.original_source | emailFilter }}" href>{{ item.original_source }}</a>
+        created this photo on
+        <span sd-reldate-complex ng-model="item.firstcreated"></span>.
+        Sent to <span sd-meta-ingest data-item="item"></span>
+      </p>
 
       <p class="question-text">Was any other information submitted with this photo?</p>
       <p class="answer-text">{{ item.headline }}</p>
