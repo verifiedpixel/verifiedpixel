@@ -88,7 +88,7 @@ def get_api_getter(api_name, api_getter=None):
     if not api_getter:
         api_getter = API_GETTERS[api_name]['function']
     if app.config['USE_VERIFICATION_MOCK']:  # pragma no cover
-        if 'api_getter' not in MOCKS[api_name]:
+        if 'api_getter' not in MOCKS[api_name] or True:
             mock = MOCKS[api_name]
             api_wrapper = mock['function'](*mock['fixtures'], eternal=True)
             MOCKS[api_name]['api_getter'] = api_wrapper(api_getter)
