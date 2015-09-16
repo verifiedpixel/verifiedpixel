@@ -740,6 +740,11 @@
 
             };
         })
+        .filter('emailFilter', function() {
+            return function(str) {
+                return str.replace(/^.*<(.*)>$/g, '\$1');
+            }
+        })
         .directive('vpExifOrient', function () { 
             return {
                 restrict: 'A',
