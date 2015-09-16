@@ -74,18 +74,8 @@ def zip_items(result_id, items_ids):
     vppzip_service = get_resource_service('verifiedpixel_zip')
     results_service = get_resource_service('verification_results')
 
-    # @TODO: fix and unskip test
-    """
-    debug("TASK")
-    w = vppzip_service.find_one(_id=result_id, req=None)
-    debug(w)
-    """
-    """
-    vppzip_service.patch(
-        result_id,
-        {'status': "processing"}
-    )
-    """
+    item = vppzip_service.find_one(_id=result_id, req=None)
+    vppzip_service.system_update(result_id, {'status': "processing"}, item)
 
     items = list(archive_service.get_from_mongo(
         req=ParsedRequest(), lookup={'_id': {'$in': items_ids}}))
@@ -102,7 +92,7 @@ def zip_items(result_id, items_ids):
     zip_file = zipfile.ZipFile(zip_file_object, mode='w')
     for item in items:
         item_id = item['_id']
-        image = get_original_image(item)[1]
+        image = get_original_image(item, 'archive')[1]
         zip_file.writestr(item_id, image)
         item['verification']['results'] = verification_results[
             item['verification']['results']
@@ -122,14 +112,12 @@ def zip_items(result_id, items_ids):
     )
     uploaded_zip_url = url_for_media(uploaded_zip_id)
 
-    # @TODO: fix and unskip test
-    """
-    vppzip_service.patch(result_id, {
+    item = vppzip_service.find_one(_id=result_id, req=None)
+    vppzip_service.system_update(result_id, {
         "status": "done",
         "result": uploaded_zip_url,
         "result_id": uploaded_zip_id
-    })
-    """
+    }, item)
 
     push_notification(
         'verifiedpixel_zip:ready',

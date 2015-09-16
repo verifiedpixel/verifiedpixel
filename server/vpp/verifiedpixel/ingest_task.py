@@ -8,7 +8,7 @@ from celery import chord, group
 
 import superdesk
 from superdesk.celery_app import celery
-from apps.tasks import send_to
+from vpp.tasks import send_to
 
 from .logging import error, warning, info, success
 from .elastic import handle_elastic_write_problems_wrapper
