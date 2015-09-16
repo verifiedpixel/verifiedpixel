@@ -17,7 +17,7 @@ def handle_elastic_timeout_wrapper(f):
     max_retry = 60
 
     def retry(e):
-        nonlocal RETRY_INTERVAL
+        global RETRY_INTERVAL
         warning("Can't connect to elasticsearch, retrying in "
                 "{interval} s: {exception}".format(
                     interval=RETRY_INTERVAL, exception=str(e.__class__).split("'")[1]))
