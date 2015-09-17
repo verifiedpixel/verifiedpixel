@@ -4,6 +4,7 @@ from flask import current_app as app
 from flask import json
 from eve.utils import ParsedRequest
 from io import BytesIO, StringIO
+from bson.objectid import ObjectId
 
 from superdesk.celery_app import celery
 from superdesk.resource import Resource
@@ -70,6 +71,7 @@ class VerifiedPixelZipResource(Resource):
 
 @celery.task
 def zip_items(result_id, items_ids):
+    result_id = ObjectId(result_id)
     archive_service = get_resource_service('archive')
     vppzip_service = get_resource_service('verifiedpixel_zip')
     results_service = get_resource_service('verification_results')
