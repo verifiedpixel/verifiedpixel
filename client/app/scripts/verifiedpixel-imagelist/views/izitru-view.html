@@ -1,43 +1,58 @@
 <div class="metadata-view">
 
-    <h4>Izitru verdict</h4>
+  <div class="vpp-card green-top" ng-if="item.verification.stats.izitru.verdict == 1">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">High Trust</p>
+    <p class="info-text" >This image has passed all six Izitru forensic tests and has not subsequently been edited. When you see a High rating, you can be very confident that you're looking at an unmodified original from a digital camera.</p>
+  </div>
 
-    <div class="it-scale" ng-if="item.verification.stats.izitru.verdict">
-        <dl>
-            <dt ng-if="item.verification.stats.izitru.verdict == 1">High Trust</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 1">This image has passed all six Izitru forensic tests and has not subsequently been edited. When you see a High rating, you can be very confident that you're looking at an unmodified original from a digital camera.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 2">Medium Trust</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 2">Forensic tests on this image were inconclusive, so not trust rating can be assigned.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 3">Undetermined file history</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 3">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 4">Potential file modification</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 4">Potential file modification: One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 5">No Trust</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 5">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</dd>
-        </dl>
-    </div>
+  <div class="vpp-card gray-top" ng-if="item.verification.stats.izitru.verdict == 2">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">Medium Trust</p>
+    <p class="info-text">Forensic tests on this image were inconclusive, so not trust rating can be assigned.</p>
+  </div>
 
-    <!-- VERIFICATION METADATA -->
-    <dl ng-if="item.verification.results.izitru.imageQuality">
-        <dt translate>Image Quality</dt>
-        <dd>{{ item.verification.results.izitru.imageQuality }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.jpegStructureAnalysis">
-        <dt translate>JPEG Structure Analysis</dt>
-        <dd>{{ item.verification.results.izitru.jpegStructureAnalysis }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.deviceSignatureAnalysis">
-        <dt translate>Device Signature Analysis</dt>
-        <dd>{{ item.verification.results.izitru.deviceSignatureAnalysis }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.sensorPatternAnalysis">
-        <dt translate>Sensor Pattern Analysis</dt>
-        <dd>{{ item.verification.results.izitru.sensorPatternAnalysis }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.multipleJpegAnalysis">
-        <dt translate>Multiple JPEG Analysis</dt>
-        <dd>{{ item.verification.results.izitru.multipleJpegAnalysis }}</dd>
-    </dl>
-    <!-- END VERIFICATION METADATA -->
+  <div class="vpp-card gray-top" ng-if="item.verification.stats.izitru.verdict == 3">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">Undetermined file history</p>
+    <p class="info-text">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</p>
+  </div>
+
+  <div class="vpp-card yellow-top" ng-if="item.verification.stats.izitru.verdict == 4">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">Potential file modification</p>
+    <p class="info-text">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</p>
+  </div>
+
+  <div class="vpp-card red-top" ng-if="item.verification.stats.izitru.verdict == 5">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">No Trust</p>
+    <p class="info-text">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</p>
+  </div>
+
+  <div ng-if="item.verification.results.izitru.imageQuality" class="vpp-card gray-top">
+    <p class="question-text" translate>Image Quality</p>
+    <p class="answer-text">{{ item.verification.results.izitru.imageQuality }}</p>
+  </div>
+
+  <div ng-if="item.verification.results.izitru.jpegStructureAnalysis" ng-class="(item.verification.results.izitru.jpegStructureAnalysis === 'Passed' ) ? 'green-top' : 'red-top'" class="vpp-card">
+    <p class="question-text" translate>JPEG Structure Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.jpegStructureAnalysis }}</p>
+  </div>
+
+  <div ng-if="item.verification.results.izitru.deviceSignatureAnalysis" ng-class="(item.verification.results.izitru.deviceSignatureAnalysis === 'Passed' ) ? 'green-top' : 'red-top'" class="vpp-card">
+    <p class="question-text" translate>Device Signature Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureAnalysis }}</p>
+  </div>
+
+  <div ng-if="item.verification.results.izitru.sensorPatternAnalysis" ng-class="(item.verification.results.izitru.sensorPatternAnalysis === 'Passed' ) ? 'green-top' : 'red-top'" class="vpp-card">
+    <p class="question-text" translate>Sensor Pattern Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.sensorPatternAnalysis }}</p>
+  </div>
+
+  <div ng-if="item.verification.results.izitru.multipleJpegAnalysis" class="vpp-card gray-top">
+    <p class="question-text" translate>Multiple JPEG Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.multipleJpegAnalysis }}</p>
+  </div>
 
 </div>

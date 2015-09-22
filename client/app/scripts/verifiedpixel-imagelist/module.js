@@ -1188,7 +1188,10 @@
                     openSingleItem: '='
                 },
                 link: function(scope) {
-                    scope.tab = 'all';
+                    scope.tab = {selected: 'all'};
+                    scope.openTab = function(tab) {
+                        scope.tab.selected = tab;
+                    };
                     scope.$watch('item', function(item) {
                         scope.selected = {preview: item || null};
                         // get comments count
@@ -1448,6 +1451,10 @@
         .directive('vpMediaAll', ['userList', 'imagelist', function(userList, imagelist) {
             return {
                 templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html',
+                scope: {
+                    item: '=',
+                    openTab: '&'
+                },
                 link: function(scope) {
                     imagelist.getTags(scope);
                     scope.addTag = imagelist.addTag;
