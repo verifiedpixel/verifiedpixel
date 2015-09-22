@@ -1285,7 +1285,7 @@
 
 
   $templateCache.put('scripts/verifiedpixel-imagelist/views/media-box.html',
-    "<div id=\"{{item._id}}\" class=\"media-box media-{{item.type}}\" ng-class=\"{selected: item._id === selected._id, archived: item.archived || item.created, locked: lock.isLocked}\" ng-include=\"itemTemplate\"></div>"
+    "<div id=\"{{item._id}}\" class=\"media-box media-{{item.type}}\" ng-class=\"{selected: item._id === selected._id, archived: item.archived || item.created, locked: lock.isLocked, unseen: !item.viewed}\" ng-include=\"itemTemplate\"></div>"
   );
 
 

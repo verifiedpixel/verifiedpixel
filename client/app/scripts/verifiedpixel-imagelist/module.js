@@ -22,7 +22,7 @@
             }
         };
         this.addTag = function(item, tagCode) {
-            var item_clone = _.clone(item)
+            var item_clone = _.clone(item);
             var tags = item.vpp_tag || [];
             tags.push(tagCode);
             item_clone._links.self.href = item_clone._links.self.href.replace('search/', 'archive/');
@@ -30,7 +30,7 @@
             api('archive').save(item_clone, {'vpp_tag': tags});
         };
         this.removeTag = function(item, tagCode) {
-            var item_clone = _.clone(item)
+            var item_clone = _.clone(item);
             var tags = item.vpp_tag;
             tags.splice(tags.indexOf(tagCode), 1);
             item_clone._links.self.href = item_clone._links.self.href.replace('search/', 'archive/');
@@ -298,6 +298,16 @@
          */
         this.query = function createQuery(params) {
             return new Query(params);
+        };
+
+        this.markViewed = function(item) {
+            if (item && !item.viewed) {
+                var item_clone = _.clone(item);
+                item_clone._links.self.href = item_clone._links.self.href.replace('search/', 'archive/');
+                item_clone._links.self.title = 'Archive';
+                api('archive').save(item_clone, {'viewed': true});
+                item.viewed = true;
+            }
         };
     }
 
@@ -1052,8 +1062,8 @@
         /**
          * Item list with sidebar preview
          */
-        .directive('vpSearchResults', ['$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset',
-            function($timeout, $location, api, preferencesService, packages, tags, asset) {
+        .directive('vpSearchResults', ['$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset', 'imagelist',
+            function($timeout, $location, api, preferencesService, packages, tags, asset, imagelist) {
             var update = {
                 'archive:view': {
                     'allowed': [
@@ -1116,7 +1126,8 @@
                                 });
                             }
                             $location.search('_id', item ? item._id : null);
-                        }
+                        };
+                        imagelist.markViewed(item);
                         if (typeof results === 'string') {
                             api('verification_results')
                             .getById(results)
