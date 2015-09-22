@@ -5,6 +5,7 @@ from eve.utils import ParsedRequest
 from kombu.serialization import register
 import dill
 from celery import chord, group
+import random
 
 import superdesk
 from superdesk.celery_app import celery
@@ -89,11 +90,9 @@ def get_api_getter(api_name, api_getter=None):
     if not api_getter:
         api_getter = API_GETTERS[api_name]['function']
     if app.config['USE_VERIFICATION_MOCK']:  # pragma no cover
-        if 'api_getter' not in MOCKS[api_name] or True:
-            mock = MOCKS[api_name]
-            api_wrapper = mock['function'](*mock['fixtures'], eternal=True)
-            MOCKS[api_name]['api_getter'] = api_wrapper(api_getter)
-        api_getter = MOCKS[api_name]['api_getter']
+        mock = MOCKS[api_name]
+        api_wrapper = mock['function'](random.choice(mock['fixtures']), eternal=True)
+        api_getter = api_wrapper(api_getter)
     return api_getter
 
 
