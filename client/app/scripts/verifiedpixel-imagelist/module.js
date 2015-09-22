@@ -39,8 +39,8 @@
         };
 
         var sortOptions = [
-            {field: 'versioncreated', label: gettext('Updated')},
             {field: 'firstcreated', label: gettext('Created')},
+            {field: 'versioncreated', label: gettext('Updated')},
             {field: 'verification.stats.izitru.verdict', label: gettext('Izitru Verdict')},
             {field: 'verification.stats.izitru.location', label: gettext('Izitru Location')},
             {field: 'verification.stats.incandescent.total_google', label: gettext('GRIS Results')},

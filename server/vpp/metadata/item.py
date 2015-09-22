@@ -367,7 +367,7 @@ metadata_schema = {
     'lock_session': Resource.rel('auth'),
 
     'viewed': {
-        'type': 'bool',
+        'type': 'boolean',
         'default': False,
     },
 }
