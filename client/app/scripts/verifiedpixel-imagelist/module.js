@@ -2,8 +2,42 @@
     'use strict';
 
 
-    ImageListService.$inject = ['$location', 'gettext'];
-    function ImageListService($location, gettext) {
+    ImageListService.$inject = ['$location', 'gettext', 'metadata', 'api'];
+    function ImageListService($location, gettext, metadata, api) {
+
+        // @TODO: add VppTagService?
+        var vppTags;
+        this.getTags = function(scope) {
+            if (typeof vppTags === 'undefined') {
+                metadata.initialize().then(function() {
+                    scope.metadata = metadata.values;
+                    vppTags = {};
+                    metadata.values.vpp_tags.forEach(function(elem) {
+                        vppTags[elem.qcode] = elem.name;
+                    });
+                    scope.vppTags = vppTags;
+                });
+            } else {
+                scope.vppTags = vppTags;
+            }
+        };
+        this.addTag = function(item, tagCode) {
+            var item_clone = _.clone(item)
+            var tags = item.vpp_tag || [];
+            tags.push(tagCode);
+            item_clone._links.self.href = item_clone._links.self.href.replace('search/', 'archive/');
+            item_clone._links.self.title = 'Archive';
+            api('archive').save(item_clone, {'vpp_tag': tags});
+        };
+        this.removeTag = function(item, tagCode) {
+            var item_clone = _.clone(item)
+            var tags = item.vpp_tag;
+            tags.splice(tags.indexOf(tagCode), 1);
+            item_clone._links.self.href = item_clone._links.self.href.replace('search/', 'archive/');
+            item_clone._links.self.title = 'Archive';
+            api('archive').save(item_clone, {'vpp_tag': tags});
+        };
+
         var sortOptions = [
             {field: 'versioncreated', label: gettext('Updated')},
             {field: 'firstcreated', label: gettext('Created')},
@@ -179,6 +213,9 @@
                 if (params.izitru) {
                     query.post_filter({terms: {'verification.stats.izitru.verdict': JSON.parse(params.izitru)}});
                 }
+                if (params.vpp_tag) {
+                    query.post_filter({terms: {'vpp_tag': JSON.parse(params.vpp_tag)}});
+                }
                 if (params.original_source) {
                     query.post_filter({terms: {'original_source': JSON.parse(params.original_source)}});
                 }
@@ -286,7 +323,8 @@
             'make': 1,
             'capture_location': 1,
             'izitru': 1,
-            'original_source': 1
+            'original_source': 1,
+            'vpp_tag': 1
         };
 
         function initSelectedParameters (parameters) {
@@ -421,14 +459,14 @@
     function convertExif(filemetaLowered, filemetaConverted) {
         var filemeta = (filemetaLowered) ? filemetaLowered : {};
         var converted = (filemetaConverted) ? filemetaConverted : {};
-        // check to see if the file latitude record exists before 
+        // check to see if the file latitude record exists before
         // trying to return anything // longitude is there for the sake of completeness
         if (filemeta.gpsinfo){
             if (filemeta.gpsinfo.gpslatitude && filemeta.gpsinfo.gpslongitude) {
                 // lat is always first
                 converted.gpslat = GPSArrayToFloat(
                     filemeta.gpsinfo.gpslatitude,
-                    filemeta.gpsinfo.gpslatituderef 
+                    filemeta.gpsinfo.gpslatituderef
                 );
                 converted.gpslon = GPSArrayToFloat(
                     filemeta.gpsinfo.gpslongitude,
@@ -514,7 +552,7 @@
                     break;
             }
         }
-        
+
         if (filemeta.datetimeoriginal) {
             var dateTimeParts = filemeta.datetimeoriginal.split(' ');
             var dateParts = dateTimeParts[0].split(':');
@@ -525,12 +563,12 @@
             var hour = timeParts[0];
             var min = timeParts[1];
             var sec = timeParts[2];
-            var dateString = year+'-'+month+'-'+day+' '+hour+':'+min+':'+ sec; 
+            var dateString = year+'-'+month+'-'+day+' '+hour+':'+min+':'+ sec;
             converted.datecaptured = new Date(dateString);
         } else {
             converted.datecaptured = 'unknown';
         }
-        
+
         return converted;
     }
 
@@ -570,6 +608,7 @@
         };
 
         function refresh() {
+            $scope.multi.reset(); // @TODO: change to sort of ".update" not to loose the selection
             var query = _.omit($location.search(), '_id');
             if (!_.isEqual(_.omit(query, 'page'), _.omit(oldQuery, 'page'))) {
                 $location.search('page', null);
@@ -599,14 +638,14 @@
                     var filemeta = (item.filemeta) ? item.filemeta : {};
                     var filemetaLowered = keysToLowerCase(filemeta);
                     // convert enum and rational values to readable values
-                    item.converted_exif = convertExif(filemetaLowered, filemetaLowered); 
+                    item.converted_exif = convertExif(filemetaLowered, filemetaLowered);
                     processedItems.push(item);
                     if (processedItems.length === results._items.length) {
                         results._items = processedItems;
                         $scope.items = results;
                     }
                 });
-                
+
             });
 
             oldQuery =  query;
@@ -620,7 +659,7 @@
 
     /**
      * Reorient specified element.
-     * 
+     *
      * @param {number} orientation
      * @param {object} element
      * @returns {undefined}
@@ -726,7 +765,9 @@
         'superdesk.desks',
         'superdesk.activity',
         'superdesk.list',
-        'superdesk.keyboard'
+        'superdesk.authoring.metadata',
+        'superdesk.keyboard',
+        'ui.bootstrap'
     ])
         .service('imagelist', ImageListService)
         .service('tags', TagService)
@@ -746,7 +787,7 @@
                 return str ? str.replace(/^.*<(.*)>$/g, '\$1') : "";
             }
         })
-        .directive('vpExifOrient', function () { 
+        .directive('vpExifOrient', function () {
             return {
                 restrict: 'A',
                 scope: {
@@ -759,7 +800,7 @@
                 }
             };
         })
-        .directive('vpItemRendition', function () { 
+        .directive('vpItemRendition', function () {
             return {
                 templateUrl: 'scripts/verifiedpixel-imagelist/views/item-rendition.html',
                 scope: {
@@ -822,8 +863,8 @@
         /**
          * Item filters sidebar
          */
-        .directive('vpSearchFacets', ['$location', 'desks', 'privileges', 'tags',
-            function($location, desks, privileges, tags) {
+        .directive('vpSearchFacets', ['$location', 'desks', 'privileges', 'tags', 'imagelist',
+            function($location, desks, privileges, tags, imagelist) {
             desks.initialize();
             return {
                 require: '^vpSearchContainer',
@@ -835,6 +876,7 @@
                     context: '='
                 },
                 link: function(scope, element, attrs, controller) {
+                    imagelist.getTags(scope);
                     scope.flags = controller.flags;
                     scope.sTab = true;
                     scope.aggregations = {};
@@ -853,7 +895,8 @@
                             'make':{},
                             'capture_location': {},
                             'izitru': {},
-                            'original_source': {}
+                            'original_source': {},
+                            'vpp_tag': {}
                         };
                     };
 
@@ -898,6 +941,10 @@
 
                                 _.forEach(scope.items._aggregations.izitru.buckets, function(izitru) {
                                     scope.aggregations.izitru[izitru.key] = izitru.doc_count;
+                                });
+
+                                _.forEach(scope.items._aggregations.vpp_tag.buckets, function(tag) {
+                                    scope.aggregations.vpp_tag[tag.key] = tag.doc_count;
                                 });
 
                                 _.forEach(scope.items._aggregations.original_source.buckets, function(original_source) {
@@ -1387,9 +1434,14 @@
             };
         }])
 
-        .directive('vpMediaAll', ['userList', function(userList) {
+        .directive('vpMediaAll', ['userList', 'imagelist', function(userList, imagelist) {
             return {
-                templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html'
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html',
+                link: function(scope) {
+                    imagelist.getTags(scope);
+                    scope.addTag = imagelist.addTag;
+                    scope.removeTag = imagelist.removeTag;
+                }
             };
         }])
 
@@ -1502,7 +1554,7 @@
                         angular.forEach(matches, function(match) {
                             var backlinks = _.sortBy(match.backlinks, 'crawl_date');
                             var earliestCrawl = backlinks[0]['crawl_date'];
-                            match.earliest_crawl_date = new Date(earliestCrawl); 
+                            match.earliest_crawl_date = new Date(earliestCrawl);
                         })
                     }
                     //sortTineyeResults();
@@ -1715,9 +1767,11 @@
 
 
 
-    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', 'api', '$http', '$scope', '$window'];
-    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, api, $http, $scope, $window) {
+    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', 'api', '$http', '$scope', '$window', 'imagelist'];
+    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, api, $http, $scope, $window, imagelist) {
         var ctrl = this;
+
+        imagelist.getTags($scope);
 
         this.download_queue = [];
 
@@ -1728,6 +1782,12 @@
             var items_ids = items.map(function(item) { return item._id });
             api.save('verifiedpixel_zip', {"items": items_ids}).then(function(result) {
                 ctrl.download_queue.push(result._id);
+            });
+        };
+
+        this.addTag = function(tagCode) {
+            multi.getItems().forEach(function(item) {
+                imagelist.addTag(item, tagCode);
             });
         };
 

@@ -304,6 +304,11 @@ metadata_schema = {
             }
         }
     },
+    'vpp_tag': {
+        'type': 'list',
+        'nullable': True,
+        'schema': {'type': 'string'},
+    },
 
     # aka Locator as per NewML Specification
     'place': {

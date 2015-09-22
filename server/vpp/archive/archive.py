@@ -253,6 +253,9 @@ class ArchiveService(BaseService):
         updated.update(updates)
         self.validate_embargo(updated)
 
+        if updates.get('vpp_tag'):
+            updates['vpp_tag'] = list(set(updates['vpp_tag']))
+
     def on_updated(self, updates, original):
         get_component(ItemAutosave).clear(original['_id'])
 
