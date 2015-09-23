@@ -1,109 +1,33 @@
 <div class="metadata-view">
 
-  <div ng-switch on="item.verification.stats.izitru.verdict">
-    <div class="vpp-card green-top" ng-switch-when="1">
-      <p class="question-text">Is this photo a camera original file?</p>
-      <p class="answer-text">High Trust</p>
-      <p class="info-text">This verdict is primarily given to files that pass the Device Signature Analysis without getting suspicious results on any of the other tests. In some cases, a file that doesn’t pass the signature analysis will still get a high rating, provided that there is reason to believe that it has a valid signature that happens to be missing from our database. A high trust verdict denotes high confidence that this is the original file as captured by a digital camera.</p>
-    </div>
-
-    <div class="vpp-card yellow-top" ng-switch-when="2">
-      <p class="question-text">Is this photo a camera original file?</p>
-      <p class="answer-text">Medium Trust</p>
-      <p class="info-text">A file with a Medium Trust verdict has not passed the Device Signature Analysis, but it typically will have strong results for the other tests. This verdict indicates that it is likely that this is an original file, but there remains a small risk that it might have been tampered with.</p>
-    </div>
-
-    <div class="vpp-card gray-top" ng-switch-when="3">
-      <p class="question-text">Is this photo a camera original file?</p>
-      <p class="answer-text">Undetermined file history</p>
-      <p class="info-text">This verdict indicates that we were unable to reach an automated assessment for the file based on the results of the forensic tests. In many cases, we reach this verdict because some or all of the tests could not be applied to the file. For example, a file that has had its metadata stripped cannot be run through the Device Signature Analysis. If a file receives this rating, you may be able to look at some of the more detailed information provided by izitru, as well as your own knowledge about the file, in order to reach a more meaningful conclusion.</p>
-    </div>
-
-    <div class="vpp-card gray-top" ng-switch-when="4">
-      <p class="question-text">Is this photo a camera original file?</p>
-      <p class="answer-text">Potential file modification</p>
-      <p class="info-text">This verdict results from a failure of the Device Signature Analysis coupled with other evidence that the file is not an original. This verdict provides strong evidence that the file has been re- compressed since the time it was first captured by the camera. Though this introduces the possibility that the image could have been edited, it does not necessarily suggest that any meaningful editing has taken place.</p>
-    </div>
-
-    <div class="vpp-card red-top" ng-switch-when="5">
-      <p class="question-text">Is this photo a camera original file?</p>
-      <p class="answer-text">No Trust</p>
-      <p class="info-text">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</p>
-    </div>
-  </div>
-
-  <!------------------------------------------------------------------------>
-
-  <div ng-if="item.verification.results.izitru.deviceSignatureAnalysis" ng-switch="item.verification.results.izitru.deviceSignatureAnalysis">
-
-    <div ng-switch-when="Passed" class="vpp-card green-top">
-      <p class="question-text" translate>Device Signature Analysis</p>
-      <p class="answer-text">Passed</p>
-      <p class="info-text">
-        This file came direct from the camera and hasn’t had any opportunity to be edited since leaving the device.
-      </p>
-      <headline class="info-text">What to do next</headline>
-      <p class="info-text">
-        Do a sanity check of the other forensic tests to ensure there are no reasons to distrust the file. If appropriate, do a visual inspection to make sure someone hasn’t taken a photo of a photograph.
-      </p>
-    </div>
-
-    <div ng-switch-when="Failed" class="vpp-card gray-top">
-      <p class="question-text" translate>Device Signature Analysis</p>
-      <p class="answer-text">Failed</p>
-      <p class="info-text">
-        This file may have been re- compressed since it was captured, which introduces the possibility it was edited. However, it’s also possible that this file conforms to a valid camera signature that simply isn’t part of the izitru database yet.
-      </p>
-      <headline class="info-text">What to do next</headline>
-      <p class="info-text">
-        First check the device signature details for further clues, and then look at the results of the other forensic tests.
-      </p>
-    </div>
-
-    <div ng-switch-when="Unknown camera" class="vpp-card gray-top">
-      <p class="question-text" translate>Device Signature Analysis</p>
-      <p class="answer-text">Unknown camera</p>
-      <p class="info-text">
-        This image was captured with a device that is not yet covered by the izitru signature database.
-      </p>
-      <headline class="info-text">What to do next</headline>
-      <p class="info-text">
-        First check the device signature details for further clues, and then look at the results of the other forensic tests.
-      </p>
-    </div>
-
-    <div ng-switch-when="Metadata missing" class="vpp-card gray-top">
-      <p class="question-text" translate>Device Signature Analysis</p>
-      <p class="answer-text">Metadata missing</p>
-      <p class="info-text">
-        This file contains no metadata indicating what device was used to capture the image. Because almost all cameras include this data, the fact that it’s missing indicates that the file has probably been changed in some way, although the image itself could still be accurate.
-      </p>
-      <headline class="info-text">What to do next</headline>
-      <p class="info-text">
-        Look at the results of the other forensic tests for further clues about whether the file has been resaved. In some cases, there may also be some additional information in the Device Signature Details which can prove helpful.
-      </p>
-    </div>
-
-    <div ng-switch-default class="vpp-card gray-top">
-      <p class="question-text" translate>Device Signature Analysis</p>
-      <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureAnalysis }}</p>
-    </div>
-  </div>
-
+  <div vp-media-izitru-verdict data-item="item"></div>
+  <div vp-media-izitru-device data-item="item"></div>
 
   <div ng-if="item.verification.results.izitru.jpegStructureAnalysis" ng-class="(item.verification.results.izitru.jpegStructureAnalysis === 'Passed' ) ? 'green-top' : 'red-top'" class="vpp-card">
     <p class="question-text" translate>JPEG Structure Analysis</p>
     <p class="answer-text">{{ item.verification.results.izitru.jpegStructureAnalysis }}</p>
+    <p class="info-text">
+      The JPEG structure analysis examines the way in which the data in a JPEG file is packaged. This structure tends to be different for files saved from cameras compared to files saved from photo editing programs. If the image passes this test, the value of this field will be “Passed”
+    </p>
+    <p class="info-text">
+      If the result of this test is “failed”, then that is a strong indication that this file was last saved by a software product rather than a camera. (Due to the calibration of this test, a “passed” result is less definitive.)
+    </p>
   </div>
 
   <div ng-if="item.verification.results.izitru.multipleJpegAnalysis" class="vpp-card gray-top">
     <p class="question-text" translate>Multiple JPEG Analysis</p>
     <p class="answer-text">{{ item.verification.results.izitru.multipleJpegAnalysis }}</p>
+    <p class="info-text">
+      This field combines the results of three different, but related, tests— Double JPEG Analysis, JPEG Coefficient Analysis, and JPEG Ghost Detection. Each of these tests may be applied to an image multiple times with different settings, but the number of possible permutations of the tests will vary based on the size of the image, the level of compression, the amount of detail, and other factors. The more times the tests can be run, however, the more reliable the results will be. The results here are returned as two values. The second value represents the total number of tests that were completed, while the first value represents the number of tests that failed. Ideally, you want to see 100 or more tests completed with no failures. If you see a small number of failures, that could be an anomaly, so it’s not necessarily damning evidence for the image. A large number of failures, however, is an indication that the image has probably been re-compressed at some point.
+    </p>
   </div>
 
   <div ng-if="item.verification.results.izitru.sensorPatternAnalysis" ng-class="(item.verification.results.izitru.sensorPatternAnalysis === 'Passed' ) ? 'green-top' : 'red-top'" class="vpp-card">
     <p class="question-text" translate>Sensor Pattern Analysis</p>
     <p class="answer-text">{{ item.verification.results.izitru.sensorPatternAnalysis }}</p>
+    <p class="info-text">
+      Sensor pattern analysis relies on the fact that files captured from a digital camera at that cameras native resolution generally contain traces of the color filter array that sits over the image sensor. These traces begin to fade away as the file is subsequently edited. If the result of this test is “passed”, then that is a strong indication that this image has not been modified since the time it was captured, because any modification of the image would tend to obscure traces of the sensor pattern. (In contrast, a “failed” result for this test is not quite as definitive. Though it does suggest a strong possibility of editing, the sensor pattern can also be obscured by certain other factors, such as a user’s choice to save the image with a “low quality” JPEG setting.)
+    </p>
   </div>
 
   <div ng-if="item.verification.results.izitru.imageQuality" class="vpp-card gray-top">

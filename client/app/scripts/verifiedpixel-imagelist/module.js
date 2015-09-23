@@ -52,7 +52,7 @@
         ];
 
         function getSort() {
-            var sort = ($location.search().sort || 'versioncreated:desc').split(':');
+            var sort = ($location.search().sort || 'firstcreated:desc').split(':');
             return angular.extend(_.find(sortOptions, {field: sort[0]}), {dir: sort[1]});
         }
 
@@ -1527,34 +1527,36 @@
         }])
 
 
-        .directive('vpMediaIzitru', ['userList', function(userList) {
+        .directive('vpMediaIzitru', [function() {
             return {
                 scope: {
                     item: '='
                 },
                 templateUrl: 'scripts/verifiedpixel-imagelist/views/izitru-view.html',
-                link: function(scope, elem) {
-
-                    scope.$watch('item', reloadData);
-
-                    function reloadData() {
-                        scope.originalCreator = null;
-                        scope.versionCreator = null;
-
-                        if (scope.item.original_creator) {
-                            userList.getUser(scope.item.original_creator)
-                            .then(function(user) {
-                                scope.originalCreator = user.display_name;
-                            });
-                        }
-                        if (scope.item.version_creator) {
-                            userList.getUser(scope.item.version_creator)
-                            .then(function(user) {
-                                scope.versionCreator = user.display_name;
-                            });
-                        }
-                    }
-                }
+            };
+        }])
+        .directive('vpMediaIzitruVerdict', [function() {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/izitru-verdict-view.html',
+            };
+        }])
+        .directive('vpMediaIzitruDevice', [function() {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/izitru-device-view.html',
+            };
+        }])
+        .directive('vpMediaIzitruDeviceInsight', [function() {
+            return {
+                scope: {
+                    item: '='
+                },
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/izitru-device-insight-view.html',
             };
         }])
 
