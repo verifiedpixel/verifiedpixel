@@ -1,105 +1,100 @@
 <div class="metadata-view">
 
-    <div class="vpp-card">
-      <p class="info-text" >All answers are according to available metadata contained in the photo and extended forensics tests</p>
+  <div class="vpp-card">
+    <p class="question-text">TAGS</p>
+    <div ng-repeat="tagId in item.vpp_tag">
+      <p class="answer-text">
+        {{ vppTags[tagId] }}
+        <a ng-click="removeTag(item, tagId)">x</a>
+      </p>
     </div>
-
-    <div 
-      ng-if="item.converted_exif"
-      ng-class="item.converted_exif.gpslat ? 'green-top' : 'gray-top'" 
-      class="vpp-card green-top">
-      <p class="question-text" >When was this photo taken?</p>
-      <p
-        ng-switch on="item.converted_exif.datecaptured" 
-        class="answer-text">
-        <span ng-switch-when="unknown">Unknown</span>
-        <time
-          ng-switch-default
-          datetime="{{ item.converted_exif.datecaptured }}"
-          title="{{ item.converted_exif.datecaptured|date:'medium' }}">{{ item.converted_exif.datecaptured|reldate }}, {{ item.converted_exif.datecaptured| date:'medium' }}</time>
-      </p>
-
-      <p class="question-text" >Where was this photo taken?</p>
-      <p ng-switch on="item.verification.stats.izitru.location" class="answer-text" >
-        <span ng-switch-when="NA">Unknown</span>
-        <span ng-switch-default>{{ item.verification.stats.izitru.location }}</span>
-      </p>
-
-      <!-- Map -->
-      <div vp-media-map data-item="item"></div>
-      <!-- END MAP -->
+    <div class="btn-group" dropdown is-open="status.isopen">
+      <button id="single-button" type="button" class="btn" dropdown-toggle ng-disabled="disabled" translate>
+        +
+      </button>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="single-button">
+        <div ng-repeat="(tagCode, tagName) in vppTags">
+          <li role="menuitem"><a ng-click="addTag(item, tagCode)">{{tagName}}</a></li>
+        </div>
+      </ul>
     </div>
+  </div>
 
-    <div ng-if="item.converted_exif" class="vpp-card gray-top">
-      <p class="question-text" >With what model of camera was this photo taken?</p>
-      <p ng-switch on="item.converted_exif.lensmake || '_undefined_'" class="answer-text">
-        <span ng-switch-when="_undefined_">Unknown</span>
-        <span ng-switch-default>{{ item.converted_exif.lensmake }}, {{ item.converted_exif.lensmodel }}</span>
-      </p>
+  <p class="info-text">All answers are according to available metadata contained in the photo and extended forensics tests</p>
 
-      <p class="question-text" >What were the camera settings?</p>
-      <p ng-switch on="item.verification.results.izitru.EXIF.exposureTime" class="answer-text">
-        <span ng-switch-when="NA">Unknown</span>
-        <span ng-switch-default>
+  <div ng-if="item.converted_exif" ng-class="item.converted_exif.gpslat ? 'green-top' : 'gray-top'" class="vpp-card green-top">
+    <p class="question-text">When was this photo taken?</p>
+    <p ng-switch on="item.converted_exif.datecaptured" class="answer-text">
+      <span ng-switch-when="unknown">Unknown</span>
+      <time ng-switch-default datetime="{{ item.converted_exif.datecaptured }}" title="{{ item.converted_exif.datecaptured|date:'medium' }}">{{ item.converted_exif.datecaptured|reldate }}, {{ item.converted_exif.datecaptured| date:'medium' }}</time>
+    </p>
+
+    <p class="question-text">Where was this photo taken?</p>
+    <p ng-switch on="item.verification.stats.izitru.location" class="answer-text">
+      <span ng-switch-when="NA">Unknown</span>
+      <span ng-switch-default>{{ item.verification.stats.izitru.location }}</span>
+    </p>
+
+    <!-- Map -->
+    <div vp-media-map data-item="item"></div>
+    <!-- END MAP -->
+  </div>
+
+  <div ng-if="item.converted_exif" class="vpp-card gray-top">
+    <p class="question-text">Which camera model took the photo?</p>
+    <p ng-switch on="item.converted_exif.lensmake || '_undefined_'" class="answer-text">
+      <span ng-switch-when="_undefined_">Unknown</span>
+      <span ng-switch-default>{{ item.converted_exif.lensmake }}, {{ item.converted_exif.lensmodel }}</span>
+    </p>
+
+    <p class="question-text">What were the camera settings?</p>
+    <p ng-switch on="item.verification.results.izitru.EXIF.exposureTime" class="answer-text">
+      <span ng-switch-when="NA">Unknown</span>
+      <span ng-switch-default>
           {{ item.verification.results.izitru.EXIF.exposureTime }} secs,
           f/{{ item.verification.results.izitru.EXIF.fnumber }},
           {{ item.verification.results.izitru.EXIF.iso }} ISO
         </span>
-      </p>
+    </p>
 
-      <p class="question-text" >What is this photos's resolution and file size?</p>
-      <p class="answer-text" >{{ item.verification.results.izitru.EXIF.imageSize }} pixels</p>
-    </div>
+    <p class="question-text">What is this photo's resolution and file size?</p>
+    <p class="answer-text">{{ item.verification.results.izitru.EXIF.imageSize }} pixels</p>
+  </div>
 
-    <div class="vpp-card gray-top">
-      <p class="question-text" >Has this photo appeared on the Internet before?</p>
-      <p
-        ng-if="(item.verification.stats.tineye.total > 0) || (item.verification.stats.incandescent.total_google > 0)"
-        class="answer-text">
-        Yes
-      </p>
-      <p
-        ng-if="(item.verification.stats.tineye.total < 1) && (item.verification.stats.incandescent.total_google < 1)"
-        class="answer-text">
-        No 
-      </p>
+  <div class="vpp-card gray-top">
+    <p class="question-text">Has this photo appeared on the Internet before?</p>
+    <p ng-if="(item.verification.stats.tineye.total > 0) || (item.verification.stats.incandescent.total_google > 0)" class="answer-text">
+      Yes
+    </p>
+    <p ng-if="(item.verification.stats.tineye.total < 1) && (item.verification.stats.incandescent.total_google < 1)" class="answer-text">
+      No
+    </p>
 
-      <p class="answer-text">Tineye has indexed this photo {{ item.verification.stats.tineye.total }} times.</p>
+    <p class="info-text">
+      <a ng-click="openTab({tab:'tineye'})">Tineye
+      has indexed this photo {{ item.verification.stats.tineye.total }} times. </a>
+    </p>
 
-      <p class="answer-text">Google has indexed this photo {{ item.verification.stats.incandescent.total_google || '0' }} times.</p>
+    <p class="info-text">
+      <a ng-click="openTab({tab:'gris'})">Google
+        has indexed this photo {{ item.verification.stats.incandescent.total_google || '0' }} times.</a>
+    </p>
 
-    </div>
+  </div>
 
-    <div
-        ng-click="tab = 'izitru'" 
-        ng-if="item.verification.stats.izitru.verdict"
-        ng-class="(item.verification.stats.izitru.verdict > 1) ? 'gray-top' : 'green-top'" 
-        class="vpp-card">
-      <p class="question-text" >Is this photo a camera original file?</p>
+  <div ng-click="openTab({tab:'izitru'})" ng-if="item.verification.stats.izitru.verdict">
+    <div vp-media-izitru-verdict data-item="item"></div>
+  </div>
 
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 1">High Trust</p>
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 1">This image has passed all six Izitru forensic tests and has not subsequently been edited. When you see a High rating, you can be very confident that you're looking at an unmodified original from a digital camera.</p>
+  <div class="vpp-card gray-top">
+    <p class="question-text">Who submitted this photo?</p>
+    <p class="info-text">
+      <a ng-href="mailto:{{ item.original_source | emailFilter }}" href>{{ item.original_source }}</a> created this photo on
+      <span sd-reldate-complex ng-model="item.firstcreated"></span>. Sent to <span sd-meta-ingest data-item="item"></span>
+    </p>
 
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 2">Medium Trust</p>
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 2">Forensic tests on this image were inconclusive, so not trust rating can be assigned.</p>
+    <p class="question-text">Was any other information submitted with this photo?</p>
+    <p class="info-text">{{ item.headline }}</p>
+  </div>
 
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 3">Undetermined file history</p>
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 3">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</p>
-
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 4">Potential file modification</p>
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 4">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</p>
-
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 5">No Trust</p>
-      <p class="answer-text" ng-if="item.verification.stats.izitru.verdict == 5">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</p>
-    </div>
-
-    <div class="vpp-card gray-top">
-      <p class="question-text">Who submitted this photo?</p>
-      <p class="answer-text">{{ item.original_source }} created this photo <span sd-reldate-complex ng-model="item.firstcreated"></span>.
-        Sent to <span sd-meta-ingest data-item="item"></span></p>
-
-      <p class="question-text">Was any other information submitted with this photo?</p>
-      <p class="answer-text">{{ item.headline }}</p>
-    </div>
-    
 </div>

@@ -1,43 +1,38 @@
 <div class="metadata-view">
 
-    <h4>Izitru verdict</h4>
+  <div vp-media-izitru-verdict data-item="item"></div>
+  <div vp-media-izitru-device data-item="item"></div>
 
-    <div class="it-scale" ng-if="item.verification.stats.izitru.verdict">
-        <dl>
-            <dt ng-if="item.verification.stats.izitru.verdict == 1">High Trust</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 1">This image has passed all six Izitru forensic tests and has not subsequently been edited. When you see a High rating, you can be very confident that you're looking at an unmodified original from a digital camera.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 2">Medium Trust</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 2">Forensic tests on this image were inconclusive, so not trust rating can be assigned.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 3">Undetermined file history</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 3">One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 4">Potential file modification</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 4">Potential file modification: One or more forensic tests indicate that this file has been re-saved since the time it was captured. Thus, this image is not a camera original, though that does not necessarily mean that the image content was changed in a meaningful way.</dd>
-            <dt ng-if="item.verification.stats.izitru.verdict == 5">No Trust</dt>
-                <dd ng-if="item.verification.stats.izitru.verdict == 5">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</dd>
-        </dl>
-    </div>
+  <div ng-if="item.verification.results.izitru.jpegStructureAnalysis" ng-class="(item.verification.results.izitru.jpegStructureAnalysis === 'Passed' ) ? 'green-top' : 'red-top'" class="vpp-card">
+    <p class="question-text" translate>JPEG Structure Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.jpegStructureAnalysis }}</p>
+    <p class="info-text">
+      The JPEG structure analysis examines the way in which the data in a JPEG file is packaged. This structure tends to be different for files saved from cameras compared to files saved from photo editing programs. If the image passes this test, the value of this field will be “Passed”
+    </p>
+    <p class="info-text">
+      If the result of this test is “failed”, then that is a strong indication that this file was last saved by a software product rather than a camera. (Due to the calibration of this test, a “passed” result is less definitive.)
+    </p>
+  </div>
 
-    <!-- VERIFICATION METADATA -->
-    <dl ng-if="item.verification.results.izitru.imageQuality">
-        <dt translate>Image Quality</dt>
-        <dd>{{ item.verification.results.izitru.imageQuality }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.jpegStructureAnalysis">
-        <dt translate>JPEG Structure Analysis</dt>
-        <dd>{{ item.verification.results.izitru.jpegStructureAnalysis }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.deviceSignatureAnalysis">
-        <dt translate>Device Signature Analysis</dt>
-        <dd>{{ item.verification.results.izitru.deviceSignatureAnalysis }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.sensorPatternAnalysis">
-        <dt translate>Sensor Pattern Analysis</dt>
-        <dd>{{ item.verification.results.izitru.sensorPatternAnalysis }}</dd>
-    </dl>
-    <dl ng-if="item.verification.results.izitru.multipleJpegAnalysis">
-        <dt translate>Multiple JPEG Analysis</dt>
-        <dd>{{ item.verification.results.izitru.multipleJpegAnalysis }}</dd>
-    </dl>
-    <!-- END VERIFICATION METADATA -->
+  <div ng-if="item.verification.results.izitru.multipleJpegAnalysis" class="vpp-card gray-top">
+    <p class="question-text" translate>Multiple JPEG Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.multipleJpegAnalysis }}</p>
+    <p class="info-text">
+      This field combines the results of three different, but related, tests— Double JPEG Analysis, JPEG Coefficient Analysis, and JPEG Ghost Detection. Each of these tests may be applied to an image multiple times with different settings, but the number of possible permutations of the tests will vary based on the size of the image, the level of compression, the amount of detail, and other factors. The more times the tests can be run, however, the more reliable the results will be. The results here are returned as two values. The second value represents the total number of tests that were completed, while the first value represents the number of tests that failed. Ideally, you want to see 100 or more tests completed with no failures. If you see a small number of failures, that could be an anomaly, so it’s not necessarily damning evidence for the image. A large number of failures, however, is an indication that the image has probably been re-compressed at some point.
+    </p>
+  </div>
+
+  <div ng-if="item.verification.results.izitru.sensorPatternAnalysis" ng-class="(item.verification.results.izitru.sensorPatternAnalysis === 'Passed' ) ? 'green-top' : 'red-top'" class="vpp-card">
+    <p class="question-text" translate>Sensor Pattern Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.sensorPatternAnalysis }}</p>
+    <p class="info-text">
+      Sensor pattern analysis relies on the fact that files captured from a digital camera at that cameras native resolution generally contain traces of the color filter array that sits over the image sensor. These traces begin to fade away as the file is subsequently edited. If the result of this test is “passed”, then that is a strong indication that this image has not been modified since the time it was captured, because any modification of the image would tend to obscure traces of the sensor pattern. (In contrast, a “failed” result for this test is not quite as definitive. Though it does suggest a strong possibility of editing, the sensor pattern can also be obscured by certain other factors, such as a user’s choice to save the image with a “low quality” JPEG setting.)
+    </p>
+  </div>
+
+  <div ng-if="item.verification.results.izitru.imageQuality" class="vpp-card gray-top">
+    <p class="question-text" translate>Image Quality</p>
+    <p class="answer-text">{{ item.verification.results.izitru.imageQuality }}</p>
+  </div>
 
 </div>

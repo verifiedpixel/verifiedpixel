@@ -1,0 +1,40 @@
+{
+    "EXIF": {
+        "captureDevice": "SM-G928T (Samsung)",
+        "captureLocation": "FL, US",
+        "captureLocationLatitude": "28.3613888888889",
+        "captureLocationLongitude": "-81.5091666666667",
+        "createDate": "Sep 19, 2015 09:35:15",
+        "creatorTool": "G928TUVU1BOH6",
+        "exposureTime": "1/20",
+        "flash": "No Flash",
+        "fnumber": "1.9",
+        "focalLength": "28 mm",
+        "focusDistance": "NA",
+        "imageSize": "5312 x 2988",
+        "iso": "1000",
+        "lens": "NA",
+        "metadataDate": "Sep 19, 2015 09:35:15",
+        "modifyDate": "Sep 19, 2015 09:35:15"
+    },
+    "deviceSignatureAnalysis": "Unknown camera",
+    "deviceSignatureDetails": {
+        "creatorToolAnalysis": "Failed",
+        "dateAnalysis": "Passed",
+        "insight": "NA",
+        "matchAnyCamera": "False",
+        "matchCameraOfSameMake": "NA",
+        "matchSoftwareCompression": "none",
+        "maxMatch": "NA"
+    },
+    "imageID": "23d69098-ffa7-4936-b4c2-e0cd6f069e0c",
+    "imageMatching": {
+        "exactMatch": "None",
+        "nearMatch": "NA"
+    },
+    "imageQuality": "78",
+    "jpegStructureAnalysis": "Passed",
+    "multipleJpegAnalysis": "0/166",
+    "sensorPatternAnalysis": "NA",
+    "verdict": "4"
+}

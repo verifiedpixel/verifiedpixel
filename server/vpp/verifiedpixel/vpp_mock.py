@@ -92,6 +92,7 @@ def activate_incandescent_mock(*fixtures, eternal=False):
 
 
 def activate_tineye_mock(*fixtures, eternal=False):
+    debug("INIT urllib3 mock for TINEYE")
     responses = Responses('urllib3')
     fixture_generator = get_fixture_generator(fixtures, eternal)
 

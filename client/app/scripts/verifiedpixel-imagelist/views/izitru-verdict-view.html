@@ -1,0 +1,31 @@
+<div ng-switch on="item.verification.stats.izitru.verdict">
+  <div class="vpp-card green-top" ng-switch-when="1">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">High Trust</p>
+    <p class="info-text">This verdict is primarily given to files that pass the Device Signature Analysis without getting suspicious results on any of the other tests. In some cases, a file that doesn’t pass the signature analysis will still get a high rating, provided that there is reason to believe that it has a valid signature that happens to be missing from our database. A high trust verdict denotes high confidence that this is the original file as captured by a digital camera.</p>
+  </div>
+
+  <div class="vpp-card yellow-top" ng-switch-when="2">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">Medium Trust</p>
+    <p class="info-text">A file with a Medium Trust verdict has not passed the Device Signature Analysis, but it typically will have strong results for the other tests. This verdict indicates that it is likely that this is an original file, but there remains a small risk that it might have been tampered with.</p>
+  </div>
+
+  <div class="vpp-card gray-top" ng-switch-when="3">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">Undetermined file history</p>
+    <p class="info-text">This verdict indicates that we were unable to reach an automated assessment for the file based on the results of the forensic tests. In many cases, we reach this verdict because some or all of the tests could not be applied to the file. For example, a file that has had its metadata stripped cannot be run through the Device Signature Analysis. If a file receives this rating, you may be able to look at some of the more detailed information provided by izitru, as well as your own knowledge about the file, in order to reach a more meaningful conclusion.</p>
+  </div>
+
+  <div class="vpp-card gray-top" ng-switch-when="4">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">Potential file modification</p>
+    <p class="info-text">This verdict results from a failure of the Device Signature Analysis coupled with other evidence that the file is not an original. This verdict provides strong evidence that the file has been re- compressed since the time it was first captured by the camera. Though this introduces the possibility that the image could have been edited, it does not necessarily suggest that any meaningful editing has taken place.</p>
+  </div>
+
+  <div class="vpp-card red-top" ng-switch-when="5">
+    <p class="question-text">Is this photo a camera original file?</p>
+    <p class="answer-text">No Trust</p>
+    <p class="info-text">An individualized analysis has revealed clear signs of manipulation in this image. This rating is reserved for images that have been inspected by a forensic expert, most likely after being challenged by site visitors.</p>
+  </div>
+</div>

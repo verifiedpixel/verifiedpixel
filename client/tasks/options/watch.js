@@ -6,7 +6,7 @@ module.exports = {
         tasks: ['style'],
         files: [
             '<%= appDir %>/styles/{,*/}*.less',
-            '<%= appDir %>/scripts/superdesk*/**/*.less'
+            '<%= appDir %>/scripts/verifiedpixel*/**/*.less'
         ]
     },
     code: {
@@ -15,14 +15,14 @@ module.exports = {
         files: [
             '<%= appDir %>/scripts/*.js',
             '<%= appDir %>/scripts/**/*.js',
-            '<%= appDir %>/scripts/superdesk*/**/*.js'
+            '<%= appDir %>/scripts/verifiedpixel*/**/*.js'
         ]
     },
     assets: {
         options: {livereload: true},
         files: [
             '<%= appDir %>/styles/**/*.css',
-            '<%= appDir %>/scripts/superdesk*/**/*.html',
+            '<%= appDir %>/scripts/verifiedpixel*/**/*.html',
             '<%= appDir %>/docs/**/*.html'
         ]
     },

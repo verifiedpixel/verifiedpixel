@@ -304,6 +304,11 @@ metadata_schema = {
             }
         }
     },
+    'vpp_tag': {
+        'type': 'list',
+        'nullable': True,
+        'schema': {'type': 'string'},
+    },
 
     # aka Locator as per NewML Specification
     'place': {
@@ -359,7 +364,12 @@ metadata_schema = {
         'type': 'datetime',
         'versioned': False
     },
-    'lock_session': Resource.rel('auth')
+    'lock_session': Resource.rel('auth'),
+
+    'viewed': {
+        'type': 'boolean',
+        'default': False,
+    },
 }
 
 metadata_schema['lock_user']['versioned'] = False

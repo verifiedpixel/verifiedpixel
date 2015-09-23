@@ -1,5 +1,17 @@
 [
     {
+        "_id": "vpp_tags",
+        "items": [
+            {"is_active": true, "name": "Send to editor", "qcode": "a"},
+            {"is_active": true, "name": "Contact submitter", "qcode": "b", "subject": "17000000"},
+            {"is_active": true, "name": "Revisit more detailed", "qcode": "c"},
+            {"is_active": false, "name": "Reserved (obsolete/unused)", "qcode": "d"},
+            {"is_active": true, "name": "Funny", "qcode": "e", "subject": "01000000"},
+            {"is_active": true, "name": "NSFW", "qcode": "f", "subject": "04000000"},
+            {"is_active": false, "name": "SportSet", "qcode": "g"}
+        ]
+    },
+    {
         "_id": "categories",
         "items": [
             {"is_active": true, "name": "Australian General News", "qcode": "a"},

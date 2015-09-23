@@ -1,11 +1,11 @@
 {
-    "deviceSignatureAnalysis": "Passed",
-    "sensorPatternAnalysis": "Passed",
+    "deviceSignatureAnalysis": "Failed",
+    "sensorPatternAnalysis": "Failed",
     "verdict": "5",
     "imageID": "637a8bc8-c988-4976-8424-9bce933ef5df",
     "imageQuality": "76",
     "deviceSignatureDetails": {},
-    "jpegStructureAnalysis": "Passed",
+    "jpegStructureAnalysis": "Failed",
     "EXIF": {
         "modifyDate": "Dec 30, 2000 10:18:16",
         "metadataDate": "Dec 30, 2000 10:18:16",

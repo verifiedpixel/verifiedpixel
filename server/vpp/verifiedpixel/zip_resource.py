@@ -4,17 +4,20 @@ from flask import current_app as app
 from flask import json
 from eve.utils import ParsedRequest
 from io import BytesIO, StringIO
+from bson.objectid import ObjectId
 
 from superdesk.celery_app import celery
 from superdesk.resource import Resource
 from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.upload import url_for_media
+from superdesk.notification import push_notification
 
 from .ingest_task import get_original_image
 
 # @TODO: for debug purpose
 from pprint import pprint  # noqa
+from .logging import debug  # noqa
 
 
 logger = logging.getLogger('superdesk')
@@ -26,7 +29,7 @@ class VerifiedPixelZipService(BaseService):
         for doc in docs:
             self_id = doc['_id']
             items_ids = doc['items']
-            zip_items(self_id, items_ids)
+            zip_items.delay(self_id, items_ids)
 
     def on_delete(self, doc):
         app.media.delete(doc['result_id'])
@@ -39,7 +42,10 @@ class VerifiedPixelZipResource(Resource):
     schema = {
         'items': {
             'type': 'list',
-            'schema': Resource.rel('fetch', False)
+            # 'schema': Resource.rel('fetch', False)
+            'schema': {
+                'type': 'string',
+            }
         },
         'result_id': {
             'type': 'string',
@@ -55,21 +61,23 @@ class VerifiedPixelZipResource(Resource):
     }
     privileges = {
         'GET': 'verifiedpixel_zip',
-        'POST': 'verifiedpixel_zip',
+        # 'POST': 'verifiedpixel_zip',
+        'POST': 'archive',
+        # 'PATCH': 'verifiedpixel_zip',
+        'PATCH': 'archive',
         'DELETE': 'verifiedpixel_zip'
     }
 
 
 @celery.task
 def zip_items(result_id, items_ids):
+    result_id = ObjectId(result_id)
     archive_service = get_resource_service('archive')
     vppzip_service = get_resource_service('verifiedpixel_zip')
     results_service = get_resource_service('verification_results')
 
-    vppzip_service.patch(
-        result_id,
-        {'status': "processing"},
-    )
+    item = vppzip_service.find_one(_id=result_id, req=None)
+    vppzip_service.system_update(result_id, {'status': "processing"}, item)
 
     items = list(archive_service.get_from_mongo(
         req=ParsedRequest(), lookup={'_id': {'$in': items_ids}}))
@@ -86,7 +94,7 @@ def zip_items(result_id, items_ids):
     zip_file = zipfile.ZipFile(zip_file_object, mode='w')
     for item in items:
         item_id = item['_id']
-        image = get_original_image(item)[1]
+        image = get_original_image(item, 'archive')[1]
         zip_file.writestr(item_id, image)
         item['verification']['results'] = verification_results[
             item['verification']['results']
@@ -105,8 +113,16 @@ def zip_items(result_id, items_ids):
         metadata={}
     )
     uploaded_zip_url = url_for_media(uploaded_zip_id)
-    vppzip_service.patch(result_id, {
+
+    item = vppzip_service.find_one(_id=result_id, req=None)
+    vppzip_service.system_update(result_id, {
         "status": "done",
         "result": uploaded_zip_url,
         "result_id": uploaded_zip_id
-    })
+    }, item)
+
+    push_notification(
+        'verifiedpixel_zip:ready',
+        id=str(result_id),
+        url=uploaded_zip_url
+    )

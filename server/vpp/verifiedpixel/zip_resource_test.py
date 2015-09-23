@@ -5,6 +5,7 @@ from eve.utils import ParsedRequest
 from io import BytesIO
 import json
 import zipfile
+from time import time, sleep
 
 import superdesk
 from superdesk import get_resource_service
@@ -91,9 +92,15 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
             zipped_item_id = vppzip_service.post([
                 {'items': list(verified_items_ids.values())}
             ])[0]
-            zipped_item = list(vppzip_service.get_from_mongo(
-                req=ParsedRequest(), lookup={"_id": zipped_item_id}
-            ))[0]
+            zipped_item = []
+            start_time = time()
+            while time() - start_time < 20 and (
+                len(zipped_item) == 0 or zipped_item['status'] in ['pending', 'processing']
+            ):
+                zipped_item = list(vppzip_service.get_from_mongo(
+                    req=ParsedRequest(), lookup={"_id": zipped_item_id}
+                ))[0]
+                sleep(0.1)
             response = test_client.get(zipped_item['result'])
             zip_file = zipfile.ZipFile(BytesIO(response.get_data()))
             self.assertEqual(

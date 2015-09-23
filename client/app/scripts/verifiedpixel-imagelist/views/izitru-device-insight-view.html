@@ -1,0 +1,135 @@
+<div class="insight">
+  <div ng-if="item.verification.results.izitru.deviceSignatureDetails.insight" ng-switch="item.verification.results.izitru.deviceSignatureDetails.insight">
+
+    <headline class="info-text">Insight</headline>
+
+    <div ng-switch-when="1">
+      <p class="info-text">
+        Probably not a valid signature, because the image compression matches a known software application and there is an unexpected EXIF modification date.
+      </p>
+    </div>
+
+    <div ng-switch-when="2">
+      <p class="info-text">
+        Probably not a valid signature, because the image compression matches a known software application and there is an unexpected EXIF CreatorTool.
+      </p>
+    </div>
+
+    <div ng-switch-when="3">
+      <p class="info-text">
+        May not be a valid signature, because the image compression matches no known signature in the database, but it does match a known software application.
+      </p>
+    </div>
+
+    <div ng-switch-when="4">
+      <p class="info-text">
+        May be a valid signature, because it matches an existing signature in the database on all components other than Metadata, and a match for Metadata was found on another signature.
+      </p>
+    </div>
+
+    <div ng-switch-when="5">
+      <p class="info-text">
+        May be a valid signature, because it matches an existing signature in the database on all components other than Metadata.
+      </p>
+    </div>
+
+    <div ng-switch-when="6">
+      <p class="info-text">
+        A single signature in the database matched the image signature on both image dimensions and compression. It is not uncommon for photo management applications to disturb the other components of the signature, even when the image has not been edited, so there is a possibility that the signature of this image got disturbed even though the image wasn’t modified.
+      </p>
+    </div>
+
+    <div ng-switch-when="7">
+      <p class="info-text">
+        Though this signature did not find an exact match in the database, it is a plausible signature from this camera, particularly considering that signatures from this camera model are known to vary significantly.
+      </p>
+    </div>
+
+    <div ng-switch-when="8">
+      <p class="info-text">
+        A single signature in the database matched the image signature on both compression and thumbnail. Considering that the database has relatively complete signature coverage for this camera model, this may be an indication that the image was cropped on camera.
+      </p>
+    </div>
+
+    <div ng-switch-when="9">
+      <p class="info-text">
+        It is difficult to draw any conclusion, because the signature matches on all but compression, but compression is known to be highly variable on this camera.
+      </p>
+    </div>
+
+    <div ng-switch-when="10">
+      <p class="info-text">
+        Though there is relatively complete signature coverage for this camera, there were no signatures that matched this image on both dimensions and compression. That suggests this may not be a valid signature.
+      </p>
+    </div>
+
+    <div ng-switch-default>
+      <p class="info-text">{{ item.verification.results.izitru.deviceSignatureDetails.insight }}</p>
+    </div>
+  </div>
+
+  <label class="more-details" translate ng-click="showDetails ? showDetails=false : showDetails=true">
+    More details <span class="caret"></span>
+  </label>
+  <div class="details" ng-if="showDetails">
+
+    <div ng-if="item.verification.results.izitru.deviceSignatureDetails.maxMatch">
+      <p class="question-text" translate>Max Match</p>
+      <p class="answer-text">Score: {{ item.verification.results.izitru.deviceSignatureDetails.maxMatch }}</p>
+      <p class="info-text">
+        A higher score is better.
+      </p>
+      <p class="info-text">
+        There are four components to the image signature—Compression, Thumbnail, Dimensions, and Metadata. Max Match will tell you how many of these components of the image signature matched against a single signature for that camera in the izitru database. Note that this number will always be less than 4, because matching all 4 components would mean that the image passed the Device Signature Analysis, and so the Device Signature Details would not be shown. Because most camera models have multiple signatures with minor differences between them, a higher number of component matches increases the possibility that your image might have a valid signature that is missing from the izitru database.
+      </p>
+      <p class="info-text">
+        If the Device Signature Analysis test has returned a value of “Unknown camera,” then this score will always be NA.
+      </p>
+    </div>
+
+    <div ng-if="item.verification.results.izitru.deviceSignatureDetails.matchSoftwareCompression">
+      <p class="question-text" translate>Match Software Compression</p>
+      <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureDetails.matchSoftwareCompression }}</p>
+      <p class="info-text">
+        Izitru contains in its database the compression parameters used by some common image editing applications, such as Adobe Photoshop. If the compression used in the image matches any of the parameters found in this software database, the names of the matching software are listed here. In most cases, this does not necessarily mean that the image was touched by one of the listed applications, but it does introduce that as a possibility. Note that the compression parameters used by Adobe Photoshop are not shared by many known cameras, so, if you see Photoshop listed here, it’s likely that the file was last saved by an Adobe Photoshop-branded product. (Note, however, that this does not necessarily mean that any significant editing took place.)
+      </p>
+    </div>
+
+    <div ng-if="item.verification.results.izitru.deviceSignatureDetails.matchCameraOfSameMake">
+      <p class="question-text" translate>Match Camera of Same Make</p>
+      <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureDetails.matchCameraOfSameMake }}</p>
+      <p class="info-text">
+        For images that fail the Device Signature Analysis test, the value of this field will be True if the signature matches a camera of the same manufacturer but a different model. Otherwise, the value will be False. A value of True may sometimes indicate that the file is in fact unmodified, but izitru does not yet have a complete set of signatures for the device being analyzed. If the value of deviceSignatureAnalysis is Unknown camera, then this field is not relevant, and it will return a value of NA.
+      </p>
+      <p class="info-text">
+        If this is “true”, then there’s a reasonable chance that your image has a valid signature. True means that the same signature exists in the izitru database for a different camera by the same manufacturer, even though izitru doesn’t have that same signature associated with the actual camera that captured the photo.
+      </p>
+    </div>
+
+    <div ng-if="item.verification.results.izitru.deviceSignatureDetails.matchAnyCamera">
+      <p class="question-text" translate>Match Any Camera</p>
+      <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureDetails.matchAnyCamera}}</p>
+      <p class="info-text">
+        If this is “true”, then a matching signature was found in the izitru database, although not necessarily for a camera from the same manufacturer. Though this is not a clear indication that the signature of the image might be valid, it does suggest that it is somewhat plausible.
+      </p>
+    </div>
+
+    <div ng-if="item.verification.results.izitru.deviceSignatureDetails.creatorToolAnalysis">
+      <p class="question-text" translate>Creator Tool Analysis</p>
+      <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureDetails.creatorToolAnalysis}}</p>
+      <p class="info-text">
+        The EXIF metadata includes a field called Creator Tool, which typically includes an identifying name for the software or hardware that created or saved the file. Izitru includes a database of all of the Creator Tool values that have been observed from the cameras for which izitru has signatures. If the Creator Tool value for the image is not one that is found in this database, then the result of Creator Tool Analysis will be “failed”, indicating that the file may have been re- compressed since the time it was captured. (For the actual value stored in the Creator Tool field, see the EXIF information documented below.)
+      </p>
+    </div>
+
+    <div ng-if="item.verification.results.izitru.deviceSignatureDetails.dateAnalysis">
+      <p class="question-text" translate>Date Analysis</p>
+      <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureDetails.dateAnalysis}}</p>
+      <p class="info-text">
+        Images contain both a “created” date, which is supposed to be the date and time when the image was first captured, and a “modified” date, which is supposed to be the last date and time when the image was saved. Though these dates are not always reliable, they can still be a useful indicator as to whether the file has been re-saved since its initial capture. If these two dates do not match, then the value of Date Analysis will be “Failed.” (For the actual value stored in the date fields, see the EXIF information documented below.)
+      </p>
+    </div>
+
+  </div>
+
+</div>

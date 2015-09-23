@@ -28,6 +28,15 @@
                 </ul>
             </div>
 
+            <div sd-toggle-box data-title="{{ 'Tag' | translate }}" ng-hide="isEmpty('vpp_tag')" data-open="true">
+                <ul class="filter-box">
+                    <li ng-repeat="(key,value) in aggregations.vpp_tag" ng-click="toggleFilter('vpp_tag', key)" ng-class="{checked: hasFilter('vpp_tag',key)}">
+                        <span class="sd-checkbox" ng-checked="hasFilter('vpp_tag',key)"></span>
+                        <span>{{ vppTags[key] }} <i>{{ value }}</i></span>
+                    </li>
+                </ul>
+            </div>
+
             <div sd-toggle-box data-title="{{ 'Capture Location' | translate }}" ng-hide="isEmpty('capture_location')" data-open="true">
                 <ul class="filter-box">
                     <li ng-repeat="(key,value) in aggregations.capture_location" ng-click="toggleFilter('capture_location', key)" ng-class="{checked: hasFilter('capture_location',key)}">

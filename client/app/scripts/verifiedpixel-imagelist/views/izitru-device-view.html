@@ -1,0 +1,58 @@
+<div ng-if="item.verification.results.izitru.deviceSignatureAnalysis" ng-switch="item.verification.results.izitru.deviceSignatureAnalysis">
+
+  <div ng-switch-when="Passed" class="vpp-card green-top">
+    <p class="question-text" translate>Device Signature Analysis</p>
+    <p class="answer-text">Passed</p>
+    <p class="info-text">
+      This file came direct from the camera and hasn’t had any opportunity to be edited since leaving the device.
+    </p>
+    <headline class="info-text">What to do next</headline>
+    <p class="info-text">
+      Do a sanity check of the other forensic tests to ensure there are no reasons to distrust the file. If appropriate, do a visual inspection to make sure someone hasn’t taken a photo of a photograph.
+    </p>
+  </div>
+
+  <div ng-switch-when="Failed" class="vpp-card gray-top">
+    <p class="question-text" translate>Device Signature Analysis</p>
+    <p class="answer-text">Failed</p>
+    <p class="info-text">
+      This file may have been re- compressed since it was captured, which introduces the possibility it was edited. However, it’s also possible that this file conforms to a valid camera signature that simply isn’t part of the izitru database yet.
+    </p>
+    <headline class="info-text">What to do next</headline>
+    <p class="info-text">
+      First check the device signature details for further clues, and then look at the results of the other forensic tests.
+    </p>
+    <div vp-media-izitru-device-insight data-item="item"></div>
+  </div>
+
+  <div ng-switch-when="Unknown camera" class="vpp-card gray-top">
+    <p class="question-text" translate>Device Signature Analysis</p>
+    <p class="answer-text">Unknown camera</p>
+    <p class="info-text">
+      This image was captured with a device that is not yet covered by the izitru signature database.
+    </p>
+    <headline class="info-text">What to do next</headline>
+    <p class="info-text">
+      First check the device signature details for further clues, and then look at the results of the other forensic tests.
+    </p>
+    <div vp-media-izitru-device-insight data-item="item"></div>
+  </div>
+
+  <div ng-switch-when="Metadata missing" class="vpp-card gray-top">
+    <p class="question-text" translate>Device Signature Analysis</p>
+    <p class="answer-text">Metadata missing</p>
+    <p class="info-text">
+      This file contains no metadata indicating what device was used to capture the image. Because almost all cameras include this data, the fact that it’s missing indicates that the file has probably been changed in some way, although the image itself could still be accurate.
+    </p>
+    <headline class="info-text">What to do next</headline>
+    <p class="info-text">
+      Look at the results of the other forensic tests for further clues about whether the file has been resaved. In some cases, there may also be some additional information in the Device Signature Details which can prove helpful.
+    </p>
+    <div vp-media-izitru-device-insight data-item="item"></div>
+  </div>
+
+  <div ng-switch-default class="vpp-card gray-top">
+    <p class="question-text" translate>Device Signature Analysis</p>
+    <p class="answer-text">{{ item.verification.results.izitru.deviceSignatureAnalysis }}</p>
+  </div>
+</div>
