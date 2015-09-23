@@ -59,6 +59,7 @@ MOCKS = {
         'fixtures': [
             {"response_file": "test/vpp/mock_izitru_1.json"},
             {"response_file": "test/vpp/mock_izitru_3.json"},
+            {"response_file": "test/vpp/mock_izitru_4.json"},
             {"response_file": "test/vpp/mock_izitru_5.json"},
             {"response": {'status': 'error', 'message': 'something gone wrong'}}
         ]
