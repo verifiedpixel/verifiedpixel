@@ -70,9 +70,15 @@
       No
     </p>
 
-    <p class="info-text">Tineye has indexed this photo {{ item.verification.stats.tineye.total }} times.</p>
+    <p class="info-text">
+      <a ng-click="openTab({tab:'tineye'})">Tineye
+      has indexed this photo {{ item.verification.stats.tineye.total }} times. </a>
+    </p>
 
-    <p class="info-text">Google has indexed this photo {{ item.verification.stats.incandescent.total_google || '0' }} times.</p>
+    <p class="info-text">
+      <a ng-click="openTab({tab:'gris'})">Google
+        has indexed this photo {{ item.verification.stats.incandescent.total_google || '0' }} times.</a>
+    </p>
 
   </div>
 
