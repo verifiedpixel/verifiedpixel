@@ -14,8 +14,8 @@
         return output;
     }
 
-    ImageListController.$inject = ['$scope', '$location', 'api', 'imagelist', 'notify', 'session'];
-    function ImageListController($scope, $location, api, imagelist, notify, session) {
+    ImageListController.$inject = ['$scope', '$location', 'api', 'imagelist', 'notify', 'session', 'imagetools'];
+    function ImageListController($scope, $location, api, imagelist, notify, session, imagetools) {
         $scope.context = 'search';
 
         $scope.$on('item:deleted:archive:text', itemDelete);
@@ -68,7 +68,7 @@
                     var filemeta = (item.filemeta) ? item.filemeta : {};
                     var filemetaLowered = keysToLowerCase(filemeta);
                     // convert enum and rational values to readable values
-                    item.converted_exif = imagelist.convertExif(filemetaLowered, filemetaLowered);
+                    item.converted_exif = imagetools.convertExif(filemetaLowered, filemetaLowered);
                     processedItems.push(item);
                     if (processedItems.length === results._items.length) {
                         results._items = processedItems;
@@ -115,7 +115,7 @@
                 return str ? str.replace(/^.*<(.*)>$/g, '\$1') : "";
             }
         })
-        .directive('vpExifOrient', ['imagelist', function (imagelist) {
+        .directive('vpExifOrient', ['imagetools', function (imagetools) {
             return {
                 restrict: 'A',
                 scope: {
@@ -123,7 +123,7 @@
                 },
                 link: function linkLogic(scope, elem) {
                     scope.$watch('orientation', function(orientation) {
-                        imagelist.reOrient(parseInt(scope.orientation || 1, 10), elem);
+                        imagetools.reOrient(parseInt(scope.orientation || 1, 10), elem);
                     });
                 }
             };

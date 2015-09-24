@@ -5,7 +5,7 @@
      * Item filters sidebar
      */
     angular.module('verifiedpixel.imagelist')
-    .directive('vpItemRendition', ['imagelist', function (imagelist) {
+    .directive('vpItemRendition', ['imagetools', function (imagetools) {
         return {
             templateUrl: 'scripts/verifiedpixel-imagelist/views/item-rendition.html',
             scope: {
@@ -34,7 +34,7 @@
                         };
                         img.src = href;
                         if (scope.item.converted_exif.orientation) {
-                            imagelist.reOrient(parseInt(scope.item.converted_exif.orientation || 1, 10), $(img));
+                            imagetools.reOrient(parseInt(scope.item.converted_exif.orientation || 1, 10), $(img));
                         }
                     }
                 });
@@ -62,6 +62,6 @@
                 }
             } // end link
         };
-    }])
+    }]);
 
 })();
