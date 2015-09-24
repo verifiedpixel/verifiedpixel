@@ -1,0 +1,17 @@
+<div ng-if="item.converted_exif" ng-class="item.converted_exif.gpslat ? 'green-top' : 'gray-top'" class="vpp-card green-top">
+  <p class="question-text">When was this photo taken?</p>
+  <p ng-switch on="item.converted_exif.datecaptured" class="info-text">
+    <span ng-switch-when="unknown">Unknown</span>
+    <time ng-switch-default datetime="{{ item.converted_exif.datecaptured }}" title="{{ item.converted_exif.datecaptured|date:'medium' }}">{{ item.converted_exif.datecaptured|reldate }}, {{ item.converted_exif.datecaptured| date:'medium' }}</time>
+  </p>
+
+  <p class="question-text">Where was this photo taken?</p>
+  <p ng-switch on="item.verification.stats.izitru.location" class="info-text">
+    <span ng-switch-when="NA">Unknown</span>
+    <span ng-switch-default>{{ item.verification.stats.izitru.location }}</span>
+  </p>
+
+  <!-- Map -->
+  <div vp-media-map data-item="item"></div>
+  <!-- END MAP -->
+</div>
