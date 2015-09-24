@@ -1,11 +1,11 @@
 (function() {
     'use strict';
 
-    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', 'api', '$http', '$scope', '$window', 'imagelist'];
-    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, api, $http, $scope, $window, imagelist) {
+    MultiActionBarController.$inject = ['multi', 'multiEdit', 'send', 'packages', 'superdesk', 'notify', 'spike', 'authoring', 'api', '$http', '$scope', '$window', 'imagelist', 'tagging'];
+    function MultiActionBarController(multi, multiEdit, send, packages, superdesk, notify, spike, authoring, api, $http, $scope, $window, imagelist, tagging) {
         var ctrl = this;
 
-        imagelist.getTags($scope);
+        tagging.getTags($scope);
 
         this.download_queue = [];
 
@@ -21,7 +21,7 @@
 
         this.addTag = function(tagCode) {
             multi.getItems().forEach(function(item) {
-                imagelist.addTag(item, tagCode);
+                tagging.addTag(item, tagCode);
             });
         };
 

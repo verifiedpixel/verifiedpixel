@@ -210,7 +210,7 @@
             };
         }])
 
-        .directive('vpMediaAll', ['userList', 'imagelist', function(userList, imagelist) {
+        .directive('vpMediaAll', ['tagging', function(tagging) {
             return {
                 templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html',
                 scope: {
@@ -218,9 +218,9 @@
                     openTab: '&'
                 },
                 link: function(scope) {
-                    imagelist.getTags(scope);
-                    scope.addTag = imagelist.addTag;
-                    scope.removeTag = imagelist.removeTag;
+                    tagging.getTags(scope);
+                    scope.addTag = tagging.addTag;
+                    scope.removeTag = tagging.removeTag;
                 }
             };
         }])
