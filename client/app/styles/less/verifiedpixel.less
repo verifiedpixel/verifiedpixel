@@ -19,12 +19,16 @@
 .vpp {
     &.preview-layout {
         .preview-pane {
+			background: #d0d0d0;
             width: 480px;
         }
     }
     .list-pane {
+		header {
+			background: #e8e8e8;
+		}
         .content {
-            background: #000;
+            background: #1e1e1e;
         }
         .mgrid-view {
             .media-box {
@@ -442,10 +446,17 @@
                 }
             }
         }
-        .nav-tabs {
-            margin-left: 20px;
-        }
+		.nav-tabs {
+			margin-left: 20px;
+		}
     }
+	.nav-tabs {
+		li {
+			button {
+				color: #2d2d2d;
+			}
+		}
+	}
 
     .homebtn {
     	width: 48px;

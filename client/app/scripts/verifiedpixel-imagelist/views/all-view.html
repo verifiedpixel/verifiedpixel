@@ -22,44 +22,9 @@
 
   <p class="info-text">All answers are according to available metadata contained in the photo and extended forensics tests</p>
 
-  <div ng-if="item.converted_exif" ng-class="item.converted_exif.gpslat ? 'green-top' : 'gray-top'" class="vpp-card green-top">
-    <p class="question-text">When was this photo taken?</p>
-    <p ng-switch on="item.converted_exif.datecaptured" class="answer-text">
-      <span ng-switch-when="unknown">Unknown</span>
-      <time ng-switch-default datetime="{{ item.converted_exif.datecaptured }}" title="{{ item.converted_exif.datecaptured|date:'medium' }}">{{ item.converted_exif.datecaptured|reldate }}, {{ item.converted_exif.datecaptured| date:'medium' }}</time>
-    </p>
+  <div ng-if="item.converted_exif" vp-exif-where data-item="item" ng-click="openTab({tab:'exif'})"> </div>
 
-    <p class="question-text">Where was this photo taken?</p>
-    <p ng-switch on="item.verification.stats.izitru.location" class="answer-text">
-      <span ng-switch-when="NA">Unknown</span>
-      <span ng-switch-default>{{ item.verification.stats.izitru.location }}</span>
-    </p>
-
-    <!-- Map -->
-    <div vp-media-map data-item="item"></div>
-    <!-- END MAP -->
-  </div>
-
-  <div ng-if="item.converted_exif" class="vpp-card gray-top">
-    <p class="question-text">Which camera model took the photo?</p>
-    <p ng-switch on="item.converted_exif.lensmake || '_undefined_'" class="answer-text">
-      <span ng-switch-when="_undefined_">Unknown</span>
-      <span ng-switch-default>{{ item.converted_exif.lensmake }}, {{ item.converted_exif.lensmodel }}</span>
-    </p>
-
-    <p class="question-text">What were the camera settings?</p>
-    <p ng-switch on="item.verification.results.izitru.EXIF.exposureTime" class="answer-text">
-      <span ng-switch-when="NA">Unknown</span>
-      <span ng-switch-default>
-          {{ item.verification.results.izitru.EXIF.exposureTime }} secs,
-          f/{{ item.verification.results.izitru.EXIF.fnumber }},
-          {{ item.verification.results.izitru.EXIF.iso }} ISO
-        </span>
-    </p>
-
-    <p class="question-text">What is this photo's resolution and file size?</p>
-    <p class="answer-text">{{ item.verification.results.izitru.EXIF.imageSize }} pixels</p>
-  </div>
+  <div ng-if="item.converted_exif" vp-exif-camera data-item="item" ng-click="openTab({tab:'exif'})"> </div>
 
   <div class="vpp-card gray-top">
     <p class="question-text">Has this photo appeared on the Internet before?</p>

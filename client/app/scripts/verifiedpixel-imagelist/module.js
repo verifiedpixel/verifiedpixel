@@ -1462,6 +1462,22 @@
                 }
             };
         }])
+        .directive('vpExifWhere', [function() {
+            return {
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/exif-where-view.html',
+                scope: {
+                    item: '='
+                },
+            };
+        }])
+        .directive('vpExifCamera', [function() {
+            return {
+                templateUrl: 'scripts/verifiedpixel-imagelist/views/exif-camera-view.html',
+                scope: {
+                    item: '='
+                },
+            };
+        }])
 
         .directive('vpMediaMap', ['userList', function(userList) {
             return {

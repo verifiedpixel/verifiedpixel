@@ -1,25 +1,48 @@
 <div class="metadata-view">
-    <!-- file specific data -->
-    <dl ng-if="item.converted_exif">
-        <dt translate>Lens Make</dt><dd>{{ item.converted_exif.lensmake }}</dd>
-        <dt translate>Lens Model</dt><dd>{{ item.converted_exif.lensmodel }}</dd>
-        <dt translate>Timestamp</dt><dd>{{ item.converted_exif.datetime }}</dd>
-        <dt translate>Aperture</dt><dd>f/{{ item.converted_exif.aperture }}</dd>
-        <dt translate>Exposure Mode</dt><dd>{{ item.converted_exif.exposuremode }}</dd>
-        <dt translate>Exposure Time</dt><dd>{{ item.converted_exif.exposuretime }} seconds</dd>
-        <dt translate>Focal length</dt><dd>{{ item.converted_exif.focallength }}mm</dd>
-        <dt translate>Iso</dt><dd>{{ item.converted_exif.isospeedratings }}</dd>
-        <dt translate>Flash</dt><dd>{{ item.converted_exif.flash }}</dd>
-    </dl>
+  <div ng-if="item.converted_exif" vp-exif-where data-item="item" ng-click="openTab({tab:'exif'})"> </div>
 
-    <h4>GPS Info:</h4>
-    <dl ng-if="item.converted_exif.gpsinfo">
-        <dt translate>Latitude</dt><dd>{{ item.converted_exif.gpslat }}</dd>
-        <dt translate>Longitude</dt><dd>{{ item.converted_exif.gpslon }}</dd>
-        <dt translate>Altitude</dt><dd>{{ item.converted_exif.gpsaltitude }}</dd>
-        <dt translate>Capture Direction</dt><dd>{{ item.converted_exif.gpsdirection }}</dd>
-        <dt translate>Capture Direction Ref</dt><dd>{{ item.converted_exif.gpsinfo.gpsimgdirectionref }}</dd>
-        <dt ng-if="item.gpsspeed" translate>GPS Speed</dt><dd>{{ item.gpsspeed }}{{ item.converted_exif.gpsinfo.gpsspeedref }}</dd>
-        <dt ng-if="item.gpstrack" translate>GPS Track</dt><dd>{{ item.gpstrack }}{{ item.converted_exif.gpsinfo.gpstrackref }}</dd>
-    </dl>
+  <div ng-if="item.converted_exif" vp-exif-camera data-item="item" ng-click="openTab({tab:'exif'})"> </div>
+
+  <!-- file specific data -->
+  <div ng-if="item.converted_exif" class="vpp-card green-top">
+    <p class="question-text" translate>Lens Make</p>
+    <p class="info-text">{{ item.converted_exif.lensmake }}</p>
+    <p class="question-text" translate>Lens Model</p>
+    <p class="info-text">{{ item.converted_exif.lensmodel }}</p>
+    <p class="question-text" translate>Timestamp</p>
+    <p class="info-text">{{ item.converted_exif.datetime }}</p>
+    <p class="question-text" translate>Aperture</p>
+    <p class="info-text">f/{{ item.converted_exif.aperture }}</p>
+    <p class="question-text" translate>Exposure Mode</p>
+    <p class="info-text">{{ item.converted_exif.exposuremode }}</p>
+    <p class="question-text" translate>Exposure Time</p>
+    <p class="info-text">{{ item.converted_exif.exposuretime }} seconds</p>
+    <p class="question-text" translate>Focal length</p>
+    <p class="info-text">{{ item.converted_exif.focallength }}mm</p>
+    <p class="question-text" translate>Iso</p>
+    <p class="info-text">{{ item.converted_exif.isospeedratings }}</p>
+    <p class="question-text" translate>Flash</p>
+    <p class="info-text">{{ item.converted_exif.flash }}</p>
+  </div>
+
+  <div ng-if="item.converted_exif.gpsinfo" class="vpp-card green-top">
+    <div class="block-head">
+      <span>GPS Info</span>
+    </div>
+    <p class="question-text" translate>Latitude</p>
+    <p class="info-text">{{ item.converted_exif.gpslat }}</p>
+    <p class="question-text" translate>Longitude</p>
+    <p class="info-text">{{ item.converted_exif.gpslon }}</p>
+    <p class="question-text" translate>Altitude</p>
+    <p class="info-text">{{ item.converted_exif.gpsaltitude }}</p>
+    <p class="question-text" translate>Capture Direction</p>
+    <p class="info-text">{{ item.converted_exif.gpsdirection }}</p>
+    <p class="question-text" translate>Capture Direction Ref</p>
+    <p class="info-text">{{ item.converted_exif.gpsinfo.gpsimgdirectionref }}</p>
+    <p class="question-text" ng-if="item.gpsspeed" translate>GPS Speed</p>
+    <p class="info-text">{{ item.gpsspeed }}{{ item.converted_exif.gpsinfo.gpsspeedref }}</p>
+    <p class="question-text" ng-if="item.gpstrack" translate>GPS Track</p>
+    <p class="info-text">{{ item.gpstrack }}{{ item.converted_exif.gpsinfo.gpstrackref }}</p>
+  </div>
+
 </div>
