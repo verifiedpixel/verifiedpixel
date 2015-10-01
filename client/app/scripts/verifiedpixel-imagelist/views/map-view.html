@@ -6,13 +6,22 @@
             center="[{{ item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}]" 
             disable-default-u-i="false"
             disable-double-click-zoom="false"
-            draggable="false"
+            draggable="true"
             dragging-cursor="move"
             keyboard-shortcuts="false"
             max-zoom="18"
             min-zoom="8"
             tilt="45"
-            map-type-id="TERRAIN">
+            map-type-id="SATELLITE"
+            pan-control="true"
+            street-view-panorama="true"
+            street-view-control="true"
+        >
+            <!--@TODO: disable mouse wheel scrolling over the map: -->
+            <!--map-type-control="true"-->
+            <!--map-type-control-options="{style:'DROPDOWN_MENU'}"-->
+            <!--zoom-control="true"-->
+            <!--zoom-control-options="{style:'SMALL'}"-->
             <marker
                 position="[{{ item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}]"
                 icon="{{item.converted_exif.gpsicon}}"
