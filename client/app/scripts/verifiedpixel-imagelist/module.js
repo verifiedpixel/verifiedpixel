@@ -210,18 +210,13 @@
             };
         }])
 
-        .directive('vpMediaAll', ['tagging', function(tagging) {
+        .directive('vpMediaAll', [function() {
             return {
                 templateUrl: 'scripts/verifiedpixel-imagelist/views/all-view.html',
                 scope: {
                     item: '=',
                     openTab: '&'
                 },
-                link: function(scope) {
-                    tagging.getTags(scope);
-                    scope.addTag = tagging.addTag;
-                    scope.removeTag = tagging.removeTag;
-                }
             };
         }])
         .directive('vpExifWhere', [function() {
@@ -349,12 +344,17 @@
             };
         }])
 
-        .directive('vpMediaComments', ['userList', function(userList) {
+        .directive('vpMediaComments', ['userList', 'tagging', function(userList, tagging) {
             return {
                 scope: {
                     item: '='
                 },
                 templateUrl: 'scripts/verifiedpixel-imagelist/views/comments-view.html',
+                link: function(scope) {
+                    tagging.getTags(scope);
+                    scope.addTag = tagging.addTag;
+                    scope.removeTag = tagging.removeTag;
+                }
             };
         }])
 
