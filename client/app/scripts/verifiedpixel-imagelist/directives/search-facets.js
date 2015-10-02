@@ -1,11 +1,10 @@
-(function() {
+define([], function() {
     'use strict';
 
     /**
      * Item filters sidebar
      */
-    angular.module('verifiedpixel.imagelist')
-    .directive('vpSearchFacets', ['$location', 'desks', 'privileges', 'tags', 'tagging',
+    return ['$location', 'desks', 'privileges', 'tags', 'tagging',
         function($location, desks, privileges, tags, tagging) {
         desks.initialize();
         return {
@@ -189,6 +188,6 @@
                 };
             }
         };
-    }]);
+    }];
 
-})();
+});

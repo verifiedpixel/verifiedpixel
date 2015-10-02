@@ -1,7 +1,7 @@
-(function() {
+define([], function() {
     'use strict';
 
-    TaggingService.$inject = ['metadata', 'api'];
+    return ['metadata', 'api', 
     function TaggingService(metadata, api) {
 
         var vppTags;
@@ -37,8 +37,6 @@
         };
 
     }
+    ];
 
-
-    angular.module('verifiedpixel.imagelist')
-        .service('tagging', TaggingService);
-})();
+});

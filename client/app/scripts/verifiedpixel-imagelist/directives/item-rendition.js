@@ -1,11 +1,10 @@
-(function() {
+define([], function() {
     'use strict';
 
     /**
      * Item filters sidebar
      */
-    angular.module('verifiedpixel.imagelist')
-    .directive('vpItemRendition', ['imagetools', function (imagetools) {
+    return ['imagetools', function (imagetools) {
         return {
             templateUrl: 'scripts/verifiedpixel-imagelist/views/item-rendition.html',
             scope: {
@@ -62,6 +61,6 @@
                 }
             } // end link
         };
-    }]);
+    }];
 
-})();
+});

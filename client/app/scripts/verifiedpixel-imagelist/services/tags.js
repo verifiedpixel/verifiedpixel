@@ -1,7 +1,7 @@
-(function() {
+define([], function() {
     'use strict';
 
-    TagService.$inject = ['$location', 'desks'];
+    return ['$location', 'desks',
     function TagService($location, desks) {
         var tags = {};
         tags.selectedFacets = {};
@@ -131,10 +131,7 @@
             initSelectedFacets: initSelectedFacets,
             removeFacet: removeFacet
         };
-    }
+    }];
 
-    angular.module('verifiedpixel.imagelist')
-        .service('tags', TagService);
-
-})();
+});
 

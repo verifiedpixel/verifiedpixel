@@ -1,11 +1,10 @@
-(function() {
+define([], function() {
     'use strict';
 
-    angular.module('verifiedpixel.imagelist')
         /**
          * Item search component
          */
-        .directive('vpItemSearch', ['$location', '$timeout', 'asset', 'api', 'tags', 'imagelist', 'metadata',
+        return ['$location', '$timeout', 'asset', 'api', 'tags', 'imagelist', 'metadata',
             function($location, $timeout, asset, api, tags, imagelist, metadata) {
             return {
                 scope: {
@@ -189,6 +188,6 @@
                     };
                 }
             };
-        }])
+        }];
 
-})();
+});

@@ -1,11 +1,10 @@
-(function() {
+define([], function() {
     'use strict';
 
     /**
      * Item list with sidebar preview
      */
-    angular.module('verifiedpixel.imagelist')
-    .directive('vpSearchResults', ['$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset', 'imagelist',
+    return ['$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset', 'imagelist',
         function($timeout, $location, api, preferencesService, packages, tags, asset, imagelist) {
         var update = {
             'archive:view': {
@@ -125,6 +124,6 @@
                 }
             }
         };
-    }]);
+    }];
 
-})();
+});

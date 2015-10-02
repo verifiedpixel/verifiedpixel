@@ -1,8 +1,7 @@
-(function() {
+define([], function() {
     'use strict';
 
-    angular.module('verifiedpixel.imagelist')
-    .directive('vpMediaBox', ['$location', 'lock', 'multi', function($location, lock, multi) {
+    return ['$location', 'lock', 'multi', function($location, lock, multi) {
         return {
             restrict: 'A',
             templateUrl: 'scripts/verifiedpixel-imagelist/views/media-box.html',
@@ -68,6 +67,6 @@
                 };
             }
         };
-    }]);
+    }];
 
-})();
+});
