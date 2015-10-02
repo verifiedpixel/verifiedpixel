@@ -38,7 +38,7 @@
         };
 
         function refresh() {
-            $scope.multi.reset(); // @TODO: change to sort of ".update" not to loose the selection
+            $scope.$broadcast('vpp::multi.reset');
             var query = _.omit($location.search(), '_id');
             if (!_.isEqual(_.omit(query, 'page'), _.omit(oldQuery, 'page'))) {
                 $location.search('page', null);
@@ -70,12 +70,10 @@
                     // convert enum and rational values to readable values
                     item.converted_exif = imagetools.convertExif(filemetaLowered, filemetaLowered);
                     processedItems.push(item);
-                    if (processedItems.length === results._items.length) {
-                        results._items = processedItems;
-                        $scope.items = results;
-                    }
                 });
-
+                results._items = processedItems;
+                console.log(results);
+                $scope.items = results;
             });
 
             oldQuery =  query;

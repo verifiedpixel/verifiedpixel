@@ -24,6 +24,12 @@
         return {
             require: '^vpSearchContainer',
             templateUrl: 'scripts/verifiedpixel-imagelist/views/search-results.html',
+            scope: {
+                items: '=',
+                desk: '=',
+                repo: '=',
+                context: '='
+            },
             link: function(scope, elem, attr, controller) {
 
                 var GRID_VIEW = 'mgrid',

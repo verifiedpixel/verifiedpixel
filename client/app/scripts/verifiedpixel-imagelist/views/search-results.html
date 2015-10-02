@@ -50,6 +50,10 @@
               </div>
             </div>
 
+            <span ng-if="items._items.length == 0" class="message">
+              No items were found.
+            </span>
+
             <div ng-if="!selected.preview">
               <div sd-shadow>
                   <ul class="{{view}}-view list-view">

@@ -25,6 +25,10 @@
             });
         };
 
+        $scope.$on('vpp::multi.reset', function(_e) {
+            multi.reset();
+        });
+
         $scope.$on('verifiedpixel_zip:ready', function(_e, data) {
             var id = data.id;
             var index_in_queue = ctrl.download_queue.indexOf(id);
