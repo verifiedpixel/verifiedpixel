@@ -102,7 +102,6 @@
     <!-- endbuild -->
 
     <!-- build:js scripts/verifiedpixel.js -->
-    <script src="scripts/verifiedpixel-imagelist/module.js"></script>
     <script src="scripts/vpp-templates.js"></script>
     <!-- endbuild -->
 
@@ -156,7 +155,8 @@
             'superdesk-settings/module',
             'superdesk-dashboard/module',
             'superdesk-archive/module',
-            'superdesk-ingest/module'
+            'superdesk-ingest/module',
+            'verifiedpixel-imagelist/module'
         ], function(bootstrap) {
             bootstrap(config, modules);
         });

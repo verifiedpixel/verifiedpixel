@@ -24,6 +24,7 @@ require.config({
         'superdesk-dashboard': 'bower_components/superdesk/client/app/scripts/superdesk-dashboard',
         'superdesk-ingest': 'bower_components/superdesk/client/app/scripts/superdesk-ingest',
         'superdesk-archive': 'bower_components/superdesk/client/app/scripts/superdesk-archive',
+        'verifiedpixel-imagelist': 'verifiedpixel-imagelist/',
 
         'jquery-ui': 'bower_components/jquery-ui/jquery-ui',
         'raven-js': 'bower_components/raven-js/dist/raven',
