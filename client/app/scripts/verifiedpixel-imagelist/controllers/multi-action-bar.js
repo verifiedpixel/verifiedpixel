@@ -47,7 +47,7 @@ define([], function() {
         var index_in_queue = ctrl.download_queue.indexOf(id);
         if (index_in_queue >= 0) {
           ctrl.download_queue.splice(index_in_queue, 1);
-          $window.open(data.url);
+          $window.open(data.url, "_self");
         } else {
           console.log("not in queue:");
           console.log(index_in_queue);
