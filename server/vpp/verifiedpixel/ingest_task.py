@@ -58,6 +58,7 @@ MOCKS = {
         'function': activate_izitru_mock,
         'fixtures': [
             {"response_file": "test/vpp/mock_izitru_1.json"},
+            {"response_file": "test/vpp/mock_izitru_2.json"},
             {"response_file": "test/vpp/mock_izitru_3.json"},
             {"response_file": "test/vpp/mock_izitru_4.json"},
             {"response_file": "test/vpp/mock_izitru_5.json"},
@@ -81,7 +82,9 @@ MOCKS = {
     'incandescent_callback': {
         'function': activate_incandescent_mock,
         'fixtures': [
-            {"response_file": './test/vpp/incandescent_result_response.json'}
+            {"response_file": './test/vpp/incandescent_result_response.json'},
+            {"response_file": './test/vpp/incandescent_result_response_710.json'},
+            {"response_file": './test/vpp/incandescent_result_response_755.json'}
         ]
     },
 }
