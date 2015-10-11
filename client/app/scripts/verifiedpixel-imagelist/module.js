@@ -71,8 +71,16 @@ define(
         published : true
       };
 
+      var refreshInProgress = false;
+      var needMoreRefresh = false;
+
       function refresh() {
         $scope.$broadcast('vpp::multi.reset');
+        if (refreshInProgress) {
+            needMoreRefresh = true;
+            return;
+        }
+        refreshInProgress = true;
         var query = _.omit($location.search(), '_id');
         if (!_.isEqual(_.omit(query, 'page'), _.omit(oldQuery, 'page'))) {
           $location.search('page', null);
@@ -109,6 +117,11 @@ define(
               });
               results._items = processedItems;
               $scope.items = results;
+              refreshInProgress = false;
+              if (needMoreRefresh) {
+                needMoreRefresh = false;
+                refresh();
+              }
             });
 
         oldQuery = query;
