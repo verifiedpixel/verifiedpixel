@@ -232,7 +232,7 @@ define([], function() {
                 var hour = timeParts[0];
                 var min = timeParts[1];
                 var sec = timeParts[2];
-                converted.datecaptured = new Date(year, month, day, hour, min, sec, 0);
+                converted.datecaptured = new Date(year, month-1, day, hour, min, sec, 0);
             } else {
                 converted.datecaptured = 'unknown';
             }
