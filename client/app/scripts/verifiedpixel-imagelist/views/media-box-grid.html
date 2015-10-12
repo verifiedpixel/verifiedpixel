@@ -6,7 +6,7 @@
         <div class="buttons"></div>
     </div>
 
-    <h3 ng-if="item.slugline && !selected.preview">{{ item.slugline }}</h3>
+    <h3 ng-if="!selected.preview">{{ item.slugline }}</h3>
 
     <div class="media multi" ng-show="item.type == 'text' || item.type == 'composite' || item.type == 'preformatted' || item.type == 'picture'" ng-mouseenter="hover=true" ng-mouseleave="hover=false">
         <div 
