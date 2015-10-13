@@ -53,9 +53,9 @@
                 <dd ng-if="item.verification.stats.tineye.total > 0" class="tineye" title="Item has {{ item.verification.stats.tineye.total }} matches from Tineye">Item has matches <span class="nudge">{{ item.verification.stats.tineye.total }}</span> from Tineye</dd>
                 <dd ng-if="item.verification.stats.tineye.total === null || item.verification.stats.tineye.total === undefined" class="tineye ugly" title="Something went wrong with the Tineye search">Something went wrong with the Tineye search</dd>
 
-            <dt ng-if="item.verification.stats.izitru.verdict">Izitru Verdict</dt>
+            <dt translate>Izitru Verdict</dt>
                 <dd ng-if="item.verification.stats.izitru.verdict" class="izitru izitru-{{ item.verification.stats.izitru.verdict }}" title="Izitru rating receieved"></dd>
-                <dd ng-if="!item.verification.stats.izitru" class="iztru" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
+                <dd ng-if="!item.verification.stats.izitru.verdict" class="izitru ugly" title="Unable to verify with Izitru">Unable to verify with Izitru</dd>
         </dl>
 
 
