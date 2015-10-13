@@ -44,13 +44,13 @@
                 <dd class="gps no" ng-if="!item.converted_exif.gpsinfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
 
             <dt translate>Google Reverse Image Search</dt>
-                <dd ng-if="item.verification.stats.incandescent.total_google == 0" class="gris good" title="Item has no matches from Google Reverse Image Search">Item has no matches from Google Reverse Image Search</dd>
-                <dd ng-if="item.verification.stats.incandescent.total_google > 0" class="gris good" title="Item has {{ item.verification.stats.incandescent.total_google }} matches from Google Reverse Image Search">Item has <span>{{ item.verification.stats.incandescent.total_google }}</span> matches from Google Reverse Image Search</dd>
+                <dd ng-if="item.verification.stats.incandescent.total_google == 0" class="gris" title="Item has no matches from Google Reverse Image Search">Item has no matches from Google Reverse Image Search</dd>
+                <dd ng-if="item.verification.stats.incandescent.total_google > 0" class="gris" title="Item has {{ item.verification.stats.incandescent.total_google }} matches from Google Reverse Image Search">Item has <span class="nudge">{{ item.verification.stats.incandescent.total_google }}</span> matches from Google Reverse Image Search</dd>
                 <dd ng-if="!item.verification.stats.incandescent" class="gris ugly" title="Something went wrong with the Google Reverse Image Search">Something went wrong with the Google Reverse Image Search</dd>
 
             <dt translate>Tineye</dt>
                 <dd ng-if="item.verification.stats.tineye.total === 0" class="tineye" title="Item has no matches from Tineye">Item has <span>0</span> matches from Tineye</dd>
-                <dd ng-if="item.verification.stats.tineye.total > 0" class="tineye" title="Item has {{ item.verification.stats.tineye.total }} matches from Tineye">Item has matches <span>{{ item.verification.stats.tineye.total }}</span> from Tineye</dd>
+                <dd ng-if="item.verification.stats.tineye.total > 0" class="tineye" title="Item has {{ item.verification.stats.tineye.total }} matches from Tineye">Item has matches <span class="nudge">{{ item.verification.stats.tineye.total }}</span> from Tineye</dd>
                 <dd ng-if="!item.verification.stats.tineye" class="tineye ugly" title="Something went wrong with the Tineye search">Something went wrong with the Tineye search</dd>
 
             <dt ng-if="item.verification.stats.izitru.verdict">Izitru Verdict</dt>

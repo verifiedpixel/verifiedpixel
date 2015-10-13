@@ -1,7 +1,5 @@
 @import 'mixins.less';
 @import 'variables.less';
-
-
 // Hide the links to unused superdesk features
 // Needed since we import these in the modules due to depencies
 // but we don't need the links in the user menu
@@ -23,9 +21,10 @@
             background: #d0d0d0;
             width: 480px;
         }
-		.multi-action-bar, .search-page-header {
-		    padding-right: 40px;
-		}
+        .multi-action-bar,
+        .search-page-header {
+            padding-right: 40px;
+        }
     }
     .list-pane {
         header {
@@ -49,7 +48,7 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
-					min-height: 26px;
+                    min-height: 26px;
                 }
                 .media {
                     background: none;
@@ -151,7 +150,6 @@
             }
         }
     }
-
     .verification-results {
         padding: 5px 0;
         dt {
@@ -165,6 +163,21 @@
             margin: 0 5px 0 0;
             color: transparent!important;
             position: relative;
+			span.nudge {
+				position: absolute;
+				top: -4px;
+				right: -4px;
+				background-color: #0b0b61;
+				color: #fafafa;
+				min-width: 16px;
+				height: 16px;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				text-align: center;
+				border-radius: 3px;
+				line-height: 16px;
+				box-shadow: 0 0 2px #000;
+			}
             // gps icon styles
             &.gps {
                 background: url(../../images/verification/GPSInfo-OK.svg) no-repeat center center transparent;
@@ -191,21 +204,6 @@
                     background: url(../../images/verification/gris-grey.svg) no-repeat center center transparent;
                     background-size: 100%;
                 }
-                span {
-                    position: absolute;
-                    top: -4px;
-                    right: -4px;
-                    background-color: #448bbf;
-                    color: #fff;
-                    width: 16px;
-                    height: 16px;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    text-align: center;
-                    border-radius: 3px;
-                    line-height: 16px;
-                    box-shadow: 0 0 2px #000;
-                }
             }
             // tineye
             &.tineye {
@@ -226,27 +224,12 @@
                     background: url(../../images/verification/tineye-grey.svg) no-repeat center center transparent;
                     background-size: 100%;
                 }
-                span {
-                    position: absolute;
-                    top: -4px;
-                    right: -4px;
-                    background-color: #448bbf;
-                    color: #fff;
-                    width: 16px;
-                    height: 16px;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    text-align: center;
-                    border-radius: 3px;
-                    line-height: 16px;
-                    box-shadow: 0 0 2px #000;
-                }
             }
             // iztru icon styles
             &.izitru {
                 background: url(../../images/verification/izitru.svg) no-repeat center center transparent;
                 background-size: 100%;
-				border-radius: 3px;
+                border-radius: 3px;
                 span {
                     position: absolute;
                     top: -4px;
@@ -267,19 +250,21 @@
                     background-size: 100%;
                 }
                 &-1 {
-                    background-color: #21a537!important;
+                    background: url(../../images/verification/izitru-green.svg) no-repeat center center transparent;
+                    background-size: 100%;
+                    /*background-color: #21a537!important;*/
                 }
                 &-2 {
-                    background-color: #b6c40f!important;
+                    /*background-color: #b6c40f!important;*/
                 }
                 &-3 {
-                    background-color: #ffce14!important;
+                    /*background-color: #ffce14!important;*/
                 }
                 &-4 {
-                    background-color: #ff6700!important;
+                    /*background-color: #ff6700!important;*/
                 }
                 &-5 {
-                    background-color: #ce1417!important;
+                    /*background-color: #ce1417!important;*/
                 }
             }
         }
