@@ -1,5 +1,17 @@
 <div class="metadata-view">
-  <div class="vpp-card" ng-class="(item.verification.stats.incandescent.total_google > 0) ? 'yellow-top' : 'gray-top'" ng-if="item.verification.stats.incandescent.total_google">
+
+  <div class="vpp-card gray-top" ng-if="!item.verification.stats.incandescent.total_google || item.verification.stats.incandescent.total_google == 0">
+    <div class=block-head>
+      <span translate>
+        No matches found
+      </span>
+    </div>
+    <p class="info-text">
+      Google reverse image search was not able to find a match online. While that's a good indicator that the image may be original, it's important to remember that there are many reasons why it wouldn't be in Tineye's index.
+    </p>
+  </div>
+
+  <div class="vpp-card yellow-top" ng-if="item.verification.stats.incandescent.total_google > 0">
 
     <div class=block-head>
       <span translate>GRIS Total Results</headline>

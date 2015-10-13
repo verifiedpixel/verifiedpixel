@@ -1,7 +1,5 @@
 @import 'mixins.less';
 @import 'variables.less';
-
-
 // Hide the links to unused superdesk features
 // Needed since we import these in the modules due to depencies
 // but we don't need the links in the user menu
@@ -16,17 +14,22 @@
 .nav-tabs > li > a[href="#/settings/templates"] {
     display: none !important;
 }
+
 .vpp {
     &.preview-layout {
         .preview-pane {
-			background: #d0d0d0;
+            background: #d0d0d0;
             width: 480px;
+        }
+        .multi-action-bar,
+        .search-page-header {
+            padding-right: 40px;
         }
     }
     .list-pane {
-		header {
-			background: #e8e8e8;
-		}
+        header {
+            background: #e8e8e8;
+        }
         .content {
             background: #1e1e1e;
         }
@@ -45,6 +48,7 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                    min-height: 26px;
                 }
                 .media {
                     background: none;
@@ -146,7 +150,6 @@
             }
         }
     }
-
     .verification-results {
         padding: 5px 0;
         dt {
@@ -160,12 +163,27 @@
             margin: 0 5px 0 0;
             color: transparent!important;
             position: relative;
+			span.nudge {
+				position: absolute;
+				top: -4px;
+				right: -4px;
+				background-color: #0b0b61;
+				color: #fafafa;
+				min-width: 16px;
+				height: 16px;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				text-align: center;
+				border-radius: 3px;
+				line-height: 16px;
+				box-shadow: 0 0 2px #000;
+			}
             // gps icon styles
             &.gps {
                 background: url(../../images/verification/GPSInfo-OK.svg) no-repeat center center transparent;
                 background-size: 100%;
                 &.no {
-                    // background: url(../../images/GPSInfo-Error.png) no-repeat center center transparent;
+                    // background: url(../../images/GPSInfo-Error.svg) no-repeat center center transparent;
                     background: url(../../images/verification/GPSInfo.svg) no-repeat center center transparent;
                     background-size: 100%;
                 }
@@ -186,57 +204,32 @@
                     background: url(../../images/verification/gris-grey.svg) no-repeat center center transparent;
                     background-size: 100%;
                 }
-                span {
-                    position: absolute;
-                    top: -4px;
-                    right: -4px;
-                    background-color: #448bbf;
-                    color: #fff;
-                    width: 16px;
-                    height: 16px;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    text-align: center;
-                    border-radius: 3px;
-                    line-height: 16px;
-                    box-shadow: 0 0 2px #000;
-                }
             }
             // tineye
             &.tineye {
                 background: url(../../images/verification/tineye.svg) no-repeat center center transparent;
                 background-size: 100%;
                 &.good {
+                    background: url(../../images/verification/tineye-green.svg) no-repeat center center transparent;
+                    background-size: 100%;
                     span {
                         // background-color: #21a537;
                     }
                 }
                 &.bad {
+                    background: url(../../images/verification/tineye-red.svg) no-repeat center center transparent;
+                    background-size: 100%;
                 }
                 &.ugly {
                     background: url(../../images/verification/tineye-grey.svg) no-repeat center center transparent;
                     background-size: 100%;
-                }
-                span {
-                    position: absolute;
-                    top: -4px;
-                    right: -4px;
-                    background-color: #448bbf;
-                    color: #fff;
-                    width: 16px;
-                    height: 16px;
-                    text-overflow: ellipsis;
-                    overflow: hidden;
-                    text-align: center;
-                    border-radius: 3px;
-                    line-height: 16px;
-                    box-shadow: 0 0 2px #000;
                 }
             }
             // iztru icon styles
             &.izitru {
                 background: url(../../images/verification/izitru.svg) no-repeat center center transparent;
                 background-size: 100%;
+                border-radius: 3px;
                 span {
                     position: absolute;
                     top: -4px;
@@ -257,29 +250,25 @@
                     background-size: 100%;
                 }
                 &-1 {
-                    // green
-                    span {
-                        background-color: #21a537!important;
-                    }
+                    background: url(../../images/verification/izitru-green.svg) no-repeat center center transparent;
+                    background-size: 100%;
+                    /*background-color: #21a537!important;*/
                 }
-                &-2,
-                &-3,
+                &-2 {
+                    /*background-color: #b6c40f!important;*/
+                }
+                &-3 {
+                    /*background-color: #ffce14!important;*/
+                }
                 &-4 {
-                    span {
-                        // amber
-                        background-color: #ff6700!important;
-                    }
+                    /*background-color: #ff6700!important;*/
                 }
                 &-5 {
-                    span {
-                        // red
-                        background-color: #ce1417!important;
-                    }
+                    /*background-color: #ce1417!important;*/
                 }
             }
         }
     }
-
     // filmstrip
     .preview-layout {
         .shadow-list-holder {
@@ -321,8 +310,7 @@
                 figure {
                     max-width: auto;
                     margin: 0!important;
-                    img {
-                    }
+                    img {}
                 }
             }
             .media-info {
@@ -345,7 +333,7 @@
                 display: inline-block;
                 background: url("../../images/preview-icons/tineye.svg") no-repeat center center transparent;
                 background-size: 100%;
-                content:" ";
+                content: " ";
                 width: 35px;
                 height: 35px;
                 margin: -35px 2px 0 0;
@@ -358,7 +346,7 @@
                 display: inline-block;
                 background: url("../../images/preview-icons/izitru.svg") no-repeat center center transparent;
                 background-size: 100%;
-                content:" ";
+                content: " ";
                 width: 35px;
                 height: 35px;
                 margin: -35px 2px 0 0;
@@ -374,19 +362,17 @@
             display: block;
         }
     }
-
     // izitrue panel
     .it-scale {
         dt {
             &::after {
-                content:":";
+                content: ":";
             }
         }
         dd {
             margin-bottom: 10px;
         }
     }
-
     .glossary {
         dl {
             dt,
@@ -402,11 +388,9 @@
                 padding-left: 5px;
                 width: 130px;
             }
-            dd {
-            }
+            dd {}
         }
     }
-
     // comments
     .notification-list-box {
         .add-comment {
@@ -418,15 +402,12 @@
             margin: 10px 0 0;
         }
     }
-
     .main-section {
-    	z-index: auto;
+        z-index: auto;
     }
-
     .navbtn.hover {
-    	background: #e0e0e0;
+        background: #e0e0e0;
     }
-
     .button-stack {
         &.right-stack {
             .navbtn {
@@ -446,27 +427,24 @@
                 }
             }
         }
-		.nav-tabs {
-			margin-left: 20px;
-		}
+        .nav-tabs {
+            margin-left: 20px;
+        }
     }
-	.nav-tabs {
-		li {
-			button {
-				color: #2d2d2d;
-			}
-		}
-	}
-
+    .nav-tabs {
+        li {
+            button {
+                color: #2d2d2d;
+            }
+        }
+    }
     .homebtn {
-    	width: 48px;
-    	padding: 0;
+        width: 48px;
+        padding: 0;
     }
-
     [ng-click],
     [data-ng-click],
     [x-ng-click] {
         cursor: pointer;
     }
-
 }

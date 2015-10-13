@@ -1,0 +1,32 @@
+{
+    "EXIF": {
+        "captureDevice": "iPhone 6 Plus (Apple)",
+        "captureLocation": "Ost\u0159edek St\u0159edn\u00ed \u010cechy, CZ",
+        "captureLocationLatitude": "49.8550611111111",
+        "captureLocationLongitude": "14.7921055555556",
+        "createDate": "Oct 7, 2015 11:14:38",
+        "creatorTool": "9.0.2",
+        "exposureTime": "1/17",
+        "flash": "Off, Did not fire",
+        "fnumber": "2.2",
+        "focalLength": "29 mm",
+        "focusDistance": "NA",
+        "imageSize": "3264 x 2448",
+        "iso": "50",
+        "lens": "NA",
+        "metadataDate": "Oct 7, 2015 11:14:38",
+        "modifyDate": "Oct 7, 2015 11:14:38"
+    },
+    "deviceSignatureAnalysis": "Passed",
+    "deviceSignatureDetails": {},
+    "imageID": "21c4e7d0-9654-483d-9441-cb67804d7c30",
+    "imageMatching": {
+        "exactMatch": "None",
+        "nearMatch": "NA"
+    },
+    "imageQuality": "71",
+    "jpegStructureAnalysis": "Failed",
+    "multipleJpegAnalysis": "0/138",
+    "sensorPatternAnalysis": "Passed",
+    "verdict": "2"
+}
