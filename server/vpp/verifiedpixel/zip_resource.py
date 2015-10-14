@@ -108,7 +108,10 @@ def zip_items(result_id, items_ids):
     zip_file.close()
 
     uploaded_zip_id = app.media.put(
-        zip_file_object.getvalue(), filename=str(datetime.now()) + ".zip",
+        zip_file_object.getvalue(), filename="{name}_{date}.zip".format(
+            name=items[0]['slugline'] or 'image' if len(items) == 1 else 'images',
+            date=datetime.now().isoformat()
+        ),
         content_type='application/zip',
         resource=vppzip_service.datasource,
         metadata={}
