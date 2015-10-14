@@ -109,7 +109,7 @@ def zip_items(result_id, items_ids):
 
     uploaded_zip_id = app.media.put(
         zip_file_object.getvalue(), filename="{name}_{date}.zip".format(
-            name=items[0]['slugline'] or 'image' if len(items) == 1 else 'images',
+            name=items[0].get('slugline', None) or 'image' if len(items) == 1 else 'images',
             date=datetime.now().isoformat()
         ),
         content_type='application/zip',
