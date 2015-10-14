@@ -5,6 +5,7 @@ from flask import json
 from eve.utils import ParsedRequest
 from io import BytesIO, StringIO
 from bson.objectid import ObjectId
+from datetime import datetime
 
 from superdesk.celery_app import celery
 from superdesk.resource import Resource
@@ -107,7 +108,7 @@ def zip_items(result_id, items_ids):
     zip_file.close()
 
     uploaded_zip_id = app.media.put(
-        zip_file_object.getvalue(), filename=str(items_ids),
+        zip_file_object.getvalue(), filename=str(datetime.now()),
         content_type='application/zip',
         resource=vppzip_service.datasource,
         metadata={}
