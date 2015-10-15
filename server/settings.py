@@ -181,7 +181,7 @@ INSTALLED_APPS.extend([
     'apps.spikes',
     'apps.groups',
     'apps.prepopulate',
-    'apps.vocabularies',
+    'superdesk.vocabularies',
     'apps.legal_archive',
     'vpp.search',
     'apps.privilege',
