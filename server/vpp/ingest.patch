@@ -1,0 +1,13 @@
+--- ../../../vpp-superdesk-core/superdesk/io/ingest.py	2015-09-16 12:19:36.718248123 +0200
++++ ./ingest.py	2015-10-15 03:03:37.032477061 +0200
+@@ -11,8 +11,8 @@
+ from superdesk.celery_app import update_key, set_key
+ from superdesk.resource import Resource
+ from superdesk.services import BaseService
+-from superdesk.metadata.item import metadata_schema
+-from superdesk.metadata.utils import extra_response_fields, item_url, aggregations
++from vpp.metadata.item import metadata_schema
++from vpp.metadata.utils import extra_response_fields, item_url, aggregations
+ from eve.defaults import resolve_default_values
+ from eve.methods.common import resolve_document_etag
+ from flask import current_app as app
