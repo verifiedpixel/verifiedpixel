@@ -184,11 +184,12 @@ define(
       .filter('paginate', function() {
         return function(arr, pageNumber, pageSize) {
           pageNumber = pageNumber || 1;
-          console.log([pageNumber*pageSize-pageSize, pageNumber*pageSize]);
+          var end = pageNumber*pageSize,
+              start = end-pageSize;
           if (arr.isArray) {
-              return (arr || []).slice(pageNumber*pageSize-pageSize, pageNumber*pageSize);
+              return (arr || []).slice(start, end);
           } else {
-              return objSlice(arr, pageNumber*pageSize-pageSize, pageNumber*pageSize);
+              return objSlice(arr, start, end);
           }
         };
       })
