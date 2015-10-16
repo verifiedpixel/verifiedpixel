@@ -134,6 +134,19 @@ define(
     }
   ];
 
+  var objSlice = function (obj, start, end) {
+      var sliced = {};
+      var i = 0;
+      for (var k in obj) {
+          if (i >= start && i < end) {
+	    sliced[k] = obj[k];
+	  }
+          i++;
+      }
+
+      return sliced;
+  };
+
   angular.module('verifiedpixel.imagelist',
                  [
                    'ngMap',
@@ -165,9 +178,20 @@ define(
       .filter('emailFilter',
               function() {
                 return function(str) {
-                  return str ? str.replace(/^.*<(.*)>$/g, '\$1') : "";
-                }
+                  return str ? str.replace(/^.*<(.*)>$/g, '\$1') : '';
+                };
               })
+      .filter('paginate', function() {
+        return function(arr, pageNumber, pageSize) {
+          pageNumber = pageNumber || 1;
+          console.log([pageNumber*pageSize-pageSize, pageNumber*pageSize]);
+          if (arr.isArray) {
+              return (arr || []).slice(pageNumber*pageSize-pageSize, pageNumber*pageSize);
+          } else {
+              return objSlice(arr, pageNumber*pageSize-pageSize, pageNumber*pageSize);
+          }
+        };
+      })
       .controller('MultiActionBar', MultiActionBarController)
       .directive('vpSearchResults', SearchResultsDirective)
       .directive('vpSearchFacets', SearchFacetsDirective)

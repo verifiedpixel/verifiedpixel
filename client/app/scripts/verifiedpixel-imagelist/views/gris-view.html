@@ -15,13 +15,17 @@
 
     <div class=block-head>
       <span translate>GRIS Total Results</headline>
-      <span class="pull-right">{{ item.verification.stats.incandescent.total_google }}</headline>
+      <div class="pull-right">
+        <span>{{ item.verification.stats.incandescent.total_google }}</span>
+        <span class=page-count>(page: {{pageNumber || 1}} / {{numPages}})</span>
+      </div>
     </div>
+
+    <pagination total-items="item.verification.stats.incandescent.total_google" ng-model="pageNumber" max-size="10" class="pagination-sm pagination" boundary-links="true" rotate="false" num-pages="numPages"></pagination>
 
     <!--@TODO: sort-->
     <ul ng-if="item.verification.results.incandescent.google" class="gris-matches">
-      <li ng-repeat="pages in item.verification.results.incandescent.google | limitTo:10">
-        <div ng-repeat="match in pages">
+      <li ng-repeat="match in item.verification.results.incandescent.google | orderBy: -'date' |  paginate: pageNumber : 10">
 
         <dl>
           <dt>
@@ -44,7 +48,6 @@
           </dd>
         </dl>
 
-        </div>
       </li>
     </ul>
 
