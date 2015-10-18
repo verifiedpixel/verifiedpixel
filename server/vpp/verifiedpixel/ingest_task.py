@@ -258,9 +258,10 @@ def wait_for_results(*args, **kwargs):
 def verify_items(items, resource, desk_id, verification_providers=None):
     for item in items:
 
-        incandescent_enabled = False
+        incandescent_enabled = True
         common_api_getters = API_GETTERS
         if verification_providers:
+            incandescent_enabled = False
             if 'incandescent' in verification_providers:
                 incandescent_enabled = True
                 verification_providers.remove('incandescent')
