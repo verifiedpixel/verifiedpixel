@@ -164,6 +164,16 @@ define(
       .service('imagetools', ImageToolsService)
       .service('tagging', TaggingService)
       .service('tags', TagService)
+      .service('verification', [
+        'api',
+        function(api) {
+            this.refreshVerificationResults = function(item, provider) {
+                api('manual_verification').save({
+                    'item_id': item._id, 'provider': provider
+                });
+            }
+        }
+      ])
       .filter('FacetLabels',
               function() {
                 return function(input) {
@@ -425,7 +435,8 @@ define(
           'vpMediaTineye',
           [
             'userList',
-            function(userList) {
+            'verification',
+            function(userList, verification) {
               return {
                 scope : {item : '='},
                 templateUrl :
@@ -433,13 +444,14 @@ define(
                 link : function(scope, elem) {
 
                   scope.$watch('item', reloadData);
+                  scope.refreshVerificationResults = verification.refreshVerificationResults;
 
                   function sortTineyeResults(matches) {
                     angular.forEach(matches, function(match) {
                       var backlinks = _.sortBy(match.backlinks, 'crawl_date');
                       var earliestCrawl = backlinks[0]['crawl_date'];
                       match.earliest_crawl_date = new Date(earliestCrawl);
-                    })
+                    });
                   }
                   // sortTineyeResults();
 
@@ -476,11 +488,15 @@ define(
           'vpMediaGris',
           [
             'userList',
-            function(userList) {
+            'verification',
+            function(userList, verification) {
               return {
                 scope : {item : '='},
                 templateUrl :
                     'scripts/verifiedpixel-imagelist/views/gris-view.html',
+                link : function(scope, elem) {
+                  scope.refreshVerificationResults = verification.refreshVerificationResults;
+                },
               };
             }
           ])

@@ -1,5 +1,9 @@
 <div class="metadata-view">
 
+  <button class="btn" ng-click="refreshVerificationResults(item, 'incandescent')">
+    <span class="icon">&#8634;&nbsp;</span><span translate>Refresh</span>
+  </button>
+
   <div class="vpp-card gray-top" ng-if="!item.verification.stats.incandescent.total_google || item.verification.stats.incandescent.total_google == 0">
     <div class=block-head>
       <span translate>

@@ -1,5 +1,9 @@
 <div class="metadata-view">
 
+  <button class="btn" ng-click="refreshVerificationResults(item, 'tineye')">
+    <span class="icon">&#8634;&nbsp;</span><span translate>Refresh</span>
+  </button>
+
   <div class="vpp-card gray-top" ng-if="!item.verification.stats.tineye.total || item.verification.stats.tineye.total == 0">
     <div class=block-head>
       <span translate>
