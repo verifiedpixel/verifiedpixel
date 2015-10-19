@@ -463,7 +463,7 @@
     .pagination {
         display: inline-block;
         padding-left: 0;
-        margin: @line-height-computed 0;
+        margin: 0 0 10px 0;
         border-radius: @border-radius-base;
         > li {
             display: inline; // Remove list-style and block-level defaults
@@ -471,7 +471,7 @@
             > span {
                 position: relative;
                 float: left; // Collapse white-space
-                padding: @padding-base-vertical @padding-base-horizontal;
+                padding: 5px;
                 line-height: @line-height-base;
                 text-decoration: none;
                 color: @pagination-color;
@@ -509,7 +509,7 @@
                 z-index: 3;
                 color: @pagination-active-color;
                 background-color: @pagination-active-bg;
-                border-color: @pagination-active-border;
+                border-color: #ffffff;
                 cursor: default;
             }
         }
