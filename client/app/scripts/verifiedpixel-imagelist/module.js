@@ -442,34 +442,7 @@ define(
                 templateUrl :
                     'scripts/verifiedpixel-imagelist/views/tineye-view.html',
                 link : function(scope, elem) {
-
-                  scope.$watch('item', reloadData);
                   scope.refreshVerificationResults = verification.refreshVerificationResults;
-
-                  function reloadData() {
-                    scope.originalCreator = null;
-                    scope.versionCreator = null;
-
-                    if (scope.item.original_creator) {
-                      userList.getUser(scope.item.original_creator)
-                          .then(function(user) {
-                            scope.originalCreator = user.display_name;
-                          });
-                    }
-                    if (scope.item.version_creator) {
-                      userList.getUser(scope.item.version_creator)
-                          .then(function(user) {
-                            scope.versionCreator = user.display_name;
-                          });
-                    }
-                    if (scope.item.verification &&
-                        scope.item.verification.results &&
-                        scope.item.verification.results.tineye) {
-                      var matches = scope.item.verification.results.tineye
-                                        .results.matches;
-                      sortTineyeResults(matches);
-                    }
-                  }
                 }
               };
             }
