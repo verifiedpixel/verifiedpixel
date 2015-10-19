@@ -134,6 +134,19 @@ define(
     }
   ];
 
+  var objSlice = function (obj, start, end) {
+      var sliced = {};
+      var i = 0;
+      for (var k in obj) {
+          if (i >= start && i < end) {
+	    sliced[k] = obj[k];
+	  }
+          i++;
+      }
+
+      return sliced;
+  };
+
   angular.module('verifiedpixel.imagelist',
                  [
                    'ngMap',
@@ -151,6 +164,16 @@ define(
       .service('imagetools', ImageToolsService)
       .service('tagging', TaggingService)
       .service('tags', TagService)
+      .service('verification', [
+        'api',
+        function(api) {
+            this.refreshVerificationResults = function(item, provider) {
+                api('manual_verification').save({
+                    'item_id': item._id, 'provider': provider
+                });
+            }
+        }
+      ])
       .filter('FacetLabels',
               function() {
                 return function(input) {
@@ -165,9 +188,21 @@ define(
       .filter('emailFilter',
               function() {
                 return function(str) {
-                  return str ? str.replace(/^.*<(.*)>$/g, '\$1') : "";
-                }
+                  return str ? str.replace(/^.*<(.*)>$/g, '\$1') : '';
+                };
               })
+      .filter('paginate', function() {
+        return function(arr, pageNumber, pageSize) {
+          pageNumber = pageNumber || 1;
+          var end = pageNumber*pageSize,
+              start = end-pageSize;
+          if (arr.isArray) {
+              return (arr || []).slice(start, end);
+          } else {
+              return objSlice(arr, start, end);
+          }
+        };
+      })
       .controller('MultiActionBar', MultiActionBarController)
       .directive('vpSearchResults', SearchResultsDirective)
       .directive('vpSearchFacets', SearchFacetsDirective)
@@ -400,7 +435,8 @@ define(
           'vpMediaTineye',
           [
             'userList',
-            function(userList) {
+            'verification',
+            function(userList, verification) {
               return {
                 scope : {item : '='},
                 templateUrl :
@@ -408,13 +444,14 @@ define(
                 link : function(scope, elem) {
 
                   scope.$watch('item', reloadData);
+                  scope.refreshVerificationResults = verification.refreshVerificationResults;
 
                   function sortTineyeResults(matches) {
                     angular.forEach(matches, function(match) {
                       var backlinks = _.sortBy(match.backlinks, 'crawl_date');
                       var earliestCrawl = backlinks[0]['crawl_date'];
                       match.earliest_crawl_date = new Date(earliestCrawl);
-                    })
+                    });
                   }
                   // sortTineyeResults();
 
@@ -451,11 +488,15 @@ define(
           'vpMediaGris',
           [
             'userList',
-            function(userList) {
+            'verification',
+            function(userList, verification) {
               return {
                 scope : {item : '='},
                 templateUrl :
                     'scripts/verifiedpixel-imagelist/views/gris-view.html',
+                link : function(scope, elem) {
+                  scope.refreshVerificationResults = verification.refreshVerificationResults;
+                },
               };
             }
           ])

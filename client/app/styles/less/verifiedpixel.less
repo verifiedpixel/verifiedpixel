@@ -35,7 +35,7 @@
         }
         .mgrid-view {
             .media-box {
-                min-height: 150px;
+                min-height: 220px;
                 min-width: 170px;
                 max-width: 170px;
                 padding: 0;
@@ -163,21 +163,21 @@
             margin: 0 5px 0 0;
             color: transparent!important;
             position: relative;
-			span.nudge {
-				position: absolute;
-				top: -4px;
-				right: -4px;
-				background-color: #0b0b61;
-				color: #fafafa;
-				min-width: 16px;
-				height: 16px;
-				text-overflow: ellipsis;
-				overflow: hidden;
-				text-align: center;
-				border-radius: 3px;
-				line-height: 16px;
-				box-shadow: 0 0 2px #000;
-			}
+            span.nudge {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                background-color: #0b0b61;
+                color: #fafafa;
+                min-width: 16px;
+                height: 16px;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                text-align: center;
+                border-radius: 3px;
+                line-height: 16px;
+                box-shadow: 0 0 2px #000;
+            }
             // gps icon styles
             &.gps {
                 background: url(../../images/verification/GPSInfo-OK.svg) no-repeat center center transparent;
@@ -446,5 +446,75 @@
     [data-ng-click],
     [x-ng-click] {
         cursor: pointer;
+    }
+    //
+    // Pagination (multiple pages)
+    // --------------------------------------------------
+    .pagination {
+        display: inline-block;
+        padding-left: 0;
+        margin: @line-height-computed 0;
+        border-radius: @border-radius-base;
+        > li {
+            display: inline; // Remove list-style and block-level defaults
+            > a,
+            > span {
+                position: relative;
+                float: left; // Collapse white-space
+                padding: @padding-base-vertical @padding-base-horizontal;
+                line-height: @line-height-base;
+                text-decoration: none;
+                color: @pagination-color;
+                background-color: @pagination-bg;
+                border: 1px solid @pagination-border;
+                margin-left: -1px;
+            }
+            &:first-child {
+                > a,
+                > span {
+                    margin-left: 0;
+                }
+            }
+            &:last-child {
+                > a,
+                > span {
+                }
+            }
+        }
+        > li > a,
+        > li > span {
+            &:hover,
+            &:focus {
+                z-index: 2;
+                color: @pagination-hover-color;
+                background-color: @pagination-hover-bg;
+                border-color: @pagination-hover-border;
+            }
+        }
+        > .active > a,
+        > .active > span {
+            &,
+            &:hover,
+            &:focus {
+                z-index: 3;
+                color: @pagination-active-color;
+                background-color: @pagination-active-bg;
+                border-color: @pagination-active-border;
+                cursor: default;
+            }
+        }
+        > .disabled {
+            > span,
+            > span:hover,
+            > span:focus,
+            > a,
+            > a:hover,
+            > a:focus {
+                color: @pagination-disabled-color;
+                background-color: @pagination-disabled-bg;
+                border-color: @pagination-disabled-border;
+                cursor: @cursor-disabled;
+            }
+        }
     }
 }
