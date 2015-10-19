@@ -446,15 +446,6 @@ define(
                   scope.$watch('item', reloadData);
                   scope.refreshVerificationResults = verification.refreshVerificationResults;
 
-                  function sortTineyeResults(matches) {
-                    angular.forEach(matches, function(match) {
-                      var backlinks = _.sortBy(match.backlinks, 'crawl_date');
-                      var earliestCrawl = backlinks[0]['crawl_date'];
-                      match.earliest_crawl_date = new Date(earliestCrawl);
-                    });
-                  }
-                  // sortTineyeResults();
-
                   function reloadData() {
                     scope.originalCreator = null;
                     scope.versionCreator = null;

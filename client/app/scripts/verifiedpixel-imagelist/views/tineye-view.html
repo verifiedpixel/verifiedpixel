@@ -29,7 +29,7 @@
 
     <ul ng-if="item.verification.results.tineye.results.matches" class="tineye-matches">
       <!--@TODO:-->
-      <li ng-repeat="match in item.verification.results.tineye.results.matches | orderBy: -'earliest_crawl_date' | paginate: pageNumber : 10">
+      <li ng-repeat="match in item.verification.results.tineye.results.matches | orderBy: '-earliest_crawl_date' | paginate: pageNumber : 10">
         <dl>
           <dt>
             <ul>
