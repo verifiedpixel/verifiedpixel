@@ -40,8 +40,8 @@
 
         <dl class="verification-results">
             <dt translate>GPS Info Status</dt>
-                <dd class="gps" ng-if="item.converted_exif.gpsinfo" title="Item has GPS metadata">Item has GPS metadata</dd>
-                <dd class="gps no" ng-if="!item.converted_exif.gpsinfo" title="Item has no GPS metadata">Item has no GPS metadata</dd>
+                <dd class="gps" ng-if="item.converted_exif.gpsinfo.gpslatitude && item.converted_exif.gpsinfo.gpslongitude" title="Item has GPS metadata">Item has GPS metadata</dd>
+                <dd class="gps no" ng-if="!item.converted_exif.gpsinfo.gpslatitude || !item.converted_exif.gpsinfo.gpslongitude" title="Item has no GPS metadata">Item has no GPS metadata</dd>
 
             <dt translate>Izitru Verdict</dt>
                 <dd ng-if="item.verification.stats.izitru.verdict" class="izitru izitru-{{ item.verification.stats.izitru.verdict }}" title="Izitru rating receieved"></dd>
