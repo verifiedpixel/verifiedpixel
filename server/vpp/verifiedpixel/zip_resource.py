@@ -95,8 +95,9 @@ def zip_items(result_id, items_ids):
     zip_file = zipfile.ZipFile(zip_file_object, mode='w')
     for item in items:
         item_id = item['_id']
+        extension = item.get('mimetype', 'image/jpeg').split('/')[-1]
         image = get_original_image(item, 'archive')[1]
-        zip_file.writestr(item_id, image)
+        zip_file.writestr("{id}.{ext}".format(id=item_id, ext=extension), image)
         item['verification']['results'] = verification_results[
             item['verification']['results']
         ]

@@ -105,7 +105,9 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
             zip_file = zipfile.ZipFile(BytesIO(response.get_data()))
             self.assertEqual(
                 sorted(zip_file.namelist()),
-                sorted(list(verified_items_ids.values()) + ['verification.json']),
+                sorted(list(
+                    ["{}.jpeg".format(_id) for _id in verified_items_ids.values()]
+                ) + ['verification.json']),
                 "Filelist in zip not match.")
             verification_dict = json.loads(
                 zip_file.read('verification.json').decode()
@@ -118,7 +120,7 @@ class VerifiedPixelZipResourceTest(TestCase, VPPTestCase):
                 )
                 with open(image_paths[img_id], 'rb') as f:
                     self.assertEqual(
-                        zip_file.read(item_id),
+                        zip_file.read("{}.jpeg".format(item_id)),
                         f.read(),
                         "Image in zip not match."
                     )
