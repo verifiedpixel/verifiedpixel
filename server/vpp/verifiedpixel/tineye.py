@@ -38,6 +38,10 @@ def get_tineye_results(content):
     except Exception as e:
         raise APIGracefulException(e)
     result = response.json_results
+    for match in result['results']['matches']:
+        match['earliest_crawl_date'] = min([
+            backlink['crawl_date'] for backlink in match['backlinks']
+        ])
     return {
         'stats': {'total': result['results']['total_results']},
         'results': result
