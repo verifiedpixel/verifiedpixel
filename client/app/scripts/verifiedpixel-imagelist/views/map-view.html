@@ -20,18 +20,25 @@
             zoom-control-options="{style:'SMALL'}"
             scrollwheel="false"
         >
-            <!--@TODO: disable mouse wheel scrolling over the map: -->
             <!--map-type-control="true"-->
             <!--map-type-control-options="{style:'DROPDOWN_MENU'}"-->
             <marker
+                ng-if="item.converted_exif.gpsicon"
                 position="[{{ item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}]"
                 icon="{{item.converted_exif.gpsicon}}"
                 title="GPS Location"
                 draggable="false"
                 visible="true">
             </marker>
+            <marker
+                ng-if="!item.converted_exif.gpsicon"
+                position="[{{ item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}]"
+                title="GPS Location"
+                draggable="false"
+                visible="true">
+            </marker>
         </map>
-        <div ng-if="item.verification.stats.izitru.location">
+        <div>
           (<a href="http://maps.google.com/maps?q={{ item.converted_exif.gpslat }},{{ item.converted_exif.gpslon }}&ll={{item.converted_exif.gpslat }}, {{ item.converted_exif.gpslon }}&z=15" target="_blank">Open in new tab</a>)
 
         </div>
