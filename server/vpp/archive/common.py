@@ -9,29 +9,30 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 
-from datetime import datetime
-
-from eve.utils import config
 import flask
+from eve.utils import config
+from datetime import datetime
 from flask import current_app as app
 from eve.versioning import insert_versioning_documents
 from pytz import timezone
 
+import superdesk
 from superdesk.users.services import get_sign_off
 from superdesk.celery_app import update_key
 from superdesk.utc import utcnow, get_expiry_date
 from settings import ORGANIZATION_NAME_ABBREVIATION
 from superdesk import get_resource_service
 from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, \
-    LINKED_IN_PACKAGES, BYLINE, SIGN_OFF, EMBARGO
+    LINKED_IN_PACKAGES, BYLINE, SIGN_OFF, EMBARGO, ITEM_TYPE, CONTENT_TYPE
 from superdesk.workflow import set_default_state, is_workflow_state_transition_valid
-import superdesk
-from apps.archive.archive import SOURCE as ARCHIVE
 from vpp.metadata.item import GUID_NEWSML, GUID_FIELD, GUID_TAG, not_analyzed
-from superdesk.metadata.packages import PACKAGE_TYPE, TAKES_PACKAGE, SEQUENCE
-from superdesk.metadata.utils import generate_guid
+from vpp.metadata.packages import PACKAGE_TYPE, TAKES_PACKAGE, SEQUENCE
+from vpp.metadata.utils import generate_guid
 from superdesk.errors import SuperdeskApiError, IdentifierGenerationError
+from apps.auth import get_user
 
+
+ARCHIVE = 'archive'
 CUSTOM_HATEOAS = {'self': {'title': 'Archive', 'href': '/archive/{_id}'}}
 ITEM_OPERATION = 'operation'
 ITEM_CREATE = 'create'
@@ -93,25 +94,46 @@ def set_dateline(doc, repo_type):
 
     if repo_type == ARCHIVE and 'dateline' not in doc:
         current_date_time = dateline_ts = utcnow()
-        doc['dateline'] = {'date': current_date_time, 'source': ORGANIZATION_NAME_ABBREVIATION}
+        doc['dateline'] = {'date': current_date_time, 'source': ORGANIZATION_NAME_ABBREVIATION, 'located': None,
+                           'text': None}
 
         user = get_user()
         if user and user.get('user_preferences', {}).get('dateline:located'):
             located = user.get('user_preferences', {}).get('dateline:located', {}).get('located')
             if located:
-                if located['tz'] != 'UTC':
-                    dateline_ts = datetime.fromtimestamp(dateline_ts.timestamp(), tz=timezone(located['tz']))
-
-                if dateline_ts.month == 9:
-                    formatted_date = 'Sept {}'.format(dateline_ts.strftime('%d'))
-                elif 3 <= dateline_ts.month <= 7:
-                    formatted_date = dateline_ts.strftime('%B %d')
-                else:
-                    formatted_date = dateline_ts.strftime('%b %d')
-
                 doc['dateline']['located'] = located
-                doc['dateline']['text'] = '{}, {} {} -'.format(located['city'], formatted_date,
-                                                               ORGANIZATION_NAME_ABBREVIATION)
+                doc['dateline']['text'] = format_dateline_to_locmmmddsrc(located, dateline_ts)
+
+
+def format_dateline_to_locmmmddsrc(located, current_timestamp):
+    """
+    Formats dateline to "Location, Month Date Source -"
+
+    :return: formatted dateline string
+    """
+
+    dateline_location = "{city_code}"
+    dateline_location_format_fields = located.get('dateline', 'city')
+    dateline_location_format_fields = dateline_location_format_fields.split(',')
+    if 'country' in dateline_location_format_fields and 'state' in dateline_location_format_fields:
+        dateline_location = "{city_code}, {state_code}, {country_code}"
+    elif 'state' in dateline_location_format_fields:
+        dateline_location = "{city_code}, {state_code}"
+    elif 'country' in dateline_location_format_fields:
+        dateline_location = "{city_code}, {country_code}"
+    dateline_location = dateline_location.format(**located)
+
+    if located['tz'] != 'UTC':
+        current_timestamp = datetime.fromtimestamp(current_timestamp.timestamp(), tz=timezone(located['tz']))
+    if current_timestamp.month == 9:
+        formatted_date = 'Sept {}'.format(current_timestamp.strftime('%d'))
+    elif 3 <= current_timestamp.month <= 7:
+        formatted_date = current_timestamp.strftime('%B %d')
+    else:
+        formatted_date = current_timestamp.strftime('%b %d')
+
+    return "{location} {mmmdd} {source} -".format(location=dateline_location.upper(), mmmdd=formatted_date,
+                                                  source=ORGANIZATION_NAME_ABBREVIATION)
 
 
 def set_byline(doc, repo_type=ARCHIVE):
@@ -140,13 +162,6 @@ def update_dates_for(doc):
         doc.setdefault(item, utcnow())
 
 
-def get_user(required=False):
-    user = flask.g.get('user', {})
-    if '_id' not in user and required:
-        raise SuperdeskApiError.notFoundError('Invalid user.')
-    return user
-
-
 def get_auth():
     auth = flask.g.get('auth', {})
     return auth
@@ -154,7 +169,7 @@ def get_auth():
 
 def set_original_creator(doc):
     usr = get_user()
-    user = str(usr.get('_id', ''))
+    user = str(usr.get('_id', doc.get('original_creator', '')))
     doc['original_creator'] = user
 
 
@@ -237,6 +252,44 @@ def remove_unwanted(doc):
     for attr in ['_type', 'desk', 'archived']:
         if attr in doc:
             del doc[attr]
+
+
+def remove_media_files(doc):
+        """
+        Removes the media files of the given doc if they are not references by any other
+        story across all repos. Returns true if the medis files are removed.
+        """
+        print('Removing Media Files...')
+
+        if doc.get(ITEM_TYPE) in [CONTENT_TYPE.PICTURE, CONTENT_TYPE.VIDEO, CONTENT_TYPE.AUDIO]:
+            base_image_id = doc.get('renditions', {}).get('baseImage', {}).get('media')
+
+            if base_image_id:
+                try:
+                    archive_docs = superdesk.get_resource_service('archive'). \
+                        get_from_mongo(None, {'renditions.baseImage.media': base_image_id})
+                    ingest_docs = superdesk.get_resource_service('ingest'). \
+                        get_from_mongo(None, {'renditions.baseImage.media': base_image_id})
+                    legal_archive_docs = superdesk.get_resource_service('legal_archive'). \
+                        get_from_mongo(None, {'renditions.baseImage.media': base_image_id})
+                    archive_version_docs = superdesk.get_resource_service('archive_versions'). \
+                        get_from_mongo(None, {'renditions.baseImage.media': base_image_id})
+                    legal_archive_version_docs = superdesk.get_resource_service('legal_archive_versions'). \
+                        get_from_mongo(None, {'renditions.baseImage.media': base_image_id})
+
+                    if archive_docs.count() == 0 and ingest_docs.count() == 0 and legal_archive_docs.count() == 0 and \
+                            archive_version_docs.count() == 0 and legal_archive_version_docs.count() == 0:
+                        # there's no reference so do remove the file
+                        for name, rendition in doc.get('renditions').items():
+                            if 'media' in rendition:
+                                print('Deleting media:{}'.format(rendition.get('media')))
+                                app.media.delete(rendition.get('media'))
+                        # files are removed
+                        return True
+                except Exception as ex:
+                    print('Removing Media Exception:{}'.format(ex))
+                    return False
+        return False
 
 
 def is_assigned_to_a_desk(doc):
@@ -438,3 +491,23 @@ def is_item_in_package(item):
     """
     return item.get(LINKED_IN_PACKAGES, None) \
         and sum(1 for x in item.get(LINKED_IN_PACKAGES, []) if x.get(PACKAGE_TYPE, '') == '')
+
+
+def is_normal_package(doc):
+    """
+    Returns True if the passed doc is a package and not a takes package. Otherwise, returns False.
+
+    :return: True if it's a Package and not a Takes Package, False otherwise.
+    """
+
+    return not is_takes_package(doc)
+
+
+def is_takes_package(doc):
+    """
+    Returns True if the passed doc is a takes package. Otherwise, returns False.
+
+    :return: True if it's a Takes Package, False otherwise.
+    """
+
+    return doc[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE and doc.get(PACKAGE_TYPE, '') == TAKES_PACKAGE

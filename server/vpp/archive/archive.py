@@ -8,17 +8,15 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-SOURCE = 'archive'
-
 import flask
 from superdesk.resource import Resource
-from .common import remove_unwanted, update_state, set_item_expiry, \
+from vpp.metadata.utils import extra_response_fields, item_url, aggregations
+from .common import remove_unwanted, update_state, set_item_expiry, remove_media_files, \
     is_update_allowed, on_create_item, on_duplicate_item, get_user, update_version, set_sign_off, \
-    handle_existing_data, item_schema, validate_schedule, is_item_in_package, ITEM_DUPLICATE, ITEM_OPERATION, \
-    ITEM_RESTORE, ITEM_UPDATE, ITEM_DESCHEDULE
+    handle_existing_data, item_schema, validate_schedule, is_item_in_package, is_normal_package, \
+    ITEM_DUPLICATE, ITEM_OPERATION, ITEM_RESTORE, ITEM_UPDATE, ITEM_DESCHEDULE, ARCHIVE as SOURCE
 from .archive_crop import ArchiveCropService
 from flask import current_app as app
-from werkzeug.exceptions import NotFound
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from eve.versioning import resolve_document_version, versioned_id_field
@@ -26,11 +24,13 @@ from superdesk.activity import add_activity, ACTIVITY_CREATE, ACTIVITY_UPDATE, A
 from eve.utils import parse_request, config
 from superdesk.services import BaseService
 from superdesk.users.services import current_user_has_privilege, is_admin
+from vpp.metadata.item import ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO, LINKED_IN_PACKAGES, \
+    PUBLISH_STATES
 from apps.common.components.utils import get_component
 from apps.item_autosave.components.item_autosave import ItemAutosave
 from apps.common.models.base_model import InvalidEtag
 from superdesk.etree import get_word_count
-from superdesk.notification import push_notification
+from apps.content import push_content_notification
 from copy import copy, deepcopy
 import superdesk
 import logging
@@ -41,10 +41,7 @@ from .archive_media import ArchiveMediaService
 from superdesk.utc import utcnow
 import datetime
 from settings import DEFAULT_SOURCE_VALUE_FOR_MANUAL_ARTICLES, VERSION
-from superdesk.metadata.packages import ITEM_REF, SEQUENCE
-
-from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO
-from vpp.metadata.utils import extra_response_fields, item_url, aggregations
+from vpp.metadata.packages import RESIDREF, SEQUENCE
 
 
 logger = logging.getLogger(__name__)
@@ -84,7 +81,7 @@ def private_content_filter():
 
 
 class ArchiveVersionsResource(Resource):
-    schema = metadata_schema
+    schema = item_schema()
     extra_response_fields = extra_response_fields
     item_url = item_url
     resource_methods = []
@@ -172,7 +169,6 @@ class ArchiveService(BaseService):
         if packages:
             self.packageService.on_created(packages)
 
-        user = get_user()
         for doc in docs:
             subject = get_subject(doc)
             if subject:
@@ -181,7 +177,7 @@ class ArchiveService(BaseService):
                 msg = 'added new {{ type }} item with empty header/title'
             add_activity(ACTIVITY_CREATE, msg,
                          self.datasource, item=doc, type=doc[ITEM_TYPE], subject=subject)
-            push_notification('item:created', item=str(doc['_id']), user=str(user.get('_id')))
+        push_content_notification(docs)
 
     def on_update(self, updates, original):
         updates[ITEM_OPERATION] = ITEM_UPDATE
@@ -206,8 +202,9 @@ class ArchiveService(BaseService):
             else:
                 # validate the schedule
                 if is_item_in_package(original):
-                    raise SuperdeskApiError.badRequestError(message='This item is in a package' +
-                                                            ' it needs to be removed before the item can be scheduled!')
+                    raise SuperdeskApiError.\
+                        badRequestError(message='This item is in a package' +
+                                                ' it needs to be removed before the item can be scheduled!')
                 package = TakesPackageService().get_take_package(original) or {}
                 validate_schedule(updates.get('publish_schedule'), package.get(SEQUENCE, 1))
 
@@ -264,17 +261,16 @@ class ArchiveService(BaseService):
 
         ArchiveCropService().delete_replaced_crop_files(updates, original)
 
-        user = get_user()
+        updated = copy(original)
+        updated.update(updates)
 
         if config.VERSION in updates:
-            updated = copy(original)
-            updated.update(updates)
             add_activity(ACTIVITY_UPDATE, 'created new version {{ version }} for item {{ type }} about "{{ subject }}"',
                          self.datasource, item=updated,
                          version=updates[config.VERSION], subject=get_subject(updates, original),
                          type=updated[ITEM_TYPE])
 
-        push_notification('item:updated', item=str(original['_id']), user=str(user.get('_id')))
+        push_content_notification([updated, original])
 
     def on_replace(self, document, original):
         document[ITEM_OPERATION] = ITEM_UPDATE
@@ -296,11 +292,12 @@ class ArchiveService(BaseService):
         add_activity(ACTIVITY_UPDATE, 'replaced item {{ type }} about {{ subject }}',
                      self.datasource, item=original,
                      type=original['type'], subject=get_subject(original))
-        user = get_user()
-        push_notification('item:replaced', item=str(original['_id']), user=str(user.get('_id')))
+        push_content_notification([document, original])
 
-    def on_delete(self, doc):
-        """Delete associated binary files."""
+    def on_deleted(self, doc):
+        if doc[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:
+            self.packageService.on_deleted(doc)
+
         if doc:
             if doc.get('renditions'):
                 for file_id in [rend.get('media') for rend in doc.get('renditions', {}).values()
@@ -313,15 +310,12 @@ class ArchiveService(BaseService):
                 get_resource_service('verification_results').delete_action(
                     {'_id': doc.get('verification').get('results')}
                 )
+        remove_media_files(doc)
 
-    def on_deleted(self, doc):
-        if doc[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:
-            self.packageService.on_deleted(doc)
         add_activity(ACTIVITY_DELETE, 'removed item {{ type }} about {{ subject }}',
                      self.datasource, item=doc,
                      type=doc[ITEM_TYPE], subject=get_subject(doc))
-        user = get_user()
-        push_notification('item:deleted', item=str(doc['_id']), user=str(user.get('_id')))
+        push_content_notification([doc])
 
     def replace(self, id, document, original):
         return self.restore_version(id, document, original) or super().replace(id, document, original)
@@ -384,9 +378,9 @@ class ArchiveService(BaseService):
                 if groups.get('id') != 'root':
                     associations = groups.get('refs', [])
                     for assoc in associations:
-                        if assoc.get(ITEM_REF):
+                        if assoc.get(RESIDREF):
                             item, _item_id, _endpoint = self.packageService.get_associated_item(assoc)
-                            assoc[ITEM_REF] = assoc['guid'] = self.duplicate_content(item)
+                            assoc[RESIDREF] = assoc['guid'] = self.duplicate_content(item)
 
         return self._duplicate_item(original_doc)
 
@@ -399,8 +393,7 @@ class ArchiveService(BaseService):
         """
 
         new_doc = original_doc.copy()
-        del new_doc[config.ID_FIELD]
-        del new_doc['guid']
+        self._remove_after_copy(new_doc)
 
         new_doc[ITEM_OPERATION] = ITEM_DUPLICATE
         item_model = get_model(ItemModel)
@@ -414,6 +407,17 @@ class ArchiveService(BaseService):
 
         return new_doc['guid']
 
+    def _remove_after_copy(self, copied_item):
+        """
+        Removes the properties which doesn't make sense to have for an item after copy.
+        """
+
+        del copied_item[config.ID_FIELD]
+        del copied_item['guid']
+        copied_item.pop(LINKED_IN_PACKAGES, None)
+        copied_item.pop(EMBARGO, None)
+        copied_item.pop('publish_schedule', None)
+
     def _duplicate_versions(self, old_id, new_doc):
         """
         Duplicates the version history of the article identified by old_id. Each version identifiers are changed
@@ -422,12 +426,13 @@ class ArchiveService(BaseService):
         :param old_id: identifier to fetch version history
         :param new_doc: identifiers from this doc will be used to create version history for the duplicated item.
         """
-
+        resource_def = app.config['DOMAIN']['archive']
+        version_id = versioned_id_field(resource_def)
         old_versions = get_resource_service('archive_versions').get(req=None, lookup={'guid': old_id})
 
         new_versions = []
         for old_version in old_versions:
-            old_version[versioned_id_field()] = new_doc[config.ID_FIELD]
+            old_version[version_id] = new_doc[config.ID_FIELD]
             del old_version[config.ID_FIELD]
 
             old_version['guid'] = new_doc['guid']
@@ -499,8 +504,9 @@ class ArchiveService(BaseService):
             "Article state is %s. Only Spiked Articles can be removed" % doc[ITEM_STATE]
 
         doc_id = str(doc[config.ID_FIELD])
+        resource_def = app.config['DOMAIN']['archive_versions']
+        get_resource_service('archive_versions').delete(lookup={versioned_id_field(resource_def): doc_id})
         super().delete_action({config.ID_FIELD: doc_id})
-        get_resource_service('archive_versions').delete(lookup={versioned_id_field(): doc_id})
 
     def __is_req_for_save(self, doc):
         """
@@ -541,9 +547,9 @@ class ArchiveService(BaseService):
                 if not isinstance(embargo, datetime.date) or not embargo.time():
                     raise SuperdeskApiError.badRequestError("Invalid Embargo")
 
-                if item[ITEM_STATE] not in [CONTENT_STATE.CORRECTED, CONTENT_STATE.KILLED] and embargo <= utcnow():
+                if item[ITEM_STATE] not in PUBLISH_STATES and embargo <= utcnow():
                     raise SuperdeskApiError.badRequestError("Embargo cannot be earlier than now")
-        elif item[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE and not self.takesService.is_takes_package(item):
+        elif is_normal_package(item):
             if item.get(EMBARGO):
                 raise SuperdeskApiError.badRequestError("A Package doesn't support Embargo")
 
@@ -553,7 +559,7 @@ class ArchiveService(BaseService):
 class AutoSaveResource(Resource):
     endpoint_name = 'archive_autosave'
     item_url = item_url
-    schema = item_schema({'_id': {'type': 'string'}})
+    schema = item_schema({'_id': {'type': 'string', 'unique': True}})
     resource_methods = ['POST']
     item_methods = ['GET', 'PUT', 'PATCH', 'DELETE']
     resource_title = endpoint_name

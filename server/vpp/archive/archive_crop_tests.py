@@ -14,7 +14,7 @@ from unittest import mock
 from apps.archive.archive_crop import ArchiveCropService
 from nose.tools import assert_raises
 from superdesk.errors import SuperdeskApiError
-from apps.vocabularies.command import VocabulariesPopulateCommand
+from superdesk.vocabularies.command import VocabulariesPopulateCommand
 
 
 class ArchiveCropTestCase(SuperdeskTestCase):
@@ -129,5 +129,5 @@ class ArchiveCropTestCase(SuperdeskTestCase):
                 self.service.create_crop(original, '4-3', doc)
 
             ex = context.exception
-            self.assertEqual(ex.message, 'Saving crop failed: test')
+            self.assertEqual(ex.message, 'Saving crop failed.')
             self.assertEqual(ex.status_code, 400)

@@ -11,6 +11,7 @@
 from collections import namedtuple
 from superdesk.resource import Resource
 from .packages import PACKAGE_TYPE, TAKES_PACKAGE, LINKED_IN_PACKAGES, PACKAGE
+from eve.utils import config
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 GUID_TAG = 'tag'
@@ -36,11 +37,16 @@ CONTENT_STATE = namedtuple('CONTENT_STATE', ['DRAFT', 'INGESTED', 'ROUTED', 'FET
                                              'SCHEDULED', 'HOLD'])(*content_state)
 PUBLISH_STATES = {CONTENT_STATE.PUBLISHED, CONTENT_STATE.SCHEDULED, CONTENT_STATE.CORRECTED, CONTENT_STATE.KILLED}
 
+
 BYLINE = 'byline'
 SIGN_OFF = 'sign_off'
 EMBARGO = 'embargo'
 
 metadata_schema = {
+    config.ID_FIELD: {
+        'type': 'string',
+        'unique': True
+    },
     # Identifiers
     'guid': {
         'type': 'string',
@@ -175,13 +181,12 @@ metadata_schema = {
         'type': 'integer'
     },
     'priority': {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'nullable': True,
+        'type': 'integer',
+        'nullable': True
     },
     'urgency': {
         'type': 'integer',
-        'nullable': True,
+        'nullable': True
     },
 
     # Related to state of an article
@@ -236,9 +241,9 @@ metadata_schema = {
         'nullable': True,
         'schema': {
             'located': {'type': 'dict', 'nullable': True},
-            'date': {'type': 'datetime'},
+            'date': {'type': 'datetime', 'nullable': True},
             'source': {'type': 'string'},
-            'text': {'type': 'string'}
+            'text': {'type': 'string', 'nullable': True}
         },
     },
     'expiry': {
@@ -315,11 +320,7 @@ metadata_schema = {
         'type': 'list',
         'nullable': True,
         'schema': {
-            'type': 'dict',
-            'schema': {
-                'qcode': {'type': 'string'},
-                'name': {'type': 'string'}
-            }
+            'type': 'dict'
         }
     },
 
@@ -351,6 +352,9 @@ metadata_schema = {
     SIGN_OFF: {
         'type': 'string'
     },
+
+    # Desk and Stage Details
+    'task': {'type': 'dict'},
 
     # Task and Lock Details
     'task_id': {

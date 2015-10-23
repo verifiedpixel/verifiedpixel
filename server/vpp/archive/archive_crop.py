@@ -116,7 +116,7 @@ class ArchiveCropService():
                 cropped, out = crop_image(original_file, original_file.name, crop_data)
 
                 if not cropped:
-                    raise SuperdeskApiError.badRequestError('Saving crop failed: {}'.format(str(out)))
+                    raise SuperdeskApiError.badRequestError('Saving crop failed.')
 
                 renditions[crop_name] = self._save_cropped_image(out, original_file, doc)
                 crop_created = True
@@ -145,7 +145,7 @@ class ArchiveCropService():
                                               resource='upload',
                                               metadata=metadata)
             crop['media'] = file_id
-            crop['mime_type'] = content_type
+            crop['mimetype'] = content_type
             crop['href'] = url_for_media(file_id)
             crop['CropTop'] = doc.get('CropTop', None)
             crop['CropLeft'] = doc.get('CropLeft', None)

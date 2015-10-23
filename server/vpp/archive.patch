@@ -1,0 +1,175 @@
+diff -r -u ../../../vpp-superdesk/server/apps/archive/archive_crop.py archive/archive_crop.py
+--- ../../../vpp-superdesk/server/apps/archive/archive_crop.py	2015-10-15 02:03:33.056120241 +0200
++++ archive/archive_crop.py	2015-10-15 02:55:06.084853939 +0200
+@@ -15,7 +15,7 @@
+ from superdesk.errors import SuperdeskApiError
+ from superdesk.media.media_operations import crop_image, process_file_from_stream
+ from superdesk.upload import UploadService, url_for_media
+-from superdesk.metadata.item import CONTENT_TYPE, ITEM_TYPE
++from vpp.metadata.item import CONTENT_TYPE, ITEM_TYPE
+ 
+ 
+ logger = logging.getLogger(__name__)
+diff -r -u ../../../vpp-superdesk/server/apps/archive/archive_link.py archive/archive_link.py
+--- ../../../vpp-superdesk/server/apps/archive/archive_link.py	2015-10-15 02:03:33.056120241 +0200
++++ archive/archive_link.py	2015-10-15 02:55:06.084853939 +0200
+@@ -11,7 +11,7 @@
+ from flask import request
+ 
+ from superdesk import get_resource_service, Service
+-from superdesk.metadata.item import EMBARGO
++from vpp.metadata.item import EMBARGO
+ from superdesk.resource import Resource, build_custom_hateoas
+ from apps.packages import TakesPackageService
+ from apps.archive.common import CUSTOM_HATEOAS
+diff -r -u ../../../vpp-superdesk/server/apps/archive/archive_media.py archive/archive_media.py
+--- ../../../vpp-superdesk/server/apps/archive/archive_media.py	2015-08-28 11:21:23.975912806 +0200
++++ archive/archive_media.py	2015-10-15 02:55:06.084853939 +0200
+@@ -16,7 +16,7 @@
+ from settings import DEFAULT_SOURCE_VALUE_FOR_MANUAL_ARTICLES
+ from superdesk.media.media_operations import process_file_from_stream, decode_metadata
+ from superdesk.media.renditions import generate_renditions, delete_file_on_error
+-from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE, ITEM_TYPE, CONTENT_TYPE, BYLINE
++from vpp.metadata.item import ITEM_STATE, CONTENT_STATE, ITEM_TYPE, CONTENT_TYPE, BYLINE
+ from superdesk.upload import url_for_media
+ from .common import update_dates_for, generate_guid, GUID_TAG, set_original_creator, \
+     generate_unique_id_and_name, set_item_expiry
+diff -r -u ../../../vpp-superdesk/server/apps/archive/archive.py archive/archive.py
+--- ../../../vpp-superdesk/server/apps/archive/archive.py	2015-10-15 02:03:33.056120241 +0200
++++ archive/archive.py	2015-10-15 02:56:51.159238011 +0200
+@@ -10,7 +10,7 @@
+ 
+ import flask
+ from superdesk.resource import Resource
+-from superdesk.metadata.utils import extra_response_fields, item_url, aggregations
++from vpp.metadata.utils import extra_response_fields, item_url, aggregations
+ from .common import remove_unwanted, update_state, set_item_expiry, remove_media_files, \
+     is_update_allowed, on_create_item, on_duplicate_item, get_user, update_version, set_sign_off, \
+     handle_existing_data, item_schema, validate_schedule, is_item_in_package, is_normal_package, \
+@@ -24,7 +24,7 @@
+ from eve.utils import parse_request, config
+ from superdesk.services import BaseService
+ from superdesk.users.services import current_user_has_privilege, is_admin
+-from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO, LINKED_IN_PACKAGES, \
++from vpp.metadata.item import ITEM_STATE, CONTENT_STATE, CONTENT_TYPE, ITEM_TYPE, EMBARGO, LINKED_IN_PACKAGES, \
+     PUBLISH_STATES
+ from apps.common.components.utils import get_component
+ from apps.item_autosave.components.item_autosave import ItemAutosave
+@@ -41,7 +41,7 @@
+ from superdesk.utc import utcnow
+ import datetime
+ from settings import DEFAULT_SOURCE_VALUE_FOR_MANUAL_ARTICLES, VERSION
+-from superdesk.metadata.packages import RESIDREF, SEQUENCE
++from vpp.metadata.packages import RESIDREF, SEQUENCE
+ 
+ 
+ logger = logging.getLogger(__name__)
+@@ -250,6 +250,9 @@
+         updated.update(updates)
+         self.validate_embargo(updated)
+ 
++        if updates.get('vpp_tag'):
++            updates['vpp_tag'] = list(set(updates['vpp_tag']))
++
+     def on_updated(self, updates, original):
+         get_component(ItemAutosave).clear(original['_id'])
+ 
+@@ -295,6 +298,18 @@
+         if doc[ITEM_TYPE] == CONTENT_TYPE.COMPOSITE:
+             self.packageService.on_deleted(doc)
+ 
++        if doc:
++            if doc.get('renditions'):
++                for file_id in [rend.get('media') for rend in doc.get('renditions', {}).values()
++                                if rend.get('media')]:
++                    try:
++                        app.media.delete(file_id)
++                    except (NotFound):
++                        pass
++            if doc.get('verification') and doc.get('verification').get('results'):
++                get_resource_service('verification_results').delete_action(
++                    {'_id': doc.get('verification').get('results')}
++                )
+         remove_media_files(doc)
+ 
+         add_activity(ACTIVITY_DELETE, 'removed item {{ type }} about {{ subject }}',
+Only in archive/: archive.py.orig
+Only in archive/: archive.py.rej
+diff -r -u ../../../vpp-superdesk/server/apps/archive/archive_rewrite.py archive/archive_rewrite.py
+--- ../../../vpp-superdesk/server/apps/archive/archive_rewrite.py	2015-09-16 13:38:19.039674865 +0200
++++ archive/archive_rewrite.py	2015-10-15 02:55:06.088187412 +0200
+@@ -13,9 +13,9 @@
+ from flask import request
+ 
+ from superdesk import get_resource_service, Service
+-from superdesk.metadata.item import ITEM_STATE, EMBARGO
++from vpp.metadata.item import ITEM_STATE, EMBARGO
+ from superdesk.resource import Resource, build_custom_hateoas
+-from apps.archive.common import CUSTOM_HATEOAS
++from vpp.archive.common import CUSTOM_HATEOAS
+ from superdesk.metadata.utils import item_url
+ from superdesk.workflow import is_workflow_state_transition_valid
+ from superdesk.errors import SuperdeskApiError, InvalidStateTransitionError
+diff -r -u ../../../vpp-superdesk/server/apps/archive/archive_spike.py archive/archive_spike.py
+--- ../../../vpp-superdesk/server/apps/archive/archive_spike.py	2015-09-16 13:38:19.039674865 +0200
++++ archive/archive_spike.py	2015-10-15 02:55:06.088187412 +0200
+@@ -16,7 +16,7 @@
+ import superdesk
+ from superdesk import get_resource_service
+ from superdesk.errors import SuperdeskApiError, InvalidStateTransitionError
+-from superdesk.metadata.item import ITEM_STATE
++from vpp.metadata.item import ITEM_STATE
+ from superdesk.notification import push_notification
+ from superdesk.services import BaseService
+ from superdesk.utc import get_expiry_date
+diff -r -u ../../../vpp-superdesk/server/apps/archive/common.py archive/common.py
+--- ../../../vpp-superdesk/server/apps/archive/common.py	2015-10-15 02:03:33.056120241 +0200
++++ archive/common.py	2015-10-15 02:57:23.957273315 +0200
+@@ -22,12 +22,12 @@
+ from superdesk.utc import utcnow, get_expiry_date
+ from settings import ORGANIZATION_NAME_ABBREVIATION
+ from superdesk import get_resource_service
+-from superdesk.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, \
++from vpp.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, \
+     LINKED_IN_PACKAGES, BYLINE, SIGN_OFF, EMBARGO, ITEM_TYPE, CONTENT_TYPE
+ from superdesk.workflow import set_default_state, is_workflow_state_transition_valid
+-from superdesk.metadata.item import GUID_NEWSML, GUID_FIELD, GUID_TAG, not_analyzed
+-from superdesk.metadata.packages import PACKAGE_TYPE, TAKES_PACKAGE, SEQUENCE
+-from superdesk.metadata.utils import generate_guid
++from vpp.metadata.item import GUID_NEWSML, GUID_FIELD, GUID_TAG, not_analyzed
++from vpp.metadata.packages import PACKAGE_TYPE, TAKES_PACKAGE, SEQUENCE
++from vpp.metadata.utils import generate_guid
+ from superdesk.errors import SuperdeskApiError, IdentifierGenerationError
+ from apps.auth import get_user
+ 
+Only in archive/: common.py.orig
+Only in archive/: common.py.rej
+diff -r -u ../../../vpp-superdesk/server/apps/archive/ingest.py archive/ingest.py
+--- ../../../vpp-superdesk/server/apps/archive/ingest.py	2015-09-16 13:38:19.039674865 +0200
++++ archive/ingest.py	2015-10-15 02:58:10.429212686 +0200
+@@ -12,7 +12,7 @@
+ from .common import on_create_item, handle_existing_data
+ from eve.utils import config
+ 
+-from superdesk.io.ingest import IngestResource, IngestService, STATE_INGESTED  # NOQA
++from vpp.ingest import IngestResource, IngestService, STATE_INGESTED  # NOQA
+ 
+ 
+ class AppIngestService(IngestService):
+Only in archive/: __pycache__
+diff -r -u ../../../vpp-superdesk/server/apps/archive/user_content.py archive/user_content.py
+--- ../../../vpp-superdesk/server/apps/archive/user_content.py	2015-09-16 13:38:19.039674865 +0200
++++ archive/user_content.py	2015-10-15 02:55:06.088187412 +0200
+@@ -11,10 +11,11 @@
+ from superdesk.resource import Resource, build_custom_hateoas
+ from superdesk.services import BaseService
+ from .common import CUSTOM_HATEOAS
+-from superdesk.metadata.utils import aggregations
+ from .archive import ArchiveResource
+ import superdesk
+ 
++from vpp.metadata.utils import aggregations
++
+ 
+ class UserContentResource(Resource):
+     endpoint_name = 'user_content'

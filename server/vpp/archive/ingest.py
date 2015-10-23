@@ -12,7 +12,7 @@ from superdesk.workflow import set_default_state
 from .common import on_create_item, handle_existing_data
 from eve.utils import config
 
-from .ingest_io import IngestResource, IngestService, STATE_INGESTED  # NOQA
+from vpp.ingest import IngestResource, IngestService, STATE_INGESTED  # NOQA
 
 
 class AppIngestService(IngestService):
