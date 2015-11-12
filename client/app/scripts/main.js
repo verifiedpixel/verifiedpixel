@@ -34,7 +34,7 @@ define('main', [
         superdesk.constant('config', config);
         superdesk.constant('lodash', _);
 
-        // verifiedpixel list must be the default page
+        // setup default route for superdesk - set it here to avoid it being used in unit tests
         superdesk.config(['$routeProvider', function($routeProvider) {
             $routeProvider.when('/', {redirectTo: '/verifiedpixel'});
         }]);
