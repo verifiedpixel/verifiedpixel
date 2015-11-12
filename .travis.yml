@@ -74,7 +74,7 @@ before_script:
 script:
         #cd server && behave ./features/ --format progress2 --logging-level ERROR && cd .. ;
     - if [ "${TARGET}" = "server_unit" ]; then
-        cd server && nosetests vpp --with-coverage --cover-package=vpp.verifiedpixel && cd .. &&
+        cd server && nosetests vpp && cd .. &&
         cd server && flake8 && cd .. ;
         cp server/INSTALL.md server/INSTALL.md.orig &&
         cp client/INSTALL.md client/INSTALL.md.orig &&

@@ -58,6 +58,7 @@ MOCKS = {
         'function': activate_izitru_mock,
         'fixtures': [
             {"response_file": "test/vpp/mock_izitru_1.json"},
+            {"response_file": "test/vpp/mock_izitru_2.json"},
             {"response_file": "test/vpp/mock_izitru_3.json"},
             {"response_file": "test/vpp/mock_izitru_4.json"},
             {"response_file": "test/vpp/mock_izitru_5.json"},
@@ -81,7 +82,9 @@ MOCKS = {
     'incandescent_callback': {
         'function': activate_incandescent_mock,
         'fixtures': [
-            {"response_file": './test/vpp/incandescent_result_response.json'}
+            {"response_file": './test/vpp/incandescent_result_response.json'},
+            {"response_file": './test/vpp/incandescent_result_response_710.json'},
+            {"response_file": './test/vpp/incandescent_result_response_755.json'}
         ]
     },
 }
@@ -105,6 +108,7 @@ def write_results(api_name, item_id, verification_id, verification_stats, verifi
         )
     )
     if verification_results:
+        # @TODO: write date
         handle_elastic_write_problems_wrapper(
             lambda: superdesk.get_resource_service('verification_results').patch(
                 verification_id,
@@ -251,17 +255,30 @@ def wait_for_results(*args, **kwargs):
     return
 
 
-def verify_items(items, resource, desk_id):
+def verify_items(items, resource, desk_id, verification_providers=None):
     for item in items:
-        verification_id = handle_elastic_write_problems_wrapper(
-            lambda: superdesk.get_resource_service('verification_results').post([{}])
-        )[0]
-        handle_elastic_write_problems_wrapper(
-            lambda: superdesk.get_resource_service(resource).patch(
-                item['_id'],
-                {'verification.results': verification_id}
+
+        incandescent_enabled = True
+        common_api_getters = API_GETTERS
+        if verification_providers:
+            incandescent_enabled = False
+            if 'incandescent' in verification_providers:
+                incandescent_enabled = True
+                verification_providers.remove('incandescent')
+            common_api_getters = {name: API_GETTERS[name] for name in verification_providers}
+
+        verification_id = item.get('verification', {}).get('results', None)
+        if not verification_id:
+            verification_id = handle_elastic_write_problems_wrapper(
+                lambda: superdesk.get_resource_service('verification_results').post([{}])
+            )[0]
+            handle_elastic_write_problems_wrapper(
+                lambda: superdesk.get_resource_service(resource).patch(
+                    item['_id'],
+                    {'verification.results': verification_id}
+                )
             )
-        )
+
         filename = item.get('slugline', "(no headline)")
         info(
             'found new item for verification: "{}"'.format(filename)
@@ -275,25 +292,28 @@ def verify_items(items, resource, desk_id):
             "content": content,
             "href": href
         }
-        verification_tasks = group(
-            (
-                chord([
-                    append_api_results_to_item.subtask(
-                        args=(
-                            item, api_name,
-                            [all_args[arg_name] for arg_name in data['args']]
-                        ),
-                        kwargs={
-                            'verification_id': verification_id,
-                            'resource': resource,
-                        }
-                    )
-                    for api_name, data in API_GETTERS.items()
-                ],
-                    wait_for_results.subtask()
+
+        common_tasks = (
+            chord([
+                append_api_results_to_item.subtask(
+                    args=(
+                        item, api_name,
+                        [all_args[arg_name] for arg_name in data['args']]
+                    ),
+                    kwargs={
+                        'verification_id': verification_id,
+                        'resource': resource,
+                    }
                 )
-            ),
-            (
+                for api_name, data in common_api_getters.items()
+            ],
+                wait_for_results.subtask()
+            )
+        )
+        if not incandescent_enabled:
+            verification_tasks = common_tasks
+        else:
+            incandescent_tasks = (
                 append_incandescent_results_to_item.subtask(
                     kwargs={
                         "item": item,
@@ -308,7 +328,8 @@ def verify_items(items, resource, desk_id):
                     }
                 )
             )
-        )
+            verification_tasks = group(common_tasks, incandescent_tasks)
+
         chord(
             verification_tasks,
             finalize_verification.subtask(

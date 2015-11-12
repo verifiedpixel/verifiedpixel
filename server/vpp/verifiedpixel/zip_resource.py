@@ -5,6 +5,7 @@ from flask import json
 from eve.utils import ParsedRequest
 from io import BytesIO, StringIO
 from bson.objectid import ObjectId
+from datetime import datetime
 
 from superdesk.celery_app import celery
 from superdesk.resource import Resource
@@ -94,8 +95,9 @@ def zip_items(result_id, items_ids):
     zip_file = zipfile.ZipFile(zip_file_object, mode='w')
     for item in items:
         item_id = item['_id']
+        extension = item.get('mimetype', 'image/jpeg').split('/')[-1]
         image = get_original_image(item, 'archive')[1]
-        zip_file.writestr(item_id, image)
+        zip_file.writestr("{id}.{ext}".format(id=item_id, ext=extension), image)
         item['verification']['results'] = verification_results[
             item['verification']['results']
         ]
@@ -107,7 +109,10 @@ def zip_items(result_id, items_ids):
     zip_file.close()
 
     uploaded_zip_id = app.media.put(
-        zip_file_object.getvalue(), filename=str(items_ids),
+        zip_file_object.getvalue(), filename="{name}_{date}.zip".format(
+            name=items[0].get('slugline', None) or 'image' if len(items) == 1 else 'images',
+            date=datetime.now().isoformat()
+        ),
         content_type='application/zip',
         resource=vppzip_service.datasource,
         metadata={}

@@ -1,14 +1,35 @@
 <div class="metadata-view">
-  <div class="vpp-card" ng-class="(item.verification.stats.tineye.total > 0) ? 'yellow-top' : 'gray-top'" ng-if="item.verification.stats.tineye.total">
+
+  <button class="btn refresh" ng-click="refreshVerificationResults(item, 'tineye')">
+    <i class="fa fa-refresh"></i>&nbsp;<span translate>Refresh</span>
+  </button>
+
+  <div class="vpp-card gray-top" ng-if="!item.verification.stats.tineye.total || item.verification.stats.tineye.total == 0">
+    <div class=block-head>
+      <span translate>
+        No matches found
+      </span>
+    </div>
+    <p class="info-text">
+      TinEye reverse image search was not able to find a match online. While that's a good indicator that the image may be original, it's important to remember that there are many reasons why it wouldn't be in Tineye's index.
+    </p>
+  </div>
+
+  <div class="vpp-card yellow-top" ng-if="item.verification.stats.tineye.total > 0">
 
     <div class=block-head>
-      <span translate>Tineye Total Results</headline>
-      <span class="pull-right">{{ item.verification.stats.tineye.total }}</headline>
+      <span translate>Tineye Total Results</span>
+      <div class="pull-right">
+        <span>{{ item.verification.stats.tineye.total }}</span>
+        <span class=page-count>(page: {{pageNumber || 1}} / {{numPages}})</span>
+      </div>
     </div>
+
+    <pagination total-items="item.verification.stats.tineye.total" ng-model="pageNumber" max-size="10" class="pagination-sm pagination" boundary-links="true" rotate="false" num-pages="numPages"></pagination>
 
     <ul ng-if="item.verification.results.tineye.results.matches" class="tineye-matches">
       <!--@TODO:-->
-      <li ng-repeat="match in item.verification.results.tineye.results.matches | orderBy: -'earliest_crawl_date' |limitTo:10">
+      <li ng-repeat="match in item.verification.results.tineye.results.matches | orderBy: '-earliest_crawl_date' | paginate: pageNumber : 10">
         <dl>
           <dt>
             <ul>
