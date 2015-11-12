@@ -41,14 +41,14 @@ module.exports = function (grunt) {
         'template:docs',
         'connect:test',
         'open:docs',
-        //'ngtemplates',
+        'ngtemplates',
         'watch'
     ]);
 
     grunt.registerTask('server', [
         'clean',
         'style',
-        //'ngtemplates',
+        'ngtemplates',
         'template:test',
         'connect:test',
         'open:test',
@@ -59,14 +59,14 @@ module.exports = function (grunt) {
         'style',
         'template:mock',
         'connect:mock',
-        //'ngtemplates',
+        'ngtemplates',
         'watch'
     ]);
 
     grunt.registerTask('server:travis', [
         'clean',
         'style',
-        //'ngtemplates',
+        'ngtemplates',
         'template:travis',
         'connect:travis'
     ]);
@@ -78,7 +78,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [
         'clean',
         'less:dev',
-        //'ngtemplates',
+        'ngtemplates',
         'useminPrepare',
         'concat',
         'requirejs', // must go after concat
