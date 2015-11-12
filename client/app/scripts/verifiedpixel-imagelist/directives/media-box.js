@@ -1,7 +1,7 @@
-define([], function() {
-    'use strict';
+'use strict';
 
-    return ['$location', 'lock', 'multi', function($location, lock, multi) {
+angular.module('verifiedpixel.imagelist').directive('vpMediaBox', [
+    '$location', 'lock', 'multi', function($location, lock, multi) {
         return {
             restrict: 'A',
             templateUrl: 'scripts/verifiedpixel-imagelist/views/media-box.html',
@@ -67,6 +67,6 @@ define([], function() {
                 };
             }
         };
-    }];
+    }
 
-});
+]);

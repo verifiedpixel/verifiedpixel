@@ -1,10 +1,10 @@
-define([], function() {
-    'use strict';
+'use strict';
 
+angular.module('verifiedpixel.imagelist').directive('vpItemRendition', [
     /**
      * Item filters sidebar
      */
-    return ['imagetools', function (imagetools) {
+    'imagetools', function (imagetools) {
         return {
             templateUrl: 'scripts/verifiedpixel-imagelist/views/item-rendition.html',
             scope: {
@@ -61,6 +61,6 @@ define([], function() {
                 }
             } // end link
         };
-    }];
+    }
 
-});
+]);

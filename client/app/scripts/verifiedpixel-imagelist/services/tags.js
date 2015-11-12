@@ -1,7 +1,8 @@
-define([], function() {
-    'use strict';
+'use strict';
 
-    return ['$location', 'desks',
+angular.module('verifiedpixel.imagelist').service('tags', [
+    '$location',
+    'desks',
     function TagService($location, desks) {
         var tags = {};
         tags.selectedFacets = {};
@@ -131,7 +132,7 @@ define([], function() {
             initSelectedFacets: initSelectedFacets,
             removeFacet: removeFacet
         };
-    }];
+    }
 
-});
+]);
 

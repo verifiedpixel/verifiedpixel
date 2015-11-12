@@ -40,6 +40,45 @@
 
     <!-- build:js scripts/verifiedpixel.js -->
     <script src="scripts/verifiedpixel-imagelist/module.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/services/imagelist.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/verification.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/imagetools.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/tagging.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/tags.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/controllers/image-list.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/controllers/multi-action-bar.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/filters/facet-labels.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/filters/email-filter.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/filters/paginate.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/directives/glossary.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/exif-orient.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/item-preview.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/user-mentio.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/search-container.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/multi-action-bar.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-all.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/exif-where.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/exif-camera.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-map.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-exif.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru-device.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru-verdict.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru-device-insight.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-tineye.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-gris.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-comments.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/comment-text.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/item-rendition.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/item-search.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-box.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/search-facets.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/search-results.js"></script>
+
     <script src="scripts/templates-cache.js"></script>
     <!-- endbuild -->
 
@@ -94,8 +133,7 @@
             'superdesk-settings/module',
             'superdesk-dashboard/module',
             'superdesk-archive/module',
-            'superdesk-ingest/module',
-            'verifiedpixel-imagelist/module'
+            'superdesk-ingest/module'
         ], function(bootstrap) {
             bootstrap(config, modules);
         });

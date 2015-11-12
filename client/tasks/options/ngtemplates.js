@@ -4,7 +4,6 @@ module.exports = {
     app: {
         cwd: 'app',
         src: [
-            //'scripts/bower_components/superdesk/client/app/scripts/superdesk*/**/*.html',
             'scripts/verifiedpixel*/**/*.html'
         ],
         dest: 'app/scripts/templates-cache.js',

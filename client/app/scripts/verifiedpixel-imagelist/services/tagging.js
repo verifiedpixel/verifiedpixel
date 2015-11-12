@@ -1,8 +1,9 @@
-define([], function() {
-    'use strict';
+'use strict';
 
-    return ['metadata', 'api', 
-    function TaggingService(metadata, api) {
+angular.module('verifiedpixel.imagelist').service('tagging', [
+    'metadata',
+    'api', 
+    function (metadata, api) {
 
         var vppTags;
         this.getTags = function(scope) {
@@ -37,6 +38,4 @@ define([], function() {
         };
 
     }
-    ];
-
-});
+]);
