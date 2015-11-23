@@ -71,17 +71,13 @@ module.exports = function (grunt) {
         'connect:travis'
     ]);
 
-    grunt.registerTask('bower', [
-        'build',
-        'copy:bower'
-    ]);
     grunt.registerTask('build', [
         'clean',
         'less:dev',
         'ngtemplates',
         'useminPrepare',
         'concat',
-        'requirejs', // must go after concat
+        //'requirejs', // must go after concat
         'uglify',
         'cssmin',
         'copy:assets',

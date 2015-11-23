@@ -27,6 +27,9 @@
 
     <div sd-superdesk-view></div>
 
+    <!-- this does not work when included in vendor.js build -->
+    <script src="//maps.google.com/maps/api/js?sensor=false"></script>
+
     <!-- build:js scripts/superdesk.js -->
     <script src="scripts/bower_components/superdesk-client/client/bower/scripts/vendor.js"></script>
     <script src="scripts/bower_components/superdesk-client/client/bower/scripts/superdesk-core.min.js"></script>
@@ -34,7 +37,6 @@
     <!-- endbuild -->
 
     <!-- build:js scripts/vendor.js -->
-    <script src="//maps.google.com/maps/api/js?sensor=false"></script>
     <script src="scripts/bower_components/ngmap/build/scripts/ng-map.min.js"></script>
     <!-- endbuild -->
 
@@ -78,7 +80,6 @@
     <script src="scripts/verifiedpixel-imagelist/directives/media-box.js"></script>
     <script src="scripts/verifiedpixel-imagelist/directives/search-facets.js"></script>
     <script src="scripts/verifiedpixel-imagelist/directives/search-results.js"></script>
-
     <script src="scripts/templates-cache.js"></script>
     <!-- endbuild -->
 
@@ -111,7 +112,6 @@
             'superdesk.content_filters',
             'superdesk.dictionaries',
             'superdesk.vocabularies',
-
             'superdesk.users.import',
             'superdesk.users.profile',
             'superdesk.users.activity',
@@ -119,7 +119,6 @@
             'superdesk.publish',
             'superdesk.templates',
             'superdesk.monitoring',
-
             'superdesk.loading',
             'superdesk.templates-cache',
 
