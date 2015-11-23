@@ -1,7 +1,7 @@
-define([], function() {
-    'use strict';
+'use strict';
 
-    return function ImageToolsService() {
+angular.module('verifiedpixel.imagelist').service('imagetools', [
+    function() {
 
         /**
          * Reorient specified element.
@@ -240,5 +240,5 @@ define([], function() {
             return converted;
         };
 
-    };
-});
+    }
+]);

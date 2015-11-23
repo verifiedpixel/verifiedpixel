@@ -4,10 +4,9 @@ module.exports = {
     app: {
         cwd: 'app',
         src: [
-            'scripts/bower_components/superdesk/client/app/scripts/superdesk*/**/*.html',
-            'scripts/verifiedpixel*/**/*.html',
+            'scripts/verifiedpixel*/**/*.html'
         ],
-        dest: 'app/scripts/vpp-templates.js',
+        dest: 'app/scripts/templates-cache.js',
         options: {
             htmlmin: {
                 collapseWhitespace: true,
@@ -15,8 +14,8 @@ module.exports = {
             },
             bootstrap:  function(module, script) {
                 return '"use strict";' +
-                    'var vpptemplates = angular.module("vpp.templates", []);' +
-                    'templates.run([\'$templateCache\', function($templateCache) {' +
+                    'angular.module("verifiedpixel.templates-cache", [])' +
+                    '.run([\'$templateCache\', function($templateCache) {' +
                     script + ' }]);';
             }
         }

@@ -14,8 +14,14 @@ module.exports = {
         tasks: ['hint'],
         files: [
             '<%= appDir %>/scripts/*.js',
-            '<%= appDir %>/scripts/**/*.js',
             '<%= appDir %>/scripts/verifiedpixel*/**/*.js'
+        ]
+    },
+    ngtemplates: {
+        options: {livereload: true},
+        tasks: [],
+        files: [
+            '<%= appDir %>/scripts/verifiedpixel*/views/*.html'
         ]
     },
     assets: {
@@ -47,10 +53,5 @@ module.exports = {
         options: {livereload: true},
         tasks: ['template:docs'],
         files: ['<%= appDir %>/docs.html']
-    },
-    ng_templates: {
-        options: {livereload: true},
-        tasks: ['ngtemplates:app'],
-        files: ['<%= appDir %>/scripts/verifiedpixel*/**/*.html']
     }
 };

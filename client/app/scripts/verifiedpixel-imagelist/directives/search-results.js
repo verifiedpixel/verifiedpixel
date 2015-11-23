@@ -1,11 +1,11 @@
-define([], function() {
-    'use strict';
-
+'use strict';
+ 
+angular.module('verifiedpixel.imagelist').directive('vpSearchResults', [
     /**
      * Item list with sidebar preview
      */
-    return ['$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset', 'imagelist',
-        function($timeout, $location, api, preferencesService, packages, tags, asset, imagelist) {
+    '$timeout', '$location', 'api', 'preferencesService', 'packages', 'tags', 'asset', 'imagelist',
+     function($timeout, $location, api, preferencesService, packages, tags, asset, imagelist) {
         var update = {
             'archive:view': {
                 'allowed': [
@@ -124,6 +124,6 @@ define([], function() {
                 }
             }
         };
-    }];
+    }
 
-});
+]);

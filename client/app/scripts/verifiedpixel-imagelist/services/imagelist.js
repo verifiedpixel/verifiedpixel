@@ -1,11 +1,9 @@
-define([], function() {
-  'use strict';
+'use strict';
 
-  return [
+angular.module('verifiedpixel.imagelist').service('imagelist', [
     '$location',
     'gettext',
     'api',
-
     function ($location, gettext, api) {
 
       var sortOptions = [
@@ -309,6 +307,4 @@ define([], function() {
       };
 
     }
-
-  ];
-});
+]);

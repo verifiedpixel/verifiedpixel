@@ -1,11 +1,11 @@
-define([], function() {
-    'use strict';
+'use strict';
 
+angular.module('verifiedpixel.imagelist').directive('vpItemSearch', [
         /**
          * Item search component
          */
-        return ['$location', '$timeout', 'asset', 'api', 'tags', 'imagelist', 'metadata',
-            function($location, $timeout, asset, api, tags, imagelist, metadata) {
+        '$location', '$timeout', 'asset', 'api', 'tags', 'imagelist', 'metadata',
+        function($location, $timeout, asset, api, tags, imagelist, metadata) {
             return {
                 scope: {
                     repo: '=',
@@ -188,6 +188,6 @@ define([], function() {
                     };
                 }
             };
-        }];
+        }
 
-});
+]);

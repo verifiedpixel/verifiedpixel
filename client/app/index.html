@@ -8,6 +8,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
      <!-- Superdesk styles -->
+    <link rel="stylesheet" href="scripts/bower_components/superdesk-client/client/bower/styles/css/bootstrap.css">
+    <link rel="stylesheet" href="scripts/bower_components/superdesk-client/client/bower/styles/css/app.css">
+
+     <!-- VerifiedPixel styles -->
     <link rel="stylesheet" href="styles/css/vp-bootstrap.css">
     <link rel="stylesheet" href="styles/css/verifiedpixel.css">
     <link rel="stylesheet" href="styles/css/app.css">
@@ -23,86 +27,60 @@
 
     <div sd-superdesk-view></div>
 
-    <!-- this does not work when compiled into vendor file -->
+    <!-- this does not work when included in vendor.js build -->
     <script src="//maps.google.com/maps/api/js?sensor=false"></script>
 
+    <!-- build:js scripts/superdesk.js -->
+    <script src="scripts/bower_components/superdesk-client/client/bower/scripts/vendor.js"></script>
+    <script src="scripts/bower_components/superdesk-client/client/bower/scripts/superdesk-core.min.js"></script>
+    <script src="scripts/bower_components/superdesk-client/client/bower/scripts/superdesk-apps.min.js"></script>
+    <!-- endbuild -->
+
     <!-- build:js scripts/vendor.js -->
-    <script src="scripts/bower_components/jquery/dist/jquery.js"></script>
-    <script src="scripts/bower_components/jquery-ui/jquery-ui.js"></script>
-    <script src="scripts/bower_components/angular/angular.js"></script>
-    <script src="scripts/bower_components/gridster/dist/jquery.gridster.with-extras.js"></script>
-    <script src="scripts/bower_components/medium-editor/dist/js/medium-editor.js"></script>
-    <script src="scripts/bower_components/ment.io/dist/mentio.js"></script>
-    <script src="scripts/bower_components/rangy/rangy-core.js"></script>
-    <script src="scripts/bower_components/rangy/rangy-selectionsaverestore.js"></script>
-    <script src="scripts/bower_components/jszip/dist/jszip.js"></script>
-    <script src="scripts/bower_components/file-saver.js/FileSaver.js"></script>
-    <script src="scripts/bower_components/requirejs/require.js"></script>
     <script src="scripts/bower_components/ngmap/build/scripts/ng-map.min.js"></script>
     <!-- endbuild -->
 
-    <!-- build:js scripts/superdesk-core.js -->
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/editor/editor.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/features/features.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/services/asset.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/list/list.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/keyboard/keyboard.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/privileges/privileges.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/notification/notification.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/itemList/itemList.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/menu/menu.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/menu/notifications/notifications.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-workspace/content/content.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-dashboard/workspace-tasks/tasks.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-users/users.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-users/profile.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-users/activity/activity.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-users/import/import.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-groups/groups.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-publish/publish.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-publish/filters/publish-filters.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-templates/templates.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/templates.js"></script>
-    <!-- endbuild -->
-
-    <!-- build:js scripts/superdesk.js -->
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-desks/aggregate.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-desks/aggregate-widget/aggregate.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-desks/desks.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/authoring.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/widgets/widgets.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/comments/comments.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/versioning/versioning.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/versioning/versions/versions.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/versioning/history/history.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/metadata/metadata.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/workqueue/workqueue.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/packages/packages.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/editor/find-replace.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/multiedit/multiedit.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-authoring/macros/macros.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-search/search.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-legal-archive/legal_archive.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-stream/stream.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-packaging/packaging.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-dictionaries/dictionaries.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-archive/directives.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk/editor/spellcheck/spellcheck.js"></script>
-
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-monitoring/monitoring.js"></script>
-    <script src="scripts/bower_components/superdesk/client/app/scripts/superdesk-workspace/workspace.js"></script>
-
-    <!-- endbuild -->
-
     <!-- build:js scripts/verifiedpixel.js -->
-    <script src="scripts/vpp-templates.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/module.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/services/imagelist.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/verification.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/imagetools.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/tagging.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/services/tags.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/controllers/image-list.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/controllers/multi-action-bar.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/filters/facet-labels.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/filters/email-filter.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/filters/paginate.js"></script>
+
+    <script src="scripts/verifiedpixel-imagelist/directives/glossary.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/exif-orient.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/item-preview.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/user-mentio.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/search-container.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/multi-action-bar.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-all.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/exif-where.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/exif-camera.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-map.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-exif.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru-device.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru-verdict.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-izitru-device-insight.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-tineye.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-gris.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-comments.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/comment-text.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/item-rendition.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/item-search.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/media-box.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/search-facets.js"></script>
+    <script src="scripts/verifiedpixel-imagelist/directives/search-results.js"></script>
+    <script src="scripts/templates-cache.js"></script>
     <!-- endbuild -->
 
     <!-- build:js scripts/config.js -->
@@ -115,9 +93,6 @@
 
     <script>
         var config = <%= grunt.toJSON(config) %>;
-        config.paths = {
-            superdesk: 'scripts/bower_components/superdesk/client/app/'
-        };
         var modules = [
             'superdesk.settings',
             'superdesk.dashboard',
@@ -125,7 +100,6 @@
             'superdesk.archive',
             'superdesk.archive.directives',
             'superdesk.ingest',
-            //'superdesk.scratchpad',
             'superdesk.desks',
             'superdesk.groups',
             'superdesk.authoring',
@@ -134,19 +108,22 @@
             'superdesk.editor',
             'superdesk.editor.spellcheck',
             'superdesk.notification',
-            //'superdesk.highlights',
+            'superdesk.highlights',
+            'superdesk.content_filters',
             'superdesk.dictionaries',
-
+            'superdesk.vocabularies',
             'superdesk.users.import',
             'superdesk.users.profile',
             'superdesk.users.activity',
             'superdesk.stream',
-            //'superdesk.publish',
+            'superdesk.publish',
             'superdesk.templates',
             'superdesk.monitoring',
-            'templates',
-            'vpp.templates',
+            'superdesk.loading',
+            'superdesk.templates-cache',
 
+            // verified pixel modules
+            'verifiedpixel.templates-cache',
             'verifiedpixel.imagelist'
         ];
 
@@ -155,11 +132,11 @@
             'superdesk-settings/module',
             'superdesk-dashboard/module',
             'superdesk-archive/module',
-            'superdesk-ingest/module',
-            'verifiedpixel-imagelist/module'
+            'superdesk-ingest/module'
         ], function(bootstrap) {
             bootstrap(config, modules);
         });
+
     </script>
   </body>
 </html>

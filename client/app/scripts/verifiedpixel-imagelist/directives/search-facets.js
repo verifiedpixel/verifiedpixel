@@ -1,11 +1,11 @@
-define([], function() {
-    'use strict';
+'use strict';
 
+angular.module('verifiedpixel.imagelist').directive('vpSearchFacets', [
     /**
      * Item filters sidebar
      */
-    return ['$location', 'desks', 'privileges', 'tags', 'tagging',
-        function($location, desks, privileges, tags, tagging) {
+    '$location', 'desks', 'privileges', 'tags', 'tagging',
+     function($location, desks, privileges, tags, tagging) {
         desks.initialize();
         return {
             require: '^vpSearchContainer',
@@ -188,6 +188,6 @@ define([], function() {
                 };
             }
         };
-    }];
+    }
 
-});
+]);

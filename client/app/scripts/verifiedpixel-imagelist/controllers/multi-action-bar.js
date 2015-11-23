@@ -1,7 +1,6 @@
-define([], function() {
-  'use strict';
+'use strict';
 
-  return [
+angular.module('verifiedpixel.imagelist').controller('MultiActionBar', [
     'multi',
     'multiEdit',
     'send',
@@ -16,7 +15,7 @@ define([], function() {
     '$window',
     'imagelist',
     'tagging',
-    function MultiActionBarController(
+    function (
         multi, multiEdit, send, packages, superdesk, notify, spike, authoring,
         api, $http, $scope, $window, imagelist, tagging) {
       var ctrl = this;
@@ -103,6 +102,5 @@ define([], function() {
         return canSpike;
       };
     }
-  ];
 
-});
+]);

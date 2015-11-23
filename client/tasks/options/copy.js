@@ -41,6 +41,7 @@ module.exports = {
             dest: '<%= distDir %>',
             src: [
                 'scripts/config.js',
+                'scripts/gettext.js',
                 'scripts/bower_components/**/*.js'
             ]
         }]
