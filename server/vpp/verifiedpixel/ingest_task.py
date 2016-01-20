@@ -203,8 +203,8 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
             verification_results = results_object['results']
         except APIGracefulException as e:
             if self.request.retries < self.max_retries:
-                info("{api}: result is not ready for {file}, retrying... ({num} of {max})".format(
-                    api=api_name, file=filename, num=self.request.retries, max=self.max_retries))
+                info("{api}: result is not ready for {file}, retrying... ({num} of {max})\n{e}".format(
+                    api=api_name, file=filename, num=self.request.retries, max=self.max_retries, e=e))
                 raise self.retry(exc=e, countdown=self.countdown)
             else:
                 error("{api}: timeout exceeded on "
