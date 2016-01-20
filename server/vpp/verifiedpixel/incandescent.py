@@ -56,8 +56,10 @@ def get_incandescent_results_callback(get_data):
         'POST', 'https://incandescent.xyz/api/get/', data=json.dumps(get_data), headers=get_headers
     )
     raw_results = get_response.json()
-    if raw_results.get('status', None) == 710:
+    if raw_results.get('status', None) == 701:
         raise(APIGracefulException(raw_results))
+    if raw_results.get('status', None) == 710:
+        raise(Exception(raw_results))
     if raw_results.get('status', None) == 755:
         apis = ['google', 'bing', 'baidu', 'yandex', 'other']
         return {
