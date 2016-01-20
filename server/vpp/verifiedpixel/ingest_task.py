@@ -212,6 +212,12 @@ def append_incandescent_results_to_item_callback(self, get_data, item_id, filena
                           api=api_name, file=filename, exception=e))
                 verification_results = {"status": "error", "message": repr(e)}
                 verification_stats = {}
+        except Exception as e:
+            error("{api}: unhandled exception on "
+                  "verification of {file}:\n {exception}".format(
+                      api=api_name, file=filename, exception=e))
+            verification_results = {"status": "error", "message": repr(e)}
+            verification_stats = {}
         else:
             info("{api}: matchs found for {file}.".format(
                 api=api_name, file=filename))
