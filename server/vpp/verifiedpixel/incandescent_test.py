@@ -31,7 +31,7 @@ class IncandescenTest(TestCase, VPPTestCase):
     )
     def test_retry_failed_incandescent200_710(self):
         get_data = get_incandescent_results('image.jpg.to')
-        with self.assertRaises(APIGracefulException):
+        with self.assertRaises(Exception):
             get_incandescent_results_callback(get_data)
 
     @activate_incandescent_mock(
@@ -40,5 +40,5 @@ class IncandescenTest(TestCase, VPPTestCase):
     )
     def test_retry_failed_incandescent200_2(self):
         get_data = get_incandescent_results('image.jpg.to')
-        with self.assertRaises(APIGracefulException):
+        with self.assertRaises(Exception):
             get_incandescent_results_callback(get_data)
