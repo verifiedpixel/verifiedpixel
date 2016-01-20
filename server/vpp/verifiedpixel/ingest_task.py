@@ -182,7 +182,7 @@ def append_incandescent_results_to_item(self, item, href):
 
 
 @celery.task(
-    max_retries=20, countdown=15, bind=True,
+    max_retries=80, countdown=15, bind=True,
     name='vpp.append_incandescent_result_callback', ignore_result=False
 )
 def append_incandescent_results_to_item_callback(self, get_data, item_id, filename, verification_id, resource):
