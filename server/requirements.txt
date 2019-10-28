@@ -17,7 +17,7 @@ Pillow==2.9.0
 requests==2.7.0
 httmock==1.2.3
 urllib3-mock==0.3.3
-Flask==0.10.1
+Flask==1.0
 Flask-Cors==2.0.1
 
 dill
