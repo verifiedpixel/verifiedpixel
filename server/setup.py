@@ -18,7 +18,7 @@ setup(
     install_requires=[
         'Eve>=0.6',
         'Eve-Elastic>=0.2.10',
-        'Flask>=0.10,<0.11',
+        'Flask>=0.10,<1.1',
         'Flask-Mail>=0.9.0,<0.10',
         'Flask-Script==2.0.5,<2.1',
         'Flask-PyMongo>=0.3.1',
