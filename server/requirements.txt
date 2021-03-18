@@ -13,7 +13,7 @@ pip>=7.1.0
 -e git+git://github.com/verifiedpixel/celery@vpp3.1.18#egg=celery
 redis
 autobahn[asyncio]==0.10.4
-Pillow==2.9.0
+Pillow==8.1.1
 requests==2.7.0
 httmock==1.2.3
 urllib3-mock==0.3.3
