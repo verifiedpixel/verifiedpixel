@@ -18,7 +18,7 @@ requests==2.7.0
 httmock==1.2.3
 urllib3-mock==0.3.3
 Flask==0.10.1
-Flask-Cors==2.0.1
+Flask-Cors==3.0.9
 
 dill
 coverage
